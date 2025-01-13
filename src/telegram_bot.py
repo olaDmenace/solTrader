@@ -1459,83 +1459,83 @@ class TradingBot:
             )
         )
 
-    async def _handle_backtest_details(self, query: CallbackQuery) -> None:
-        """Display detailed backtest analysis"""
-        try:
-            result = self.strategy.backtest_engine.last_result
-            if not result:
-                await query.edit_message_text("No backtest results available")
-                return
+    # async def _handle_backtest_details(self, query: CallbackQuery) -> None:
+    #     """Display detailed backtest analysis"""
+    #     try:
+    #         result = self.strategy.backtest_engine.last_result
+    #         if not result:
+    #             await query.edit_message_text("No backtest results available")
+    #             return
 
-            # Calculate additional metrics
-            result = self.strategy.backtest_engine.last_result
-            monthly_returns = self._calculate_monthly_returns(result.equity_curve)
-            drawdown_periods = self._analyze_drawdown_periods(result.equity_curve)
-            risk_metrics = self._calculate_risk_metrics(result)
+    #         # Calculate additional metrics
+    #         result = self.strategy.backtest_engine.last_result
+    #         monthly_returns = self._calculate_monthly_returns(result.equity_curve)
+    #         drawdown_periods = self._analyze_drawdown_periods(result.equity_curve)
+    #         risk_metrics = self._calculate_risk_metrics(result)
 
-            message = (
-                "📈 <b>Detailed Backtest Analysis</b>\n\n"
-                "<b>Monthly Returns:</b>\n"
-                f"{monthly_returns}\n\n"
-                "<b>Risk Metrics:</b>\n"
-                f"• Value at Risk (95%): {risk_metrics['var']:.2f} SOL\n"
-                f"• Expected Shortfall: {risk_metrics['es']:.2f} SOL\n"
-                f"• Sortino Ratio: {risk_metrics['sortino']:.2f}\n\n"
-                "<b>Drawdown Analysis:</b>\n"
-                f"• Average Drawdown: {drawdown_periods['avg']:.2f}%\n"
-                f"• Max Drawdown Duration: {drawdown_periods['max_duration']} days\n"
-                f"• Recovery Time: {drawdown_periods['avg_recovery']} days"
-            )
+    #         message = (
+    #             "📈 <b>Detailed Backtest Analysis</b>\n\n"
+    #             "<b>Monthly Returns:</b>\n"
+    #             f"{monthly_returns}\n\n"
+    #             "<b>Risk Metrics:</b>\n"
+    #             f"• Value at Risk (95%): {risk_metrics['var']:.2f} SOL\n"
+    #             f"• Expected Shortfall: {risk_metrics['es']:.2f} SOL\n"
+    #             f"• Sortino Ratio: {risk_metrics['sortino']:.2f}\n\n"
+    #             "<b>Drawdown Analysis:</b>\n"
+    #             f"• Average Drawdown: {drawdown_periods['avg']:.2f}%\n"
+    #             f"• Max Drawdown Duration: {drawdown_periods['max_duration']} days\n"
+    #             f"• Recovery Time: {drawdown_periods['avg_recovery']} days"
+    #         )
 
-            keyboard = [
-                [
-                    InlineKeyboardButton(
-                        "Export Details", callback_data="export_details"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "Back to Results", callback_data="view_backtest"
-                    )
-                ],
-            ]
+    #         keyboard = [
+    #             [
+    #                 InlineKeyboardButton(
+    #                     "Export Details", callback_data="export_details"
+    #                 )
+    #             ],
+    #             [
+    #                 InlineKeyboardButton(
+    #                     "Back to Results", callback_data="view_backtest"
+    #                 )
+    #             ],
+    #         ]
 
-            await query.edit_message_text(
-                message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
-            )
+    #         await query.edit_message_text(
+    #             message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
+    #         )
 
-        except Exception as e:
-            await query.edit_message_text(f"Error displaying details: {str(e)}")
+    #     except Exception as e:
+    #         await query.edit_message_text(f"Error displaying details: {str(e)}")
 
-    async def _handle_compare_results(self, query: CallbackQuery) -> None:
-        """Compare backtest results with live performance"""
-        try:
-            backtest = self.strategy.backtest_engine.last_result
-            if not backtest:
-                await query.edit_message_text("No backtest results available")
-                return
+    # async def _handle_compare_results(self, query: CallbackQuery) -> None:
+    #     """Compare backtest results with live performance"""
+    #     try:
+    #         backtest = self.strategy.backtest_engine.last_result
+    #         if not backtest:
+    #             await query.edit_message_text("No backtest results available")
+    #             return
 
-            # Get live performance metrics
-            live_metrics = await self.strategy.get_metrics()
+    #         # Get live performance metrics
+    #         live_metrics = await self.strategy.get_metrics()
 
-            message = (
-                "📊 <b>Performance Comparison</b>\n\n"
-                "<b>Metric  |  Backtest  |  Live</b>\n"
-                f"Return:   {backtest.total_return:>8.2f}% | {live_metrics['performance']['total_return']:>8.2f}%\n"
-                f"Win Rate: {backtest.win_rate:>8.2f}% | {live_metrics['performance']['win_rate']:>8.2f}%\n"
-                f"Drawdown: {backtest.max_drawdown:>8.2f}% | {live_metrics['risk']['max_drawdown']:>8.2f}%\n"
-                f"Sharpe:   {backtest.sharpe_ratio:>8.2f} | {live_metrics['performance']['sharpe_ratio']:>8.2f}\n\n"
-                "<i>Note: Live metrics are from trading start</i>"
-            )
+    #         message = (
+    #             "📊 <b>Performance Comparison</b>\n\n"
+    #             "<b>Metric  |  Backtest  |  Live</b>\n"
+    #             f"Return:   {backtest.total_return:>8.2f}% | {live_metrics['performance']['total_return']:>8.2f}%\n"
+    #             f"Win Rate: {backtest.win_rate:>8.2f}% | {live_metrics['performance']['win_rate']:>8.2f}%\n"
+    #             f"Drawdown: {backtest.max_drawdown:>8.2f}% | {live_metrics['risk']['max_drawdown']:>8.2f}%\n"
+    #             f"Sharpe:   {backtest.sharpe_ratio:>8.2f} | {live_metrics['performance']['sharpe_ratio']:>8.2f}\n\n"
+    #             "<i>Note: Live metrics are from trading start</i>"
+    #         )
 
-            keyboard = [[InlineKeyboardButton("Back", callback_data="backtest_menu")]]
+    #         keyboard = [[InlineKeyboardButton("Back", callback_data="backtest_menu")]]
 
-            await query.edit_message_text(
-                message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
-            )
+    #         await query.edit_message_text(
+    #             message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
+    #         )
 
-        except Exception as e:
-            await query.edit_message_text(f"Error comparing results: {str(e)}")
+    #     except Exception as e:
+    #         await query.edit_message_text(f"Error comparing results: {str(e)}")
 
     async def _run_optimization_task(self, query: CallbackQuery) -> None:
         """Run strategy optimization task"""
@@ -1664,47 +1664,57 @@ class TradingBot:
         try:
             sol_address = "So11111111111111111111111111111111111111112"
             logger.info(f"Fetching price for SOL address: {sol_address}")
-            
+
             try:
-                price_data = await self.strategy.jupiter_client.get_price(
+                price_response = await self.strategy.jupiter_client.get_price(
                     input_mint="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
                     output_mint=sol_address,
                     amount=1000000  # 1 USDC
                 )
-                logger.info(f"Price data received: {price_data}")
+                logger.info(f"Price data received: {price_response}")
+
+                if not isinstance(price_response, dict):
+                    await query.edit_message_text("❌ Invalid price response format")
+                    return
+
+                if 'outAmount' not in price_response:
+                    await query.edit_message_text("❌ Missing price data in response")
+                    return
+
+                # Calculate price: 1 USDC = X SOL, therefore 1 SOL = 1/X USDC
+                sol_amount = float(price_response['outAmount']) / 1e9  # Convert lamports to SOL
+                current_price = 1.0 / sol_amount if sol_amount > 0 else 0
+
+                if current_price <= 0:
+                    await query.edit_message_text("❌ Invalid price calculation")
+                    return
+
+                # Execute paper trade
+                success, message = await self.paper_trade_manager.execute_paper_trade(
+                    token_address=sol_address,
+                    size=0.1,  # Trading 0.1 SOL
+                    price=current_price,
+                    stop_loss=current_price * 0.95  # 5% stop loss
+                )
+
+                if success:
+                    await query.edit_message_text(
+                        f"✅ Paper trade opened:\n"
+                        f"Amount: 0.1 SOL\n"
+                        f"Price: ${current_price:.2f}\n"
+                        f"Stop Loss: ${(current_price * 0.95):.2f}"
+                    )
+                else:
+                    await query.edit_message_text(f"❌ Failed to execute paper trade: {message}")
+
             except Exception as price_error:
                 logger.error(f"Price fetch error: {str(price_error)}")
-                await query.edit_message_text("❌ Failed to get current price - API error")
+                await query.edit_message_text("❌ Failed to get current price")
                 return
 
-            if not price_data or 'outAmount' not in price_data:
-                await query.edit_message_text("❌ Failed to get current price - Invalid response")
-                return
-
-            # Price calculation: if 1 USDC gets us X SOL, then 1 SOL costs (1/X) USDC
-            lamports = float(price_data['outAmount'])
-            sol_for_one_usdc = lamports / 1e9  # Convert lamports to SOL
-            current_price = 1.0 / sol_for_one_usdc  # This will give us price in USDC per SOL
-
-            logger.info(f"Calculated SOL price: ${current_price:.2f}")
-            
-            # Execute paper trade with default stop loss
-            success, message = await self.paper_trade_manager.execute_paper_trade(
-                token_address=sol_address,
-                size=0.1,  # Trading 0.1 SOL
-                price=current_price,
-                stop_loss=current_price * 0.95  # 5% stop loss
-            )
-            
-            if success:
-                await query.edit_message_text(f"✅ Paper trade opened: 0.1 SOL at ${current_price:.2f}")
-                logger.info(f"Paper position opened at ${current_price:.2f}")
-                logger.info(f"Current positions: {self.paper_trade_manager.paper_positions}")
-            else:
-                await query.edit_message_text(f"❌ Failed to execute paper trade: {message}")
         except Exception as e:
             logger.error(f"Paper trade execution error: {str(e)}", exc_info=True)
-            await query.edit_message_text(f"Error executing paper trade: {str(e)}")
+            await query.edit_message_text(f"❌ Error executing paper trade: {str(e)}")
 
     async def _handle_run_backtest(self, query: CallbackQuery) -> None:
         """Handle backtest execution"""

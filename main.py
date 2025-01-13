@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import aiohttp
 from src.config.settings import Settings, load_settings
 from src.api.alchemy import AlchemyClient
 from src.api.jupiter import JupiterClient
@@ -9,8 +10,10 @@ from src.telegram_bot import TradingBot as TgramBot
 from src.trading.strategy import TradingStrategy, TradingMode
 from typing import Dict, Any, Optional
 from telegram.ext import ApplicationBuilder
+from telegram.error import TimedOut, RetryAfter
 from dotenv import load_dotenv
 load_dotenv(override=True)
+import backoff 
 
 import os
 print("ENV URL:", os.getenv('ALCHEMY_RPC_URL'))
@@ -51,22 +54,65 @@ class TradingBot:
         logger.info(f"Initial balance: {self.settings.INITIAL_PAPER_BALANCE}")
         logger.info(f"Max position size: {self.settings.MAX_POSITION_SIZE}")
 
+    # async def setup_telegram_bot(self) -> bool:
+    #     try:
+    #         if not self.settings.TELEGRAM_BOT_TOKEN or not self.settings.TELEGRAM_CHAT_ID:
+    #             logger.info("Telegram bot disabled - no token or chat ID provided")
+    #             return True
+
+    #         application = (
+    #             ApplicationBuilder()
+    #             .token(self.settings.TELEGRAM_BOT_TOKEN)
+    #             .base_url("https://api.telegram.org/bot")
+    #             .base_file_url("https://api.telegram.org/file/bot")
+    #             .get_updates_connection_pool_size(8)
+    #             .connect_timeout(30.0)
+    #             .read_timeout(30.0)
+    #             .write_timeout(30.0)
+    #             .pool_timeout(3.0)
+    #             .build()
+    #         )
+
+    #         self.telegram_bot = TgramBot(
+    #             application=application,
+    #             trading_strategy=self.strategy,
+    #             settings=self.settings
+    #         )
+
+    #         await self.telegram_bot.initialize()
+    #         await self.telegram_bot.start()  # Add this line
+    #         return True
+
+    #     except Exception as e:
+    #         logger.error(f"Error setting up Telegram bot: {str(e)}")
+    #         return False
+
     async def setup_telegram_bot(self) -> bool:
         try:
             if not self.settings.TELEGRAM_BOT_TOKEN or not self.settings.TELEGRAM_CHAT_ID:
                 logger.info("Telegram bot disabled - no token or chat ID provided")
                 return True
 
+            # First verify the bot token is valid
+            async with aiohttp.ClientSession() as session:
+                url = f"https://api.telegram.org/bot{self.settings.TELEGRAM_BOT_TOKEN}/getMe"
+                async with session.get(url, timeout=10) as response:
+                    if response.status != 200:
+                        logger.error(f"Invalid bot token or Telegram API unavailable. Status: {response.status}")
+                        return False
+
             application = (
                 ApplicationBuilder()
                 .token(self.settings.TELEGRAM_BOT_TOKEN)
                 .base_url("https://api.telegram.org/bot")
-                .base_file_url("https://api.telegram.org/file/bot")
-                .get_updates_connection_pool_size(8)
-                .connect_timeout(30.0)
-                .read_timeout(30.0)
-                .write_timeout(30.0)
-                .pool_timeout(3.0)
+                .connection_pool_size(16)  # Increased pool size
+                .connect_timeout(60.0)     # Increased timeouts
+                .read_timeout(60.0)
+                .write_timeout(60.0)
+                .pool_timeout(30.0)
+                .get_updates_read_timeout(60.0)
+                .get_updates_write_timeout(60.0)
+                .get_updates_connection_pool_size(16)
                 .build()
             )
 
@@ -76,12 +122,28 @@ class TradingBot:
                 settings=self.settings
             )
 
-            await self.telegram_bot.initialize()
-            await self.telegram_bot.start()  # Add this line
+            # Initialize with retry
+            @backoff.on_exception(
+                backoff.expo,
+                (TimedOut, RetryAfter),
+                max_tries=3,
+                max_time=90
+            )
+            async def initialize_with_retry():
+                await self.telegram_bot.initialize()
+                await self.telegram_bot.start()
+
+            await initialize_with_retry()
+            logger.info("Telegram bot successfully initialized and started")
             return True
 
+        except TimedOut:
+            logger.error("Telegram bot initialization timed out after retries")
+            return False
         except Exception as e:
             logger.error(f"Error setting up Telegram bot: {str(e)}")
+            if hasattr(e, '__cause__') and e.__cause__:
+                logger.error(f"Caused by: {str(e.__cause__)}")
             return False
 
     async def test_connections(self) -> bool:
@@ -148,22 +210,6 @@ class TradingBot:
 
         return await self.wallet.monitor_transactions(callback=transaction_callback)
 
-    # async def startup(self) -> bool:
-    #     """Initialize all components"""
-    #     logger.info("Starting trading bot...")
-
-    #     if not await self.test_connections():
-    #         logger.error("Connection tests failed")
-    #         return False
-
-    #     if not await self.setup_telegram_bot():
-    #         logger.error("Telegram bot setup failed")
-    #         return False
-
-    #     mode = "Paper" if self.settings.PAPER_TRADING else "Live"
-    #     logger.info(f"Bot initialized in {mode} trading mode")
-    #     return True
-
     async def startup(self) -> bool:
         logger.info("Starting trading bot...")
 
@@ -200,65 +246,6 @@ class TradingBot:
             logger.error(f"Unexpected error: {str(e)}")
             await self.shutdown()
 
-    # async def shutdown(self) -> None:
-    #     """Clean shutdown of all components"""
-    #     logger.info("Starting shutdown...")
-    #     try:
-    #         # Stop trading
-    #         if hasattr(self, 'strategy'):
-    #             await self.strategy.stop_trading()
-
-    #         # Stop Telegram bot
-    #         if self.telegram_bot:
-    #             await self.telegram_bot.stop()
-
-    #         # Disconnect wallet
-    #         if hasattr(self, 'wallet'):
-    #             await self.wallet.disconnect()
-
-    #         # Close API clients
-    #         if hasattr(self, 'jupiter'):
-    #             await self.jupiter.close()
-    #         if hasattr(self, 'alchemy'):
-    #             await self.alchemy.close()
-
-    #         # Wait a bit for connections to close
-    #         await asyncio.sleep(0.1)
-
-    #         # Cancel any remaining tasks
-    #         tasks = [t for t in asyncio.all_tasks() 
-    #                 if t is not asyncio.current_task()]
-    #         for task in tasks:
-    #             task.cancel()
-    #             try:
-    #                 await task
-    #             except asyncio.CancelledError:
-    #                 pass
-
-    #     except Exception as e:
-    #         logger.error(f"Error during shutdown: {e}")
-    #     finally:
-    #         logger.info("Shutdown complete")
-    
-    
-    
-    # async def shutdown(self) -> None:
-    #     logger.info("Starting shutdown...")
-    #     try:
-    #         if self.telegram_bot:
-    #             await self.telegram_bot.stop()
-                
-    #         await self.wallet.disconnect()
-    #         await self.jupiter.close()
-    #         await self.alchemy.close()
-                
-    #         # Cancel remaining tasks
-    #         tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
-    #         for task in tasks:
-    #             task.cancel()
-    #     except Exception as e:
-    #         logger.error(f"Error during shutdown: {e}")
-
     async def shutdown(self) -> None:
         logger.info("Starting shutdown...")
         try:
@@ -294,10 +281,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-# def main():
-#     bot = TradingBot()
-#     asyncio.run(bot.run())
-
-# if __name__ == "__main__":
-#     main()
