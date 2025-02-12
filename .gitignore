@@ -1,3 +1,5 @@
 .env
 
 venv/
+
+combined_source.txt
