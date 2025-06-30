@@ -1,0 +1,22 @@
+# Updated requirements with Python 3.12 compatibility
+# These versions have pre-built wheels and should install without compilation
+
+aiohttp>=3.9.0
+anchorpy>=0.19.0
+base58>=2.1.1
+python-dotenv>=1.0.0
+solana>=0.32.0
+solders>=0.20.0
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+numpy>=1.24.3
+pandas>=2.0.3
+scipy>=1.11.3
+async-timeout>=4.0.0
+python-telegram-bot>=20.0
+backoff>=2.2.1
+
+# Optional: Additional useful packages
+requests>=2.31.0
+websockets>=11.0
+typing-extensions>=4.5.0

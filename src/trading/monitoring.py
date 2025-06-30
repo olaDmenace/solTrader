@@ -97,8 +97,13 @@ class MonitoringSystem:
         """Collect current system metrics"""
         timestamp = datetime.now()
         
-        # Update metrics
-        self.update_metric('position_count', len(self.settings.position_manager.positions))
+        # Update metrics safely - check if position manager exists
+        position_manager = getattr(self.settings, 'position_manager', None)
+        if position_manager and hasattr(position_manager, 'positions'):
+            self.update_metric('position_count', len(position_manager.positions))
+        else:
+            self.update_metric('position_count', 0)
+            
         self.update_metric('portfolio_value', await self._get_portfolio_value())
         self.update_metric('error_rate', self._calculate_error_rate())
         self.update_metric('drawdown', self._calculate_drawdown())
@@ -181,8 +186,10 @@ class MonitoringSystem:
     async def _get_portfolio_value(self) -> float:
         """Calculate total portfolio value"""
         value = 0.0
-        for position in self.settings.position_manager.positions.values():
-            value += position.size * position.current_price
+        position_manager = getattr(self.settings, 'position_manager', None)
+        if position_manager and hasattr(position_manager, 'positions'):
+            for position in position_manager.positions.values():
+                value += position.size * position.current_price
         return value
 
     def _calculate_error_rate(self) -> float:

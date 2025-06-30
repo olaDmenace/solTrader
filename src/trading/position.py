@@ -2,11 +2,30 @@
 position.py - Defines position management classes and functionality for trading
 """
 from dataclasses import dataclass, field
-from typing import Dict, Optional, List, Any, Tuple
-from datetime import datetime
+from typing import Dict, Optional, List, Any, Tuple, Union
+from datetime import datetime, timedelta
 import logging
+try:
+    import numpy as np
+except ImportError:
+    # Fallback for environments without numpy
+    np = None
+from enum import Enum
 
 logger = logging.getLogger(__name__)
+
+class ExitReason(Enum):
+    """Exit reason enumeration for better tracking"""
+    MOMENTUM_REVERSAL = "momentum_reversal"
+    OVERBOUGHT_DIVERGENCE = "overbought_divergence"
+    TIME_LIMIT = "time_limit"
+    PROFIT_PROTECTION = "profit_protection"
+    STOP_LOSS = "stop_loss"
+    TRAILING_STOP = "trailing_stop"
+    TAKE_PROFIT = "take_profit"
+    SCALED_TAKE_PROFIT = "scaled_take_profit"
+    MANUAL = "manual"
+    CIRCUIT_BREAKER = "circuit_breaker"
 
 @dataclass
 class TradeEntry:
@@ -41,7 +60,7 @@ class TrailingStop:
 
 @dataclass
 class Position:
-    """Trading position with comprehensive management features"""
+    """Trading position with dynamic momentum-based exit management"""
     token_address: str
     size: float
     entry_price: float
@@ -55,6 +74,13 @@ class Position:
     scaled_take_profits: List[Dict[str, Any]] = field(default_factory=list)
     trade_entry: Optional[TradeEntry] = None
     entry_time: datetime = field(default_factory=datetime.now)
+    
+    # Enhanced tracking for momentum-based exits
+    price_history: List[float] = field(default_factory=list)
+    volume_history: List[float] = field(default_factory=list)
+    last_update: datetime = field(default_factory=datetime.now)
+    max_hold_time_minutes: int = 180  # 3 hours max hold
+    momentum_exit_enabled: bool = True
 
     def __post_init__(self):
         """Initialize derived fields after creation"""
@@ -66,20 +92,45 @@ class Position:
         """Update unrealized PnL"""
         self.unrealized_pnl = (self.current_price - self.entry_price) * self.size
 
-    def update_price(self, new_price: float) -> None:
-        """Update position with new price"""
+    def update_price(self, new_price: float, volume: Optional[float] = None) -> None:
+        """Update position with new price and volume data"""
         self.current_price = new_price
+        self.last_update = datetime.now()
+        
+        # Update price history (keep last 20 data points)
+        self.price_history.append(new_price)
+        if len(self.price_history) > 20:
+            self.price_history.pop(0)
+            
+        # Update volume history if provided
+        if volume is not None:
+            self.volume_history.append(volume)
+            if len(self.volume_history) > 20:
+                self.volume_history.pop(0)
+        
         if new_price > self.high_water_mark:
             self.high_water_mark = new_price
-            self._update_trailing_stop()
+            self._update_dynamic_trailing_stop()
         self._update_pnl()
 
-    def _update_trailing_stop(self) -> None:
-        """Update trailing stop if active"""
-        if self.trailing_stop:
-            self.trailing_stop['stop_price'] = self.high_water_mark * (
-                1 - self.trailing_stop['distance']
-            )
+    def _update_dynamic_trailing_stop(self) -> None:
+        """Update trailing stop with momentum-based adjustments"""
+        if not self.trailing_stop:
+            return
+            
+        # Calculate current momentum
+        momentum = self._calculate_momentum()
+        
+        # Adjust trailing distance based on momentum
+        if momentum > 0.1:  # Strong upward momentum
+            distance = 0.03   # Tighter 3% stop
+        elif momentum > 0:   # Weak upward momentum  
+            distance = 0.05   # Standard 5% stop
+        else:                # Negative momentum
+            distance = 0.02   # Very tight 2% stop
+            
+        self.trailing_stop['distance'] = distance
+        self.trailing_stop['stop_price'] = self.high_water_mark * (1 - distance)
 
     def add_trailing_stop(self, distance_percentage: float) -> None:
         """Add trailing stop to position"""
@@ -99,44 +150,161 @@ class Position:
         self.scaled_take_profits.sort(key=lambda x: x['percentage'])
 
     def should_close(self) -> Tuple[bool, str]:
-        """Check if position should be closed"""
+        """Check if position should be closed using dynamic momentum-based logic"""
         if self.status != "open":
             return False, ""
 
+        # Enhanced momentum-based exit logic
+        if self.momentum_exit_enabled:
+            should_exit, reason = self._check_momentum_exit()
+            if should_exit:
+                return True, reason
+
+        # Traditional exit checks (as backup)
         # Check stop loss
         if self.stop_loss and self.current_price <= self.stop_loss:
-            return True, "stop_loss"
+            return True, ExitReason.STOP_LOSS.value
 
         # Check trailing stop
         if self.trailing_stop and self.current_price <= self.trailing_stop['stop_price']:
-            return True, "trailing_stop"
+            return True, ExitReason.TRAILING_STOP.value
 
-        # Check take profit
+        # Check traditional take profit (disabled by default for momentum strategy)
         if self.take_profit and self.current_price >= self.take_profit:
-            return True, "take_profit"
+            return True, ExitReason.TAKE_PROFIT.value
 
         # Check scaled take profits
         for tp in self.scaled_take_profits:
             if not tp['triggered'] and self.current_price >= tp['target_price']:
-                return True, "scaled_take_profit"
+                return True, ExitReason.SCALED_TAKE_PROFIT.value
 
         return False, ""
 
+    def _check_momentum_exit(self) -> Tuple[bool, str]:
+        """Advanced momentum-based exit logic - the core of the ape strategy"""
+        if len(self.price_history) < 10:
+            return False, ""
+            
+        # 1. Time-based safety exit (prevent bag holding)
+        age_minutes = (datetime.now() - self.entry_time).total_seconds() / 60
+        if age_minutes > self.max_hold_time_minutes:
+            return True, ExitReason.TIME_LIMIT.value
+            
+        # 2. Calculate momentum indicators
+        momentum = self._calculate_momentum()
+        rsi = self._calculate_rsi()
+        volume_trend = self._get_volume_trend()
+        
+        # 3. Momentum reversal detection (most important)
+        if momentum < -0.03 and volume_trend == "declining":
+            return True, ExitReason.MOMENTUM_REVERSAL.value
+            
+        # 4. Overbought with momentum divergence
+        if rsi > 80 and momentum < 0.01:  # High RSI but slowing momentum
+            return True, ExitReason.OVERBOUGHT_DIVERGENCE.value
+            
+        # 5. Profit protection (only after significant gains)
+        profit_percentage = (self.current_price / self.entry_price) - 1
+        if profit_percentage > 0.2:  # 20%+ profit
+            trailing_stop_price = self.high_water_mark * 0.95  # 5% trailing
+            if self.current_price < trailing_stop_price:
+                return True, ExitReason.PROFIT_PROTECTION.value
+                
+        # 6. Quick loss cut for momentum breakdown
+        if momentum < -0.05 and profit_percentage < -0.1:  # Strong negative momentum + 10% loss
+            return True, ExitReason.MOMENTUM_REVERSAL.value
+            
+        return False, ""
+        
+    def _calculate_momentum(self) -> float:
+        """Calculate 5-period momentum"""
+        if len(self.price_history) < 10:
+            return 0.0
+        try:
+            if np is not None:
+                recent = np.mean(self.price_history[-5:])
+                previous = np.mean(self.price_history[-10:-5])
+            else:
+                recent = sum(self.price_history[-5:]) / 5
+                previous = sum(self.price_history[-10:-5]) / 5
+            return (recent / previous) - 1 if previous > 0 else 0.0
+        except (ZeroDivisionError, IndexError):
+            return 0.0
+            
+    def _calculate_rsi(self, period: int = 14) -> float:
+        """Calculate RSI for overbought detection"""
+        if len(self.price_history) < period + 1:
+            return 50.0  # Neutral RSI
+        try:
+            if np is not None:
+                prices = np.array(self.price_history[-period-1:])
+                deltas = np.diff(prices)
+                gains = np.where(deltas > 0, deltas, 0)
+                losses = np.where(deltas < 0, -deltas, 0)
+                avg_gain = np.mean(gains) if len(gains) > 0 else 0
+                avg_loss = np.mean(losses) if len(losses) > 0 else 0
+            else:
+                prices = self.price_history[-period-1:]
+                deltas = [prices[i+1] - prices[i] for i in range(len(prices)-1)]
+                gains = [d for d in deltas if d > 0]
+                losses = [-d for d in deltas if d < 0]
+                avg_gain = sum(gains) / len(gains) if gains else 0
+                avg_loss = sum(losses) / len(losses) if losses else 0
+            
+            if avg_loss == 0:
+                return 100.0
+            rs = avg_gain / avg_loss
+            rsi = 100 - (100 / (1 + rs))
+            return float(rsi)
+        except (ZeroDivisionError, IndexError):
+            return 50.0
+            
+    def _get_volume_trend(self) -> str:
+        """Determine if volume is increasing or declining"""
+        if len(self.volume_history) < 6:
+            return "unknown"
+        try:
+            if np is not None:
+                recent_volume = np.mean(self.volume_history[-3:])
+                previous_volume = np.mean(self.volume_history[-6:-3])
+            else:
+                recent_volume = sum(self.volume_history[-3:]) / 3
+                previous_volume = sum(self.volume_history[-6:-3]) / 3
+            return "increasing" if recent_volume > previous_volume else "declining"
+        except (IndexError, ValueError, ZeroDivisionError):
+            return "unknown"
+            
+    @property
+    def age_minutes(self) -> float:
+        """Get position age in minutes"""
+        return (datetime.now() - self.entry_time).total_seconds() / 60
+        
+    @property
+    def profit_percentage(self) -> float:
+        """Get current profit percentage"""
+        return (self.current_price / self.entry_price) - 1 if self.entry_price > 0 else 0.0
+
     def get_position_info(self) -> Dict[str, Any]:
-        """Get comprehensive position information"""
+        """Get comprehensive position information including momentum data"""
         return {
             "token_address": self.token_address,
             "entry_price": self.entry_price,
             "current_price": self.current_price,
             "size": self.size,
             "unrealized_pnl": self.unrealized_pnl,
+            "profit_percentage": self.profit_percentage,
             "status": self.status,
             "high_water_mark": self.high_water_mark,
             "entry_time": self.entry_time,
+            "age_minutes": self.age_minutes,
             "stop_loss": self.stop_loss,
             "take_profit": self.take_profit,
             "trailing_stop": self.trailing_stop,
-            "scaled_take_profits": self.scaled_take_profits
+            "scaled_take_profits": self.scaled_take_profits,
+            "momentum": self._calculate_momentum(),
+            "rsi": self._calculate_rsi(),
+            "volume_trend": self._get_volume_trend(),
+            "momentum_exit_enabled": self.momentum_exit_enabled
         }
 
 @dataclass
@@ -170,18 +338,30 @@ class PaperPosition:
         """Update position PnL"""
         self.pnl = (self.current_price - self.entry_price) * self.size
 
+    def update_price(self, new_price: float, volume: Optional[float] = None) -> None:
+        """Update position with new price and volume data"""
+        self.current_price = new_price
+        if new_price > self.high_water_mark:
+            self.high_water_mark = new_price
+        self._update_pnl()
+        
     def check_exits(self) -> Tuple[bool, str, Optional[float]]:
-        """Check if any exit conditions are met"""
-        # Check trailing stop
+        """Check if any exit conditions are met using enhanced logic"""
+        # Time-based exit (prevent infinite holding)
+        age_minutes = (datetime.now() - self.entry_time).total_seconds() / 60
+        if age_minutes > 180:  # 3 hours max
+            return True, ExitReason.TIME_LIMIT.value, None
+            
+        # Momentum-based trailing stop
         if self.trailing_stop:
             stop_price = self.high_water_mark * (1 - self.trailing_stop)
             if self.current_price <= stop_price:
-                return True, "trailing_stop", None
+                return True, ExitReason.TRAILING_STOP.value, None
 
-        # Check take profits
+        # Dynamic take profits based on momentum
         for tp in self.take_profits:
             if self.current_price >= self.entry_price * (1 + tp['percentage']):
-                return True, "take_profit", self.size * tp['size_percentage']
+                return True, ExitReason.TAKE_PROFIT.value, self.size * tp['size_percentage']
 
         return False, "", None
 

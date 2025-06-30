@@ -170,9 +170,13 @@ class TradingStrategy(TradingStrategyProtocol):
         )
 
         self.alert_system = AlertSystem(settings)
-        self.monitoring = MonitoringSystem(self.alert_system, settings)
         self.swap_executor = SwapExecutor(jupiter_client, wallet)
         self.position_manager = PositionManager(self.swap_executor, settings)
+        
+        # Link position manager to settings for monitoring access
+        settings.position_manager = self.position_manager
+        
+        self.monitoring = MonitoringSystem(self.alert_system, settings)
         self.risk_manager = RiskManager(settings)
         self.performance_monitor = PerformanceMonitor(settings)
 
@@ -384,27 +388,193 @@ class TradingStrategy(TradingStrategyProtocol):
                 }
             )
 
-    # Update in the trading loop
     async def _trading_loop(self) -> None:
-        """Main trading loop handling both paper and live trading"""
+        """Enhanced trading loop with high-frequency position monitoring"""
+        # Start separate high-frequency position monitoring task
+        position_monitor_task = asyncio.create_task(self._high_frequency_position_monitor())
+        
+        try:
+            while self.state.is_trading:
+                try:
+                    # Daily reset check
+                    if date.today() > self.state.daily_stats.last_reset:
+                        self.state.daily_stats = DailyStats()
+
+                    # Circuit breaker checks
+                    if not await self._check_circuit_breakers():
+                        logger.warning("Circuit breakers triggered - pausing trading")
+                        await self.alert_system.emit_alert(
+                            level="warning",
+                            type="circuit_breakers",
+                            message="Circuit breakers triggered - trading paused",
+                            data={"timestamp": datetime.now().isoformat()},
+                        )
+                        await asyncio.sleep(300)  # 5 minute pause
+                        continue
+
+                    # Get recent market data for regime detection
+                    prices, volumes = await self._get_recent_market_data()
+                    
+                    # Adapt parameters to market regime
+                    await self._adapt_to_market_regime(prices, volumes)
+
+                    # Process pending orders
+                    await self._process_pending_orders()
+
+                    # Check if we can open new positions
+                    current_positions = (
+                        len(self.state.paper_positions)
+                        if self.state.mode == TradingMode.PAPER
+                        else len(self.position_manager.positions)
+                    )
+
+                    max_positions = getattr(self.settings, 'MAX_SIMULTANEOUS_POSITIONS', self.settings.MAX_POSITIONS)
+                    if current_positions < max_positions:
+                        await self._scan_opportunities()
+
+                    # Update metrics
+                    await self._update_metrics()
+                    
+                    # Sleep for scan interval (slower loop for opportunity scanning)
+                    await asyncio.sleep(self.settings.SCAN_INTERVAL)
+
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.error(f"Trading loop error: {e}")
+                    self.state.daily_stats.error_count += 1
+                    await asyncio.sleep(5)
+                    
+        finally:
+            # Clean up position monitoring task
+            position_monitor_task.cancel()
+            try:
+                await position_monitor_task
+            except asyncio.CancelledError:
+                pass
+
+    async def _high_frequency_position_monitor(self) -> None:
+        """High-frequency position monitoring for momentum-based exits"""
+        monitor_interval = getattr(self.settings, 'POSITION_MONITOR_INTERVAL', 3.0)
+        
         while self.state.is_trading:
             try:
-                # ... existing checks ...
-
-                # Get recent price and volume data
-                prices, volumes = await self._get_recent_market_data()
+                if self.state.mode == TradingMode.PAPER:
+                    await self._monitor_paper_positions_with_momentum()
+                else:
+                    await self._monitor_live_positions_with_momentum()
+                    
+                await asyncio.sleep(monitor_interval)
                 
-                # Adapt parameters to market regime
-                await self._adapt_to_market_regime(prices, volumes)
-
-                # ... rest of the trading loop ...
-
             except asyncio.CancelledError:
-                raise
+                break
             except Exception as e:
-                logger.error(f"Trading loop error: {e}")
-                self.state.daily_stats.error_count += 1
-                await asyncio.sleep(5)
+                logger.error(f"High-frequency position monitoring error: {e}")
+                await asyncio.sleep(1)  # Short sleep on error
+                
+    async def _monitor_paper_positions_with_momentum(self) -> None:
+        """Enhanced paper position monitoring with momentum analysis"""
+        try:
+            for token_address, position in list(self.state.paper_positions.items()):
+                try:
+                    # Get current price and volume
+                    current_price = await self._get_current_price(token_address)
+                    if not current_price:
+                        continue
+                        
+                    # Get volume data for momentum analysis
+                    market_depth = await self.jupiter.get_market_depth(token_address)
+                    current_volume = float(market_depth.get('volume24h', 0)) if market_depth else 0
+                    
+                    # Update position with price and volume
+                    position.update_price(current_price, current_volume)
+                    
+                    # Check for momentum-based exits
+                    should_close, reason = position.check_exits()
+                    
+                    if should_close:
+                        await self._close_paper_position(token_address, reason)
+                        
+                        # Record exit result for learning
+                        profit = position.pnl
+                        success = profit > 0
+                        if hasattr(self.scanner, 'record_entry_result'):
+                            self.scanner.record_entry_result(token_address, success, profit)
+                            
+                        # Emit detailed exit alert
+                        await self.alert_system.emit_alert(
+                            level="info",
+                            type="momentum_exit",
+                            message=f"Position closed due to {reason}",
+                            data={
+                                "token": token_address,
+                                "reason": reason,
+                                "profit": profit,
+                                "profit_percentage": (profit / (position.entry_price * position.size)) * 100,
+                                "hold_time_minutes": position.age_minutes,
+                                "exit_price": current_price
+                            }
+                        )
+                        
+                except Exception as e:
+                    logger.error(f"Error monitoring paper position {token_address}: {e}")
+                    
+        except Exception as e:
+            logger.error(f"Error in paper position monitoring: {e}")
+            
+    async def _monitor_live_positions_with_momentum(self) -> None:
+        """Enhanced live position monitoring with momentum analysis"""
+        try:
+            positions = self.position_manager.positions.copy()
+            for token_address, position in positions.items():
+                try:
+                    # Get current price and volume
+                    current_price = await self._get_current_price(token_address)
+                    if not current_price:
+                        logger.warning(f"Failed to get current price for {token_address}")
+                        continue
+                        
+                    # Get volume data for momentum analysis
+                    market_depth = await self.jupiter.get_market_depth(token_address)
+                    current_volume = float(market_depth.get('volume24h', 0)) if market_depth else 0
+                    
+                    # Update position with price and volume data
+                    position.update_price(current_price, current_volume)
+                    
+                    # Check for momentum-based exit conditions
+                    should_close, reason = position.should_close()
+                    
+                    if should_close:
+                        await self._close_live_position(token_address, reason)
+                        
+                        # Record exit result for learning
+                        profit = position.unrealized_pnl
+                        success = profit > 0
+                        if hasattr(self.scanner, 'record_entry_result'):
+                            self.scanner.record_entry_result(token_address, success, profit)
+                            
+                        # Emit detailed exit alert
+                        await self.alert_system.emit_alert(
+                            level="info",
+                            type="momentum_exit",
+                            message=f"Live position closed due to {reason}",
+                            data={
+                                "token": token_address,
+                                "reason": reason,
+                                "profit": profit,
+                                "profit_percentage": position.profit_percentage * 100,
+                                "hold_time_minutes": position.age_minutes,
+                                "exit_price": current_price,
+                                "momentum": position._calculate_momentum(),
+                                "rsi": position._calculate_rsi()
+                            }
+                        )
+                        
+                except Exception as e:
+                    logger.error(f"Error monitoring live position {token_address}: {e}")
+                    
+        except Exception as e:
+            logger.error(f"Error in live position monitoring: {e}")
 
     async def _get_recent_market_data(self) -> Tuple[List[float], List[float]]:
         """Get recent price and volume data for regime detection"""
@@ -782,46 +952,16 @@ class TradingStrategy(TradingStrategyProtocol):
             logger.error(f"Error emitting opportunity alert: {e}")
 
     async def _update_paper_positions(self) -> None:
-        """Update paper trading positions"""
-        try:
-            for token_address, position in list(self.state.paper_positions.items()):
-                current_price = await self._get_current_price(token_address)
-                if not current_price:
-                    continue
-
-                position.update_price(current_price)
-                should_close, reason = position.should_close()
-
-                if should_close:
-                    await self._close_paper_position(token_address, reason)
-
-        except Exception as e:
-            logger.error(f"Error updating paper positions: {e}")
+        """Legacy method - now handled by high-frequency monitor"""
+        # This method is now mostly handled by _monitor_paper_positions_with_momentum
+        # Keeping for compatibility but functionality moved to high-frequency monitor
+        pass
 
     async def _monitor_live_positions(self) -> None:
-        """Monitor live trading positions"""
-        try:
-            positions = self.position_manager.positions.copy()
-            for token_address, position in positions.items():
-                try:
-                    current_price = await self._get_current_price(token_address)
-                    if not current_price:
-                        logger.warning(
-                            f"Failed to get current price for {token_address}"
-                        )
-                        continue
-
-                    position.update_price(current_price)
-                    should_close, reason = position.should_close()
-
-                    if should_close:
-                        await self._close_live_position(token_address, reason)
-
-                except Exception as e:
-                    logger.error(f"Error monitoring position {token_address}: {e}")
-
-        except Exception as e:
-            logger.error(f"Error in position monitoring: {e}")
+        """Legacy method - now handled by high-frequency monitor"""
+        # This method is now mostly handled by _monitor_live_positions_with_momentum
+        # Keeping for compatibility but functionality moved to high-frequency monitor
+        pass
 
     async def _process_pending_orders(self) -> None:
         """Process pending entry orders"""

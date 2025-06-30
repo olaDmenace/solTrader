@@ -12,7 +12,7 @@ except ImportError:
     
 from .trend_detector import TrendDetector, TrendAnalysis
 from .meme_detector import MemeDetector
-from config.settings import Settings  # Adjust import path based on your project structure
+from .config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +66,16 @@ class TokenScanner:
         self.scan_history: List[Dict[str, Any]] = []
         self.screening_history: Dict[str, ScreeningResult] = {}
         
-        # Launch monitoring
+        # Launch monitoring (enhanced for ape strategy)
         self.pending_launches: Dict[str, Dict[str, Any]] = {}
         self.monitored_launches: Dict[str, Dict[str, Any]] = {}
-        self.launch_monitor_interval: float = 1.0  # 1 second for quick monitoring
-        self.launch_timeout: int = 300  # 5 minutes monitor window
+        self.launch_monitor_interval: float = 0.5  # 500ms for ultra-fast monitoring
+        self.launch_timeout: int = 180  # 3 minutes monitor window (faster)
+        
+        # Ape strategy tracking
+        self.successful_entries: List[Dict[str, Any]] = []
+        self.failed_entries: List[Dict[str, Any]] = []
+        self.entry_success_rate: float = 0.0
         
         # Gas optimization
         self.gas_settings = {
@@ -831,3 +836,99 @@ class TokenScanner:
         except Exception as e:
             logger.error(f"Error executing buy: {str(e)}")
             return False
+            
+    async def _is_recently_listed(self, token_address: str) -> bool:
+        """Check if token was recently listed on Jupiter"""
+        try:
+            # This would need to be implemented based on Jupiter API
+            # For now, return False as placeholder
+            return False
+        except Exception:
+            return False
+            
+    async def _check_liquidity_lock(self, token_address: str) -> bool:
+        """Check if liquidity is locked"""
+        try:
+            # Placeholder for liquidity lock check
+            # Would need to check specific DEX contracts
+            return False
+        except Exception:
+            return False
+            
+    async def _check_ownership_renounced(self, token_address: str) -> bool:
+        """Check if token ownership is renounced"""
+        try:
+            # Placeholder for ownership check
+            # Would need to check token contract owner
+            return False
+        except Exception:
+            return False
+            
+    async def _is_very_new_token(self, token_address: str) -> bool:
+        """Check if token is very new (< 5 minutes)"""
+        try:
+            creation_time = await self._get_contract_creation_time(token_address)
+            if creation_time:
+                age = datetime.now() - creation_time
+                return age <= timedelta(minutes=5)
+            return False
+        except Exception:
+            return False
+            
+    async def _is_pump_already_started(self, token_address: str, current_price: float) -> bool:
+        """Check if pump has already started (price increased significantly)"""
+        try:
+            # Get price history if available
+            initial_price = await self._get_initial_price(token_address)
+            if initial_price and initial_price > 0:
+                price_increase = (current_price / initial_price) - 1
+                # If price already increased by more than 50%, might be too late
+                return price_increase > 0.5
+            return False
+        except Exception:
+            return False
+            
+    async def _get_initial_price(self, token_address: str) -> Optional[float]:
+        """Get the initial price when token was first traded"""
+        try:
+            # Placeholder - would need to get first trade price
+            return None
+        except Exception:
+            return None
+            
+    def _update_entry_success_rate(self) -> None:
+        """Update success rate based on recent entries"""
+        try:
+            total_entries = len(self.successful_entries) + len(self.failed_entries)
+            if total_entries > 0:
+                self.entry_success_rate = len(self.successful_entries) / total_entries
+            else:
+                self.entry_success_rate = 0.0
+                
+            logger.info(f"Entry success rate: {self.entry_success_rate:.2%} ({len(self.successful_entries)}/{total_entries})")
+        except Exception as e:
+            logger.error(f"Error updating success rate: {str(e)}")
+            
+    def record_entry_result(self, token_address: str, success: bool, profit: float = 0.0) -> None:
+        """Record the result of an entry for success rate calculation"""
+        try:
+            entry_record = {
+                'token_address': token_address,
+                'timestamp': datetime.now(),
+                'profit': profit
+            }
+            
+            if success:
+                self.successful_entries.append(entry_record)
+                # Keep only last 100 entries
+                if len(self.successful_entries) > 100:
+                    self.successful_entries.pop(0)
+            else:
+                self.failed_entries.append(entry_record)
+                if len(self.failed_entries) > 100:
+                    self.failed_entries.pop(0)
+                    
+            self._update_entry_success_rate()
+            
+        except Exception as e:
+            logger.error(f"Error recording entry result: {str(e)}")

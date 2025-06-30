@@ -6,11 +6,11 @@ from src.api.alchemy import AlchemyClient
 from src.api.jupiter import JupiterClient
 from src.token_scanner import TokenScanner
 from src.phantom_wallet import PhantomWallet
-from src.telegram_bot import TradingBot as TgramBot
+# from src.telegram_bot import TradingBot as TgramBot  # Made optional
 from src.trading.strategy import TradingStrategy, TradingMode
 from typing import Dict, Any, Optional
-from telegram.ext import ApplicationBuilder
-from telegram.error import TimedOut, RetryAfter
+# from telegram.ext import ApplicationBuilder
+# from telegram.error import TimedOut, RetryAfter
 from dotenv import load_dotenv
 load_dotenv(override=True)
 import backoff 
@@ -36,7 +36,7 @@ class TradingBot:
         self.alchemy = AlchemyClient(self.settings.ALCHEMY_RPC_URL)
         self.jupiter = JupiterClient()
         self.wallet = PhantomWallet(self.alchemy)
-        self.scanner = TokenScanner(self.jupiter, self.alchemy)
+        self.scanner = TokenScanner(self.jupiter, self.alchemy, self.settings)
 
         # Initialize trading strategy
         mode = TradingMode.PAPER if self.settings.PAPER_TRADING else TradingMode.LIVE
@@ -48,7 +48,7 @@ class TradingBot:
             mode=mode
         )
 
-        self.telegram_bot: Optional[TgramBot] = None
+        self.telegram_bot: Optional[Any] = None
 
         logger.info(f"Paper trading settings:")
         logger.info(f"Initial balance: {self.settings.INITIAL_PAPER_BALANCE}")
@@ -88,63 +88,20 @@ class TradingBot:
     #         return False
 
     async def setup_telegram_bot(self) -> bool:
-        try:
-            if not self.settings.TELEGRAM_BOT_TOKEN or not self.settings.TELEGRAM_CHAT_ID:
-                logger.info("Telegram bot disabled - no token or chat ID provided")
-                return True
-
-            # First verify the bot token is valid
-            async with aiohttp.ClientSession() as session:
-                url = f"https://api.telegram.org/bot{self.settings.TELEGRAM_BOT_TOKEN}/getMe"
-                async with session.get(url, timeout=10) as response:
-                    if response.status != 200:
-                        logger.error(f"Invalid bot token or Telegram API unavailable. Status: {response.status}")
-                        return False
-
-            application = (
-                ApplicationBuilder()
-                .token(self.settings.TELEGRAM_BOT_TOKEN)
-                .base_url("https://api.telegram.org/bot")
-                .connection_pool_size(16)  # Increased pool size
-                .connect_timeout(60.0)     # Increased timeouts
-                .read_timeout(60.0)
-                .write_timeout(60.0)
-                .pool_timeout(30.0)
-                .get_updates_read_timeout(60.0)
-                .get_updates_write_timeout(60.0)
-                .get_updates_connection_pool_size(16)
-                .build()
-            )
-
-            self.telegram_bot = TgramBot(
-                application=application,
-                trading_strategy=self.strategy,
-                settings=self.settings
-            )
-
-            # Initialize with retry
-            @backoff.on_exception(
-                backoff.expo,
-                (TimedOut, RetryAfter),
-                max_tries=3,
-                max_time=90
-            )
-            async def initialize_with_retry():
-                await self.telegram_bot.initialize()
-                await self.telegram_bot.start()
-
-            await initialize_with_retry()
-            logger.info("Telegram bot successfully initialized and started")
-            return True
-
-        except TimedOut:
-            logger.error("Telegram bot initialization timed out after retries")
-            return False
-        except Exception as e:
-            logger.error(f"Error setting up Telegram bot: {str(e)}")
-            if hasattr(e, '__cause__') and e.__cause__:
-                logger.error(f"Caused by: {str(e.__cause__)}")
-            return False
+        """Telegram bot setup - currently disabled"""
+        logger.info("Telegram bot disabled - using console monitoring instead")
+        return True
+        
+        # Telegram setup commented out due to dependency issues
+        # Enable when telegram library conflicts are resolved
+        # try:
+        #     if not self.settings.TELEGRAM_BOT_TOKEN or not self.settings.TELEGRAM_CHAT_ID:
+        #         logger.info("Telegram bot disabled - no token or chat ID provided")
+        #         return True
+        #     # ... rest of telegram setup
+        # except Exception as e:
+        #     logger.error(f"Error setting up Telegram bot: {str(e)}")
+        #     return False
 
     async def test_connections(self) -> bool:
         """Test API connections"""
@@ -219,9 +176,8 @@ class TradingBot:
         if not await self.connect_wallet():
             return False
 
-        if self.settings.TELEGRAM_BOT_TOKEN and self.settings.TELEGRAM_CHAT_ID:
-            if not await self.setup_telegram_bot():  # Changed from telegram_bot.start()
-                return False
+        # Telegram integration disabled - using console monitoring
+        logger.info("📱 Telegram notifications disabled - monitoring via console logs")
 
         mode = "Paper" if self.settings.PAPER_TRADING else "Live"
         logger.info(f"Bot initialized in {mode} trading mode")

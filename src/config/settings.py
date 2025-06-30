@@ -17,14 +17,14 @@ class Settings:
     position_manager: Any = None
     PAPER_TRADING: bool = True
     INITIAL_PAPER_BALANCE: float = 100.0  # Test with small amount
-    MAX_POSITION_SIZE: float = 20.0
-    MAX_SLIPPAGE=0.02
-    MAX_TRADES_PER_DAY=10
+    MAX_POSITION_SIZE: float = 5.0  # Smaller positions for more opportunities
+    MAX_SLIPPAGE: float = 0.03  # Higher slippage tolerance for new tokens
+    MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
 
-    # Trading parameters
+    # Trading parameters (optimized for new token sniping)
     MIN_BALANCE: float = 0.1  # Minimum SOL balance to maintain
-    MAX_TRADE_SIZE: float = 20.0  # Maximum SOL per trade
-    SLIPPAGE_TOLERANCE: float = 0.01  # 1% slippage tolerance
+    MAX_TRADE_SIZE: float = 2.0  # Smaller trades for more opportunities
+    SLIPPAGE_TOLERANCE: float = 0.02  # Higher tolerance for new tokens
 
     # Position Management
     MAX_POSITIONS: int = 3  # Maximum number of open positions
@@ -32,36 +32,53 @@ class Settings:
     INITIAL_CAPITAL: float = 100.0  # Starting capital
     PORTFOLIO_VALUE: float = 100.0  # Current portfolio value
 
-    # Monitoring settings
-    MONITOR_INTERVAL: float = 2.0  # Seconds between transaction checks
+    # Monitoring settings (high-frequency for momentum trading)
+    MONITOR_INTERVAL: float = 1.0  # Faster monitoring for position updates
+    POSITION_MONITOR_INTERVAL: float = 3.0  # Very fast position monitoring
     STALE_THRESHOLD: int = 300  # Consider data stale after 5 minutes
 
-    # Scanner settings
-    SCAN_INTERVAL: int = 60  # Seconds between token scans
-    MIN_LIQUIDITY: float = 1000.0  # Minimum liquidity in SOL
-    MIN_VOLUME_24H: float = 100.0  # Minimum 24h volume in SOL
-    VOLUME_THRESHOLD: float = 100.0  # Volume threshold for entry
-    MAX_PRICE_IMPACT: float = 1.0  # Maximum allowable price impact
+    # Scanner settings (aggressive for new token detection)
+    SCAN_INTERVAL: int = 5  # Very fast scanning for new tokens
+    MIN_LIQUIDITY: float = 500.0  # Lower threshold for new tokens
+    MIN_VOLUME_24H: float = 50.0  # Lower volume requirement for new launches
+    VOLUME_THRESHOLD: float = 50.0  # Lower volume threshold
+    MAX_PRICE_IMPACT: float = 2.0  # Higher impact tolerance for new tokens
+    
+    # New token sniping settings
+    NEW_TOKEN_MAX_AGE_MINUTES: int = 30  # Consider tokens new if < 30 min old
+    MIN_CONTRACT_SCORE: int = 70  # Minimum security score for entry
+    MAX_HOLD_TIME_MINUTES: int = 180  # Maximum hold time (3 hours)
+    FAST_EXIT_THRESHOLD: float = -0.1  # Quick exit at 10% loss
+    
+    # Momentum trading settings
+    MOMENTUM_EXIT_ENABLED: bool = True  # Enable dynamic momentum exits
+    MOMENTUM_THRESHOLD: float = -0.03  # Exit on 3% negative momentum
+    RSI_OVERBOUGHT: float = 80.0  # RSI overbought level
+    PROFIT_PROTECTION_THRESHOLD: float = 0.2  # Start trailing at 20% profit
 
     # Notification settings
     DISCORD_WEBHOOK_URL: Optional[str] = None
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     TELEGRAM_CHAT_ID: Optional[str] = None
 
-    # Risk management
-    MAX_DAILY_TRADES: int = 5
-    MAX_DAILY_LOSS: float = 0.5  # Maximum loss in SOL per day
-    STOP_LOSS_PERCENTAGE: float = 0.05  # 5% stop loss
-    TAKE_PROFIT_PERCENTAGE: float = 0.1  # 10% take profit
-    MAX_DRAWDOWN: float = 5.0  # Maximum drawdown percentage
-    MAX_PORTFOLIO_RISK: float = 5.0  # Maximum portfolio risk
-    ERROR_THRESHOLD: int = 5  # Maximum errors before stopping
-    MAX_VOLATILITY: float = 0.3  # 30% annualized volatility threshold
+    # Risk management (enhanced for ape trading)
+    MAX_DAILY_TRADES: int = 15  # More trades for aggressive strategy
+    MAX_DAILY_LOSS: float = 2.0  # Higher loss tolerance
+    STOP_LOSS_PERCENTAGE: float = 0.15  # 15% stop loss (wider for volatility)
+    TAKE_PROFIT_PERCENTAGE: float = 0.5  # 50% take profit (let winners run)
+    MAX_DRAWDOWN: float = 10.0  # Higher drawdown tolerance
+    MAX_PORTFOLIO_RISK: float = 10.0  # Higher portfolio risk
+    ERROR_THRESHOLD: int = 10  # More errors allowed
+    MAX_VOLATILITY: float = 0.8  # Higher volatility tolerance for new tokens
+    
+    # Position management
+    MAX_POSITION_PER_TOKEN: float = 1.0  # Max 1 SOL per token
+    MAX_SIMULTANEOUS_POSITIONS: int = 5  # More concurrent positions
 
-    # Signal settings
-    SIGNAL_THRESHOLD: float = 0.7  # Minimum signal strength (0-1)
-    MIN_SIGNAL_INTERVAL: int = 300  # Minimum seconds between signals
-    MAX_SIGNALS_PER_HOUR: int = 5
+    # Signal settings (optimized for new token detection)
+    SIGNAL_THRESHOLD: float = 0.5  # Lower threshold for faster entries
+    MIN_SIGNAL_INTERVAL: int = 60  # Faster signal processing
+    MAX_SIGNALS_PER_HOUR: int = 15  # More signals per hour
 
     # Technical Analysis settings
     VOLUME_WEIGHT: float = 0.3
@@ -86,7 +103,11 @@ class Settings:
     DEFAULT_DCA_AMOUNT: float = 0.1  # SOL
 
     # Operation settings
-    CLOSE_POSITIONS_ON_STOP: bool = False  # Whether to close positions when stopping
+    CLOSE_POSITIONS_ON_STOP: bool = True  # Close positions when stopping
+    
+    # Gas optimization for fast execution
+    PRIORITY_FEE_MULTIPLIER: float = 2.0  # Higher priority for fast execution
+    MAX_GAS_PRICE: int = 200  # Higher gas limit for speed
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary"""
@@ -97,7 +118,7 @@ class Settings:
         }
 
     def validate(self) -> bool:
-        """Validate settings"""
+        """Validate settings with enhanced checks for ape trading"""
         try:
             # Required settings
             if not self.ALCHEMY_RPC_URL or not self.WALLET_ADDRESS:
@@ -117,7 +138,9 @@ class Settings:
                 return False
 
             # Monitoring settings
-            if self.MONITOR_INTERVAL <= 0 or self.STALE_THRESHOLD <= 0:
+            if (self.MONITOR_INTERVAL <= 0 or 
+                self.POSITION_MONITOR_INTERVAL <= 0 or
+                self.STALE_THRESHOLD <= 0):
                 return False
 
             # Scanner settings
@@ -134,6 +157,12 @@ class Settings:
                 self.TAKE_PROFIT_PERCENTAGE <= 0 or
                 self.MAX_DRAWDOWN <= 0 or
                 self.MAX_PORTFOLIO_RISK <= 0):
+                return False
+
+            # New token settings validation
+            if (self.NEW_TOKEN_MAX_AGE_MINUTES <= 0 or
+                self.MIN_CONTRACT_SCORE < 0 or self.MIN_CONTRACT_SCORE > 100 or
+                self.MAX_HOLD_TIME_MINUTES <= 0):
                 return False
 
             # Grid trading validation
@@ -195,6 +224,7 @@ def load_settings() -> Settings:
         'MAX_POSITIONS': ('MAX_POSITIONS', int),
         'SLIPPAGE_TOLERANCE': ('TRADING_SLIPPAGE', float),
         'MONITOR_INTERVAL': ('MONITOR_INTERVAL', float),
+        'POSITION_MONITOR_INTERVAL': ('POSITION_MONITOR_INTERVAL', float),
         'SCAN_INTERVAL': ('SCANNER_INTERVAL', int),
         'STALE_THRESHOLD': ('STALE_THRESHOLD', int),
         'MIN_LIQUIDITY': ('MIN_LIQUIDITY', float),
@@ -203,6 +233,17 @@ def load_settings() -> Settings:
         'MAX_DAILY_LOSS': ('MAX_DAILY_LOSS', float),
         'STOP_LOSS_PERCENTAGE': ('STOP_LOSS_PERCENTAGE', float),
         'TAKE_PROFIT_PERCENTAGE': ('TAKE_PROFIT_PERCENTAGE', float),
+        
+        # New token sniping settings
+        'NEW_TOKEN_MAX_AGE_MINUTES': ('NEW_TOKEN_MAX_AGE_MINUTES', int),
+        'MIN_CONTRACT_SCORE': ('MIN_CONTRACT_SCORE', int),
+        'MAX_HOLD_TIME_MINUTES': ('MAX_HOLD_TIME_MINUTES', int),
+        'MOMENTUM_EXIT_ENABLED': ('MOMENTUM_EXIT_ENABLED', lambda x: x.lower() == 'true'),
+        'MOMENTUM_THRESHOLD': ('MOMENTUM_THRESHOLD', float),
+        'RSI_OVERBOUGHT': ('RSI_OVERBOUGHT', float),
+        'PROFIT_PROTECTION_THRESHOLD': ('PROFIT_PROTECTION_THRESHOLD', float),
+        'MAX_POSITION_PER_TOKEN': ('MAX_POSITION_PER_TOKEN', float),
+        'MAX_SIMULTANEOUS_POSITIONS': ('MAX_SIMULTANEOUS_POSITIONS', int),
 
         # New mappings
         'PAPER_TRADING': ('PAPER_TRADING', lambda x: x.lower() == 'true'),
@@ -226,6 +267,8 @@ def load_settings() -> Settings:
         'MAX_PRICE_CHANGE': ('MAX_PRICE_CHANGE', float),
         'MOMENTUM_LOOKBACK': ('MOMENTUM_LOOKBACK', int),
         'CLOSE_POSITIONS_ON_STOP': ('CLOSE_POSITIONS_ON_STOP', lambda x: x.lower() == 'true'),
+        'PRIORITY_FEE_MULTIPLIER': ('PRIORITY_FEE_MULTIPLIER', float),
+        'MAX_GAS_PRICE': ('MAX_GAS_PRICE', int),
     }
 
     for attr, (env_var, type_func) in env_mappings.items():
