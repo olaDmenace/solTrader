@@ -4,6 +4,14 @@ import base58
 from src.api.alchemy import AlchemyClient
 import asyncio
 from datetime import datetime
+import os
+from solana.keypair import Keypair
+from solana.transaction import Transaction
+from solana.rpc.async_api import AsyncClient
+from solana.rpc.commitment import Commitment
+from solana.rpc.types import TxOpts
+from solders.pubkey import Pubkey
+from solders.hash import Hash
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +40,11 @@ class PhantomWallet:
         self.last_signature: Optional[str] = None
         self._monitor_task: Optional[asyncio.Task] = None
         self.last_update: Optional[datetime] = None
+        
+        # Live trading components
+        self.keypair: Optional[Keypair] = None
+        self.rpc_client: Optional[AsyncClient] = None
+        self.live_mode: bool = False
 
     async def connect(self, wallet_address: str) -> bool:
         """
@@ -257,9 +270,16 @@ class PhantomWallet:
                     await self._monitor_task
                 except asyncio.CancelledError:
                     pass
+            
+            # Close RPC client if in live mode
+            if self.rpc_client:
+                await self.rpc_client.close()
+                self.rpc_client = None
 
             self.connected = False
+            self.live_mode = False
             self.wallet_address = None
+            self.keypair = None
             self.token_accounts.clear()
             self.last_signature = None
             self.last_update = None
@@ -281,3 +301,208 @@ class PhantomWallet:
             return True
         age = (datetime.now() - self.last_update).total_seconds()
         return age > max_age_seconds
+    
+    def _load_keypair_from_private_key(self, private_key_b58: str) -> Keypair:
+        """
+        Create Solana keypair from base58 private key
+        
+        Args:
+            private_key_b58: Base58 encoded private key string
+            
+        Returns:
+            Keypair: Solana keypair object
+            
+        Raises:
+            ValueError: If private key is invalid
+        """
+        try:
+            if not private_key_b58 or not isinstance(private_key_b58, str):
+                raise ValueError("Private key must be a non-empty string")
+                
+            private_key_bytes = base58.b58decode(private_key_b58)
+            
+            if len(private_key_bytes) != 64:
+                raise ValueError("Private key must be 64 bytes when decoded")
+                
+            keypair = Keypair.from_secret_key(private_key_bytes)
+            logger.info(f"Successfully loaded keypair with public key: {keypair.public_key}")
+            return keypair
+            
+        except Exception as e:
+            logger.error(f"Failed to load keypair from private key: {str(e)}")
+            raise ValueError(f"Invalid private key: {str(e)}")
+    
+    async def initialize_live_mode(self, rpc_url: Optional[str] = None) -> bool:
+        """
+        Initialize live trading mode with private key and RPC connection
+        
+        Args:
+            rpc_url: Optional custom RPC URL
+            
+        Returns:
+            bool: True if initialization successful, False otherwise
+        """
+        try:
+            private_key = os.getenv('PRIVATE_KEY')
+            if not private_key:
+                logger.error("PRIVATE_KEY environment variable not found")
+                return False
+                
+            self.keypair = self._load_keypair_from_private_key(private_key)
+            
+            if not rpc_url:
+                network = os.getenv('SOLANA_NETWORK', 'mainnet-beta')
+                if network == 'mainnet-beta':
+                    rpc_url = "https://api.mainnet-beta.solana.com"
+                elif network == 'devnet':
+                    rpc_url = "https://api.devnet.solana.com"
+                else:
+                    rpc_url = "https://api.testnet.solana.com"
+                    
+            self.rpc_client = AsyncClient(rpc_url)
+            
+            # Test connection
+            try:
+                await self.rpc_client.get_latest_blockhash()
+                logger.info(f"Successfully connected to Solana RPC at {rpc_url}")
+            except Exception as e:
+                logger.error(f"Failed to connect to RPC: {str(e)}")
+                return False
+                
+            # Update wallet address to match keypair
+            self.wallet_address = str(self.keypair.public_key)
+            self.live_mode = True
+            
+            logger.info(f"Live mode initialized for wallet: {self.wallet_address}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize live mode: {str(e)}")
+            return False
+    
+    async def get_recent_blockhash(self, priority_fee: Optional[int] = None) -> str:
+        """
+        Get recent blockhash for transaction building
+        
+        Args:
+            priority_fee: Optional priority fee in microlamports
+            
+        Returns:
+            str: Recent blockhash
+            
+        Raises:
+            RuntimeError: If not in live mode or RPC client unavailable
+        """
+        if not self.live_mode or not self.rpc_client:
+            raise RuntimeError("Live mode not initialized")
+            
+        try:
+            response = await self.rpc_client.get_latest_blockhash()
+            if not response.value:
+                raise RuntimeError("Failed to get recent blockhash")
+                
+            return str(response.value.blockhash)
+            
+        except Exception as e:
+            logger.error(f"Error getting recent blockhash: {str(e)}")
+            raise
+    
+    async def sign_and_send_transaction(self, transaction: Transaction, rpc_url: Optional[str] = None) -> Optional[str]:
+        """
+        Sign and send a transaction to the Solana network
+        
+        Args:
+            transaction: Transaction to sign and send
+            rpc_url: Optional custom RPC URL
+            
+        Returns:
+            Optional[str]: Transaction signature if successful, None otherwise
+        """
+        if not self.live_mode or not self.keypair or not self.rpc_client:
+            logger.error("Live mode not initialized - cannot sign transactions")
+            return None
+            
+        try:
+            # Sign the transaction
+            transaction.sign(self.keypair)
+            
+            # Send the transaction
+            signature = await self.submit_transaction(transaction)
+            
+            if signature:
+                logger.info(f"Transaction sent successfully: {signature}")
+                self.last_signature = signature
+                return signature
+            else:
+                logger.error("Failed to submit transaction")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error signing and sending transaction: {str(e)}")
+            return None
+    
+    async def submit_transaction(self, signed_tx: Transaction) -> str:
+        """
+        Submit a signed transaction to the network
+        
+        Args:
+            signed_tx: Signed transaction to submit
+            
+        Returns:
+            str: Transaction signature
+            
+        Raises:
+            RuntimeError: If submission fails
+        """
+        if not self.rpc_client:
+            raise RuntimeError("RPC client not initialized")
+            
+        try:
+            opts = TxOpts(skip_confirmation=False, skip_preflight=False)
+            response = await self.rpc_client.send_transaction(
+                signed_tx,
+                opts=opts
+            )
+            
+            if response.value:
+                return str(response.value)
+            else:
+                raise RuntimeError("Transaction submission failed - no signature returned")
+                
+        except Exception as e:
+            logger.error(f"Error submitting transaction: {str(e)}")
+            raise
+    
+    async def get_transaction_status(self, signature: str) -> str:
+        """
+        Get the status of a transaction
+        
+        Args:
+            signature: Transaction signature to check
+            
+        Returns:
+            str: Transaction status ('confirmed', 'finalized', 'failed', 'pending')
+        """
+        if not self.rpc_client:
+            raise RuntimeError("RPC client not initialized")
+            
+        try:
+            response = await self.rpc_client.get_signature_status(signature)
+            
+            if not response.value:
+                return "pending"
+                
+            status = response.value[0]
+            if not status:
+                return "pending"
+                
+            if status.err:
+                return "failed"
+            elif status.confirmation_status:
+                return status.confirmation_status.value
+            else:
+                return "confirmed"
+                
+        except Exception as e:
+            logger.error(f"Error getting transaction status: {str(e)}")
+            return "unknown"

@@ -3,6 +3,7 @@ strategy.py - Core trading strategy implementation supporting both paper and liv
 """
 import logging
 import asyncio
+import os
 from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime, date
@@ -27,6 +28,7 @@ from .risk import RiskManager, MarketCondition
 from .performance import PerformanceMonitor
 from .signals import Signal, SignalGenerator
 from .market_analyzer import MarketAnalyzer
+from .transaction_manager import TransactionManager, TransactionStatus
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +174,7 @@ class TradingStrategy(TradingStrategyProtocol):
         self.alert_system = AlertSystem(settings)
         self.swap_executor = SwapExecutor(jupiter_client, wallet)
         self.position_manager = PositionManager(self.swap_executor, settings)
+        self.transaction_manager: Optional[TransactionManager] = None
         
         # Link position manager to settings for monitoring access
         settings.position_manager = self.position_manager
@@ -201,6 +204,24 @@ class TradingStrategy(TradingStrategyProtocol):
                 return True
 
             if self.state.mode == TradingMode.LIVE:
+                # Initialize live trading components
+                live_enabled = os.getenv('LIVE_TRADING_ENABLED', 'false').lower() == 'true'
+                if not live_enabled:
+                    raise ValidationError("Live trading not enabled in environment")
+                    
+                # Initialize wallet for live mode
+                if not await self.wallet.initialize_live_mode():
+                    raise ValidationError("Failed to initialize wallet for live trading")
+                    
+                # Initialize transaction manager
+                if self.wallet.rpc_client:
+                    self.transaction_manager = TransactionManager(
+                        rpc_client=self.wallet.rpc_client,
+                        max_retries=int(os.getenv('TRANSACTION_MAX_RETRIES', '3')),
+                        confirmation_timeout=int(os.getenv('TRANSACTION_TIMEOUT', '60'))
+                    )
+                    await self.transaction_manager.start_monitoring()
+                    
                 balance = await self.wallet.get_balance()
                 if isinstance(balance, (int, float, Decimal)):
                     balance = float(balance)
@@ -261,6 +282,11 @@ class TradingStrategy(TradingStrategyProtocol):
                     pass
                 finally:
                     self.state.monitor_task = None
+
+            # Stop transaction manager if running
+            if self.transaction_manager:
+                await self.transaction_manager.stop_monitoring()
+                self.transaction_manager = None
 
             if self.settings.CLOSE_POSITIONS_ON_STOP:
                 await self._cleanup_positions()
@@ -1063,52 +1089,259 @@ class TradingStrategy(TradingStrategyProtocol):
             logger.error(f"Paper trade execution error: {e}")
             return False
 
-    async def _execute_live_trade(
-        self, token_address: str, size: float, price: float
-    ) -> bool:
-        """Execute live trade"""
+    async def execute_live_trade(self, signal: EntrySignal) -> bool:
+        """Execute live trade with enhanced validation and monitoring"""
         try:
-            balance = await self.wallet.get_balance()
-            if float(balance) < (size * price):
-                logger.warning("Insufficient balance for live trade")
+            if not self.wallet.live_mode or not self.transaction_manager:
+                logger.error("Live mode not properly initialized")
                 return False
-
-            success = await self.swap_executor.execute_swap(
+                
+            # Pre-trade validation
+            if not await self.verify_live_balance(signal.size * signal.price):
+                return False
+                
+            # Check emergency controls
+            if not await self._check_emergency_controls():
+                logger.warning("Emergency controls triggered - trade blocked")
+                return False
+                
+            # Execute swap with enhanced monitoring
+            signature = await self.swap_executor.execute_swap(
                 input_token="So11111111111111111111111111111111111111112",  # SOL
-                output_token=token_address,
-                amount=size,
-                slippage=self.settings.MAX_SLIPPAGE,
+                output_token=signal.token_address,
+                amount=signal.size,
+                slippage=signal.slippage
             )
-
-            if success:
-                position = await self.position_manager.open_position(
-                    token_address=token_address,
-                    size=size,
-                    entry_price=price,
-                    stop_loss=price * (1 - self.settings.STOP_LOSS_PERCENTAGE),
-                    take_profit=price * (1 + self.settings.TAKE_PROFIT_PERCENTAGE),
+            
+            if not signature:
+                logger.error(f"Failed to execute swap for {signal.token_address}")
+                return False
+                
+            # Wait for transaction confirmation
+            confirmed = await self.wait_for_transaction_confirmation(signature)
+            if not confirmed:
+                logger.error(f"Transaction confirmation failed: {signature}")
+                return False
+                
+            # Open position tracking
+            position = await self.position_manager.open_position(
+                token_address=signal.token_address,
+                size=signal.size,
+                entry_price=signal.price,
+                stop_loss=signal.stop_loss,
+                take_profit=signal.take_profit
+            )
+            
+            if position:
+                self.state.daily_stats.trade_count += 1
+                
+                # Sync position with blockchain state
+                await self.sync_positions_with_blockchain()
+                
+                await self.alert_system.emit_alert(
+                    level="info",
+                    type="live_trade_executed",
+                    message=f"Live trade executed for {signal.token_address}",
+                    data={
+                        "signature": signature,
+                        "token": signal.token_address,
+                        "size": signal.size,
+                        "price": signal.price,
+                        "stop_loss": signal.stop_loss,
+                        "take_profit": signal.take_profit
+                    }
                 )
-
-                if position:
-                    self.state.daily_stats.trade_count += 1
-                    await self.alert_system.emit_alert(
-                        level="info",
-                        type="live_trade_opened",
-                        message=f"Live position opened for {token_address}",
-                        data={
-                            "size": size,
-                            "price": price,
-                            "stop_loss": position.stop_loss,
-                            "take_profit": position.take_profit,
-                        },
-                    )
-                    return True
-
+                return True
+                
             return False
-
+            
         except Exception as e:
             logger.error(f"Live trade execution error: {e}")
             return False
+    
+    async def close_live_position(self, token_address: str, reason: str) -> bool:
+        """Close live position with enhanced monitoring"""
+        try:
+            if not self.wallet.live_mode or not self.transaction_manager:
+                logger.error("Live mode not properly initialized")
+                return False
+                
+            position = self.position_manager.positions.get(token_address)
+            if not position:
+                logger.warning(f"No position found for {token_address}")
+                return False
+                
+            # Execute closing swap
+            signature = await self.swap_executor.execute_swap(
+                input_token=token_address,
+                output_token="So11111111111111111111111111111111111111112",  # SOL
+                amount=position.size,
+                slippage=self.settings.MAX_SLIPPAGE
+            )
+            
+            if not signature:
+                logger.error(f"Failed to close position for {token_address}")
+                return False
+                
+            # Wait for confirmation
+            confirmed = await self.wait_for_transaction_confirmation(signature)
+            if not confirmed:
+                logger.error(f"Position close confirmation failed: {signature}")
+                return False
+                
+            # Close position in manager
+            success = await self.position_manager.close_position(token_address, reason)
+            
+            if success:
+                # Sync with blockchain
+                await self.sync_positions_with_blockchain()
+                
+                await self.alert_system.emit_alert(
+                    level="info",
+                    type="live_position_closed",
+                    message=f"Live position closed for {token_address}",
+                    data={
+                        "signature": signature,
+                        "token": token_address,
+                        "reason": reason,
+                        "pnl": position.unrealized_pnl
+                    }
+                )
+                
+            return success
+            
+        except Exception as e:
+            logger.error(f"Error closing live position: {e}")
+            return False
+    
+    async def verify_live_balance(self, required_amount: float) -> bool:
+        """Verify sufficient balance for live trading"""
+        try:
+            if not self.wallet.live_mode:
+                return False
+                
+            current_balance = await self.wallet.get_balance()
+            if not current_balance:
+                logger.error("Failed to get current balance")
+                return False
+                
+            balance = float(current_balance)
+            
+            # Add buffer for fees
+            fee_buffer = float(os.getenv('TRANSACTION_FEE_BUFFER', '0.01'))  # 0.01 SOL buffer
+            total_required = required_amount + fee_buffer
+            
+            if balance < total_required:
+                logger.warning(
+                    f"Insufficient balance: {balance} SOL available, "
+                    f"{total_required} SOL required (including {fee_buffer} SOL fee buffer)"
+                )
+                return False
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error verifying balance: {e}")
+            return False
+    
+    async def wait_for_transaction_confirmation(
+        self, 
+        signature: str, 
+        timeout: int = 60
+    ) -> bool:
+        """Wait for transaction confirmation with timeout"""
+        try:
+            if not self.transaction_manager:
+                logger.error("Transaction manager not initialized")
+                return False
+                
+            status = await self.transaction_manager.wait_for_confirmation(
+                signature=signature,
+                timeout=timeout
+            )
+            
+            if status == TransactionStatus.CONFIRMED or status == TransactionStatus.FINALIZED:
+                logger.info(f"Transaction confirmed: {signature}")
+                return True
+            elif status == TransactionStatus.FAILED:
+                logger.error(f"Transaction failed: {signature}")
+                return False
+            elif status == TransactionStatus.TIMEOUT:
+                logger.warning(f"Transaction confirmation timeout: {signature}")
+                return False
+            else:
+                logger.warning(f"Unexpected transaction status: {status}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error waiting for confirmation: {e}")
+            return False
+    
+    async def sync_positions_with_blockchain(self) -> None:
+        """Synchronize position state with blockchain reality"""
+        try:
+            if not self.wallet.live_mode:
+                return
+                
+            # Get current token balances from wallet
+            token_accounts = await self.wallet.get_token_accounts()
+            
+            # Update position manager with actual balances
+            for account in token_accounts:
+                token_address = account.get('mint')
+                balance = account.get('balance', 0.0)
+                
+                if token_address in self.position_manager.positions:
+                    position = self.position_manager.positions[token_address]
+                    # Update position size if different from blockchain
+                    if abs(position.size - balance) > 0.001:  # Small tolerance for rounding
+                        logger.info(
+                            f"Syncing position size for {token_address}: "
+                            f"{position.size} -> {balance}"
+                        )
+                        position.size = balance
+                        
+            logger.debug("Position synchronization completed")
+            
+        except Exception as e:
+            logger.error(f"Error syncing positions with blockchain: {e}")
+    
+    async def _check_emergency_controls(self) -> bool:
+        """Check emergency trading controls"""
+        try:
+            # Check daily loss limits
+            if self.state.daily_stats.total_pnl <= -float(os.getenv('MAX_DAILY_LOSS', '100')):
+                return False
+                
+            # Check maximum position count
+            max_positions = int(os.getenv('MAX_LIVE_POSITIONS', '5'))
+            if len(self.position_manager.positions) >= max_positions:
+                return False
+                
+            # Check error count
+            if self.state.daily_stats.error_count >= int(os.getenv('MAX_DAILY_ERRORS', '10')):
+                return False
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error checking emergency controls: {e}")
+            return False
+    
+    async def _execute_live_trade(
+        self, token_address: str, size: float, price: float
+    ) -> bool:
+        """Legacy method - redirects to new execute_live_trade"""
+        signal = EntrySignal(
+            token_address=token_address,
+            price=price,
+            confidence=0.7,  # Default confidence
+            entry_type="buy",
+            size=size,
+            stop_loss=price * (1 - self.settings.STOP_LOSS_PERCENTAGE),
+            take_profit=price * (1 + self.settings.TAKE_PROFIT_PERCENTAGE)
+        )
+        return await self.execute_live_trade(signal)
 
     async def _close_paper_position(self, token_address: str, reason: str) -> bool:
         """Close paper trading position"""

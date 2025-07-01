@@ -2,6 +2,11 @@ import logging
 from typing import Dict, Any, Optional, List
 import aiohttp
 import json
+import base58
+from solana.transaction import Transaction
+from solana.rpc.types import TxOpts
+from solders.instruction import Instruction
+from solders.pubkey import Pubkey
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +164,204 @@ class JupiterClient:
             logger.error(f"Error getting price history: {str(e)}")
             return []
 
+    async def get_quote(self, input_mint: str, output_mint: str, amount: str, slippageBps: int) -> Dict[str, Any]:
+        """
+        Get a quote for a token swap
+        
+        Args:
+            input_mint: Input token mint address
+            output_mint: Output token mint address  
+            amount: Amount to swap (in smallest unit)
+            slippageBps: Slippage tolerance in basis points
+            
+        Returns:
+            Dict containing quote information
+        """
+        try:
+            await self.ensure_session()
+            params = {
+                "inputMint": input_mint,
+                "outputMint": output_mint,
+                "amount": amount,
+                "slippageBps": slippageBps
+            }
+            
+            async with self.session.get(f"{self.base_url}/quote", params=params) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    logger.debug(f"Quote response: {data}")
+                    return data
+                else:
+                    logger.error(f"Quote request failed with status {response.status}")
+                    error_text = await response.text()
+                    logger.error(f"Error response: {error_text}")
+                    return {}
+                    
+        except Exception as e:
+            logger.error(f"Error getting quote: {str(e)}")
+            return {}
+    
+    async def get_routes(self, input_mint: str, output_mint: str, amount: str, slippageBps: int) -> Dict[str, Any]:
+        """
+        Get swap routes - alias for get_quote for compatibility
+        
+        Args:
+            input_mint: Input token mint address
+            output_mint: Output token mint address
+            amount: Amount to swap
+            slippageBps: Slippage tolerance in basis points
+            
+        Returns:
+            Dict containing route information
+        """
+        return await self.get_quote(input_mint, output_mint, amount, slippageBps)
+    
+    async def get_swap_ix(self, quote: Dict[str, Any]) -> Any:
+        """
+        Get swap instruction from quote
+        
+        Args:
+            quote: Quote object from get_quote
+            
+        Returns:
+            Swap instruction data
+        """
+        try:
+            await self.ensure_session()
+            
+            swap_request = {
+                "quoteResponse": quote,
+                "userPublicKey": quote.get("userPublicKey", ""),
+                "wrapAndUnwrapSol": True,
+                "useSharedAccounts": True,
+                "feeAccount": None,
+                "computeUnitPriceMicroLamports": None,
+                "prioritizationFeeLamports": None
+            }
+            
+            async with self.session.post(
+                f"{self.base_url}/swap-instructions",
+                json=swap_request,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data
+                else:
+                    logger.error(f"Swap instruction request failed with status {response.status}")
+                    error_text = await response.text()
+                    logger.error(f"Error response: {error_text}")
+                    return None
+                    
+        except Exception as e:
+            logger.error(f"Error getting swap instruction: {str(e)}")
+            return None
+    
+    async def build_swap_transaction(
+        self, 
+        route: Dict[str, Any], 
+        user_public_key: str
+    ) -> Transaction:
+        """
+        Build a swap transaction from route data
+        
+        Args:
+            route: Route/quote data from Jupiter
+            user_public_key: User's wallet public key
+            
+        Returns:
+            Transaction: Built transaction ready for signing
+            
+        Raises:
+            ValueError: If transaction building fails
+        """
+        try:
+            # Update route with user public key
+            route["userPublicKey"] = user_public_key
+            
+            # Get swap instructions
+            swap_data = await self.get_swap_ix(route)
+            if not swap_data:
+                raise ValueError("Failed to get swap instructions")
+                
+            # Extract transaction data
+            swap_transaction = swap_data.get("swapTransaction")
+            if not swap_transaction:
+                raise ValueError("No swap transaction in response")
+                
+            # Decode the transaction
+            transaction_bytes = base58.b58decode(swap_transaction)
+            transaction = Transaction.deserialize(transaction_bytes)
+            
+            logger.debug(f"Built swap transaction with {len(transaction.instructions)} instructions")
+            return transaction
+            
+        except Exception as e:
+            logger.error(f"Error building swap transaction: {str(e)}")
+            raise ValueError(f"Failed to build swap transaction: {str(e)}")
+    
+    async def execute_swap(
+        self,
+        input_token: str,
+        output_token: str, 
+        amount: float,
+        slippage: float = 0.01,
+        priority_fee: Optional[int] = None,
+        max_fee: Optional[int] = None
+    ) -> bool:
+        """
+        Execute a token swap (this method requires wallet integration)
+        
+        Args:
+            input_token: Input token mint address
+            output_token: Output token mint address
+            amount: Amount to swap
+            slippage: Slippage tolerance (0.01 = 1%)
+            priority_fee: Priority fee in microlamports
+            max_fee: Maximum fee limit
+            
+        Returns:
+            bool: True if swap executed successfully
+            
+        Note:
+            This method provides the interface but requires wallet integration
+            to actually execute the swap. Should be called from SwapExecutor.
+        """
+        try:
+            # Convert amount to smallest unit (assuming 9 decimals for most tokens)
+            amount_lamports = str(int(amount * 1e9))
+            slippage_bps = int(slippage * 10000)  # Convert to basis points
+            
+            # Get quote
+            quote = await self.get_quote(
+                input_mint=input_token,
+                output_mint=output_token,
+                amount=amount_lamports,
+                slippageBps=slippage_bps
+            )
+            
+            if not quote:
+                logger.error("Failed to get swap quote")
+                return False
+                
+            # Log quote details
+            in_amount = quote.get("inAmount", "0")
+            out_amount = quote.get("outAmount", "0")
+            price_impact = quote.get("priceImpactPct", "0")
+            
+            logger.info(
+                f"Swap quote: {in_amount} -> {out_amount}, "
+                f"Price impact: {price_impact}%"
+            )
+            
+            # This method returns True to indicate quote was successful
+            # Actual execution requires wallet integration in SwapExecutor
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error in execute_swap: {str(e)}")
+            return False
+    
     async def close(self) -> None:
         """Close client connection"""
         try:
