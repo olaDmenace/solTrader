@@ -1,0 +1,121 @@
+{
+  "test_results": {
+    "position_tests": [
+      {
+        "test": "Basic Position Creation",
+        "status": "PASS",
+        "details": "PnL: 0.0, Expected: 0.0"
+      },
+      {
+        "test": "Position Price Update",
+        "status": "PASS",
+        "details": "PnL: 1.0, Expected: 1.0"
+      }
+    ],
+    "momentum_tests": [
+      {
+        "test": "Momentum Calculation",
+        "status": "PASS",
+        "details": "Momentum range: -0.167 to 0.143"
+      }
+    ],
+    "exit_logic_tests": [
+      {
+        "test": "Momentum Reversal Exit",
+        "status": "PASS",
+        "details": "Exit: True, Reason: momentum_reversal"
+      },
+      {
+        "test": "Profit Protection Exit",
+        "status": "PASS",
+        "details": "Exit: True, Reason: profit_protection"
+      },
+      {
+        "test": "Time Limit Exit",
+        "status": "PASS",
+        "details": "Exit: True, Reason: time_limit"
+      },
+      {
+        "test": "Continue Holding",
+        "status": "PASS",
+        "details": "Exit: False, Reason: "
+      }
+    ],
+    "performance_summary": {
+      "total_tests": 7,
+      "passed_tests": 7,
+      "failed_tests": 0,
+      "pass_rate": "100.0%",
+      "test_date": "2025-07-02T11:37:57.752675",
+      "strategy_version": "APE_ENHANCED_v1.0"
+    }
+  },
+  "simulation_results": {
+    "trades": [
+      {
+        "token": "MEME1",
+        "pnl": 0.5,
+        "pnl_percent": 50.0,
+        "hold_time_minutes": 45
+      },
+      {
+        "token": "SHIB2",
+        "pnl": -0.04999999999999999,
+        "pnl_percent": -9.999999999999998,
+        "hold_time_minutes": 15
+      },
+      {
+        "token": "DOGE3",
+        "pnl": 0.7999999999999998,
+        "pnl_percent": 39.99999999999999,
+        "hold_time_minutes": 90
+      },
+      {
+        "token": "PEPE4",
+        "pnl": -0.08000000000000007,
+        "pnl_percent": -10.000000000000009,
+        "hold_time_minutes": 30
+      },
+      {
+        "token": "MOON5",
+        "pnl": 1.5,
+        "pnl_percent": 100.0,
+        "hold_time_minutes": 120
+      },
+      {
+        "token": "RUG6",
+        "pnl": -0.9,
+        "pnl_percent": -90.0,
+        "hold_time_minutes": 5
+      },
+      {
+        "token": "PUMP7",
+        "pnl": 0.15000000000000002,
+        "pnl_percent": 50.0,
+        "hold_time_minutes": 60
+      },
+      {
+        "token": "DUMP8",
+        "pnl": -0.19999999999999996,
+        "pnl_percent": -16.666666666666664,
+        "hold_time_minutes": 180
+      },
+      {
+        "token": "SAFE9",
+        "pnl": 0.12,
+        "pnl_percent": 19.999999999999996,
+        "hold_time_minutes": 75
+      },
+      {
+        "token": "VOLT10",
+        "pnl": -0.20000000000000018,
+        "pnl_percent": -8.000000000000007,
+        "hold_time_minutes": 25
+      }
+    ],
+    "total_pnl": 1.6399999999999997,
+    "win_rate": 50.0,
+    "max_drawdown": 0.0
+  },
+  "timestamp": "2025-07-02T11:37:57.756677"
+}
