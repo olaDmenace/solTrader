@@ -194,21 +194,22 @@ class Position:
         momentum = self._calculate_momentum()
         rsi = self._calculate_rsi()
         volume_trend = self._get_volume_trend()
+        profit_percentage = (self.current_price / self.entry_price) - 1
         
-        # 3. Momentum reversal detection (most important)
+        # 3. Profit protection (protect profits when still in decent profit)
+        high_water_profit = (self.high_water_mark / self.entry_price) - 1
+        if high_water_profit > 0.2 and profit_percentage > 0.05:  # Had 20%+ profit AND still have 5%+ profit
+            trailing_stop_price = self.high_water_mark * 0.92  # 8% trailing stop for better protection
+            if self.current_price < trailing_stop_price:
+                return True, ExitReason.PROFIT_PROTECTION.value
+        
+        # 4. Momentum reversal detection (most important for unprofitable positions)
         if momentum < -0.03 and volume_trend == "declining":
             return True, ExitReason.MOMENTUM_REVERSAL.value
             
-        # 4. Overbought with momentum divergence
+        # 5. Overbought with momentum divergence
         if rsi > 80 and momentum < 0.01:  # High RSI but slowing momentum
             return True, ExitReason.OVERBOUGHT_DIVERGENCE.value
-            
-        # 5. Profit protection (only after significant gains)
-        profit_percentage = (self.current_price / self.entry_price) - 1
-        if profit_percentage > 0.2:  # 20%+ profit
-            trailing_stop_price = self.high_water_mark * 0.95  # 5% trailing
-            if self.current_price < trailing_stop_price:
-                return True, ExitReason.PROFIT_PROTECTION.value
                 
         # 6. Quick loss cut for momentum breakdown
         if momentum < -0.05 and profit_percentage < -0.1:  # Strong negative momentum + 10% loss

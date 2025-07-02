@@ -5,7 +5,7 @@ from src.api.alchemy import AlchemyClient
 import asyncio
 from datetime import datetime
 import os
-from solana.keypair import Keypair
+from solders.keypair import Keypair
 from solana.transaction import Transaction
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Commitment

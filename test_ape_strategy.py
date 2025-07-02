@@ -154,8 +154,8 @@ class ApeStrategyTester:
             entry_price=1.0
         )
         
-        # Simulate price movement (uptrend then reversal)
-        price_sequence = [1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.22, 1.18, 1.15, 1.10, 1.05, 1.0, 0.95, 0.9]
+        # Simulate price movement (uptrend then reversal) - need minimum 10 points for momentum
+        price_sequence = [1.0, 1.02, 1.05, 1.08, 1.1, 1.15, 1.2, 1.25, 1.22, 1.18, 1.15, 1.10, 1.05, 1.0, 0.95, 0.9]
         
         momentum_results = []
         rsi_results = []
@@ -169,8 +169,8 @@ class ApeStrategyTester:
             
         # Test momentum detection
         try:
-            # Early uptrend should have positive momentum
-            early_momentum = momentum_results[6]  # After some price increase
+            # Early uptrend should have positive momentum (check after 10+ data points)
+            early_momentum = momentum_results[10]  # After sufficient price history 
             assert early_momentum > 0, f"Expected positive momentum, got {early_momentum}"
             
             # Late downtrend should have negative momentum
@@ -204,15 +204,15 @@ class ApeStrategyTester:
         test_scenarios = [
             {
                 'name': 'Momentum Reversal Exit',
-                'price_sequence': [1.0, 1.2, 1.15, 1.1, 1.05, 0.95],  # Strong reversal
-                'volume_sequence': [100, 120, 110, 90, 80, 70],  # Declining volume
+                'price_sequence': [1.0, 1.02, 1.05, 1.08, 1.1, 1.15, 1.2, 1.25, 1.22, 1.18, 1.15, 1.1, 1.05, 0.95, 0.9],  # Extended sequence with reversal
+                'volume_sequence': [100, 105, 110, 115, 120, 125, 130, 135, 125, 115, 105, 95, 85, 75, 65],  # Declining volume
                 'expected_exit': True,
                 'expected_reason': ExitReason.MOMENTUM_REVERSAL.value
             },
             {
                 'name': 'Profit Protection Exit',
-                'price_sequence': [1.0, 1.3, 1.28, 1.25],  # 25% gain then slight decline
-                'volume_sequence': [100, 150, 140, 130],
+                'price_sequence': [1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.32, 1.28, 1.25, 1.22, 1.18, 1.15, 1.12],  # 35% gain then decline
+                'volume_sequence': [100, 110, 120, 130, 140, 145, 150, 155, 150, 145, 140, 135, 130, 125, 120],
                 'expected_exit': True,
                 'expected_reason': ExitReason.PROFIT_PROTECTION.value
             },
@@ -224,8 +224,8 @@ class ApeStrategyTester:
             },
             {
                 'name': 'Continue Holding',
-                'price_sequence': [1.0, 1.05, 1.08, 1.12],  # Steady uptrend
-                'volume_sequence': [100, 110, 120, 130],  # Increasing volume
+                'price_sequence': [1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.22, 1.24, 1.26, 1.28],  # Steady uptrend
+                'volume_sequence': [100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170],  # Increasing volume
                 'expected_exit': False
             }
         ]
@@ -242,7 +242,9 @@ class ApeStrategyTester:
                 # Special setup for time limit test
                 if scenario.get('setup') == 'old_position':
                     position.entry_time = datetime.now() - timedelta(hours=4)  # 4 hours old
-                    position.update_price(1.1)  # Small gain
+                    # Build up price history for momentum calculation
+                    for i, price in enumerate([1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.15, 1.12, 1.1, 1.08, 1.05]):
+                        position.update_price(price)
                 else:
                     # Simulate price/volume sequence
                     for i, price in enumerate(scenario['price_sequence']):

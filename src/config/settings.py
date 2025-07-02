@@ -31,6 +31,7 @@ class Settings:
     MIN_TRADE_SIZE: float = 0.1  # Minimum trade size
     INITIAL_CAPITAL: float = 100.0  # Starting capital
     PORTFOLIO_VALUE: float = 100.0  # Current portfolio value
+    MIN_PORTFOLIO_VALUE: float = 10.0  # Minimum portfolio value threshold
 
     # Monitoring settings (high-frequency for momentum trading)
     MONITOR_INTERVAL: float = 1.0  # Faster monitoring for position updates

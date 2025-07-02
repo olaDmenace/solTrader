@@ -1,61 +1,59 @@
 """
-emergency_controls.py - Emergency controls and circuit breakers for trading
+Emergency Controls Module for Trading Bot
+Advanced circuit breaker and emergency control system
 """
-import logging
+
 import asyncio
+import logging
 import os
+from datetime import datetime, timedelta
+from typing import Dict, Any, List, Callable, Awaitable, Optional
 from enum import Enum
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Dict, Optional, List, Any, Callable, Awaitable
-import json
 
 logger = logging.getLogger(__name__)
 
+class EmergencyType(Enum):
+    """Types of emergency events"""
+    EXCESSIVE_LOSS = "excessive_loss"
+    BALANCE_CRITICAL = "balance_critical"
+    HIGH_ERROR_RATE = "high_error_rate"
+    POSITION_LIMIT = "position_limit"
+    RAPID_DRAWDOWN = "rapid_drawdown"
+    NETWORK_ISSUES = "network_issues"
+    VOLATILITY_SPIKE = "volatility_spike"
+    LIQUIDITY_CRISIS = "liquidity_crisis"
+    MANUAL_STOP = "manual_stop"
 
 class EmergencyLevel(Enum):
-    """Emergency alert levels"""
+    """Emergency severity levels"""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
-
-class EmergencyType(Enum):
-    """Types of emergency situations"""
-    EXCESSIVE_LOSS = "excessive_loss"
-    RAPID_DRAWDOWN = "rapid_drawdown"
-    HIGH_ERROR_RATE = "high_error_rate"
-    NETWORK_ISSUES = "network_issues"
-    LIQUIDITY_CRISIS = "liquidity_crisis"
-    VOLATILITY_SPIKE = "volatility_spike"
-    POSITION_LIMIT = "position_limit"
-    BALANCE_CRITICAL = "balance_critical"
-
-
 @dataclass
 class EmergencyEvent:
-    """Emergency event record"""
+    """Emergency event data structure"""
     event_type: EmergencyType
     level: EmergencyLevel
     message: str
+    data: Dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
-    data: Dict[str, Any] = field(default_factory=dict)
     resolved: bool = False
     resolved_at: Optional[datetime] = None
-
 
 @dataclass
 class CircuitBreakerConfig:
     """Circuit breaker configuration"""
-    max_daily_loss: float = 100.0  # USD
-    max_drawdown_percent: float = 10.0  # %
-    max_position_size: float = 500.0  # USD
+    max_daily_loss: float = 100.0
+    max_drawdown_percent: float = 15.0
+    max_position_size: float = 500.0
     max_trades_per_hour: int = 20
-    max_error_rate: float = 0.3  # 30%
-    min_balance_threshold: float = 10.0  # SOL
-    max_volatility_threshold: float = 50.0  # %
+    max_error_rate: float = 0.3
+    min_balance_threshold: float = 10.0
     position_limit: int = 5
+    max_volatility_threshold: float = 50.0
 
 
 class EmergencyControls:
@@ -65,4 +63,249 @@ class EmergencyControls:
         """
         Initialize emergency controls
         
-        Args:\n            config: Circuit breaker configuration\n        \"\"\"\n        self.config = config or CircuitBreakerConfig()\n        self.events: List[EmergencyEvent] = []\n        self.emergency_stop_active = False\n        self.paused_operations: set = set()\n        self.callbacks: List[Callable[[EmergencyEvent], Awaitable[None]]] = []\n        \n        # Load config from environment\n        self._load_env_config()\n        \n        # Monitoring state\n        self.daily_stats = {\n            'trades': 0,\n            'errors': 0,\n            'pnl': 0.0,\n            'last_reset': datetime.now().date()\n        }\n        \n        self.hourly_stats = {\n            'trades': 0,\n            'last_reset': datetime.now().replace(minute=0, second=0, microsecond=0)\n        }\n    \n    def _load_env_config(self) -> None:\n        \"\"\"Load configuration from environment variables\"\"\"\n        try:\n            self.config.max_daily_loss = float(os.getenv('EMERGENCY_MAX_DAILY_LOSS', '100.0'))\n            self.config.max_drawdown_percent = float(os.getenv('EMERGENCY_MAX_DRAWDOWN', '10.0'))\n            self.config.max_position_size = float(os.getenv('EMERGENCY_MAX_POSITION_SIZE', '500.0'))\n            self.config.max_trades_per_hour = int(os.getenv('EMERGENCY_MAX_TRADES_HOUR', '20'))\n            self.config.max_error_rate = float(os.getenv('EMERGENCY_MAX_ERROR_RATE', '0.3'))\n            self.config.min_balance_threshold = float(os.getenv('EMERGENCY_MIN_BALANCE', '10.0'))\n            self.config.position_limit = int(os.getenv('EMERGENCY_POSITION_LIMIT', '5'))\n            \n            logger.info(\"Emergency controls configuration loaded from environment\")\n            \n        except Exception as e:\n            logger.warning(f\"Error loading emergency config from environment: {e}\")\n    \n    def add_emergency_callback(\n        self, \n        callback: Callable[[EmergencyEvent], Awaitable[None]]\n    ) -> None:\n        \"\"\"Add callback for emergency events\"\"\"\n        self.callbacks.append(callback)\n    \n    async def check_circuit_breakers(\n        self, \n        current_balance: float,\n        current_positions: Dict[str, Any],\n        daily_pnl: float,\n        error_count: int,\n        trade_count: int\n    ) -> bool:\n        \"\"\"Check all circuit breakers and trigger if necessary\"\"\"\n        try:\n            # Reset daily stats if new day\n            self._reset_daily_stats_if_needed()\n            self._reset_hourly_stats_if_needed()\n            \n            # Update current stats\n            self.daily_stats['pnl'] = daily_pnl\n            self.daily_stats['errors'] = error_count\n            self.daily_stats['trades'] = trade_count\n            \n            triggered_breakers = []\n            \n            # Check daily loss limit\n            if daily_pnl <= -self.config.max_daily_loss:\n                triggered_breakers.append(self._create_emergency_event(\n                    EmergencyType.EXCESSIVE_LOSS,\n                    EmergencyLevel.HIGH,\n                    f\"Daily loss limit exceeded: {daily_pnl:.2f} USD\",\n                    {'daily_pnl': daily_pnl, 'limit': -self.config.max_daily_loss}\n                ))\n            \n            # Check balance threshold\n            if current_balance < self.config.min_balance_threshold:\n                triggered_breakers.append(self._create_emergency_event(\n                    EmergencyType.BALANCE_CRITICAL,\n                    EmergencyLevel.CRITICAL,\n                    f\"Balance below critical threshold: {current_balance:.4f} SOL\",\n                    {'balance': current_balance, 'threshold': self.config.min_balance_threshold}\n                ))\n            \n            # Check position count\n            position_count = len(current_positions)\n            if position_count >= self.config.position_limit:\n                triggered_breakers.append(self._create_emergency_event(\n                    EmergencyType.POSITION_LIMIT,\n                    EmergencyLevel.MEDIUM,\n                    f\"Position limit reached: {position_count}/{self.config.position_limit}\",\n                    {'position_count': position_count, 'limit': self.config.position_limit}\n                ))\n            \n            # Check error rate\n            if trade_count > 0:\n                error_rate = error_count / trade_count\n                if error_rate > self.config.max_error_rate:\n                    triggered_breakers.append(self._create_emergency_event(\n                        EmergencyType.HIGH_ERROR_RATE,\n                        EmergencyLevel.HIGH,\n                        f\"Error rate too high: {error_rate:.1%}\",\n                        {'error_rate': error_rate, 'limit': self.config.max_error_rate}\n                    ))\n            \n            # Check hourly trade limit\n            if self.hourly_stats['trades'] >= self.config.max_trades_per_hour:\n                triggered_breakers.append(self._create_emergency_event(\n                    EmergencyType.RAPID_DRAWDOWN,\n                    EmergencyLevel.MEDIUM,\n                    f\"Hourly trade limit exceeded: {self.hourly_stats['trades']}\",\n                    {'hourly_trades': self.hourly_stats['trades'], 'limit': self.config.max_trades_per_hour}\n                ))\n            \n            # Process triggered breakers\n            if triggered_breakers:\n                for event in triggered_breakers:\n                    await self._handle_emergency_event(event)\n                return False  # Circuit breakers triggered\n                \n            return True  # All checks passed\n            \n        except Exception as e:\n            logger.error(f\"Error checking circuit breakers: {e}\")\n            return False  # Fail safe\n    \n    async def check_position_risk(\n        self, \n        position_size: float, \n        current_price: float,\n        entry_price: float\n    ) -> bool:\n        \"\"\"Check individual position risk\"\"\"\n        try:\n            position_value = position_size * current_price\n            \n            # Check position size limit\n            if position_value > self.config.max_position_size:\n                await self._handle_emergency_event(self._create_emergency_event(\n                    EmergencyType.POSITION_LIMIT,\n                    EmergencyLevel.MEDIUM,\n                    f\"Position exceeds size limit: ${position_value:.2f}\",\n                    {'position_value': position_value, 'limit': self.config.max_position_size}\n                ))\n                return False\n                \n            # Check drawdown\n            if entry_price > 0:\n                drawdown = (entry_price - current_price) / entry_price * 100\n                if drawdown > self.config.max_drawdown_percent:\n                    await self._handle_emergency_event(self._create_emergency_event(\n                        EmergencyType.RAPID_DRAWDOWN,\n                        EmergencyLevel.HIGH,\n                        f\"Position drawdown excessive: {drawdown:.1f}%\",\n                        {'drawdown': drawdown, 'limit': self.config.max_drawdown_percent}\n                    ))\n                    return False\n                    \n            return True\n            \n        except Exception as e:\n            logger.error(f\"Error checking position risk: {e}\")\n            return False\n    \n    async def check_market_conditions(\n        self, \n        volatility: float,\n        liquidity_score: float\n    ) -> bool:\n        \"\"\"Check market condition emergency triggers\"\"\"\n        try:\n            triggered = False\n            \n            # Check volatility\n            if volatility > self.config.max_volatility_threshold:\n                await self._handle_emergency_event(self._create_emergency_event(\n                    EmergencyType.VOLATILITY_SPIKE,\n                    EmergencyLevel.HIGH,\n                    f\"Extreme volatility detected: {volatility:.1f}%\",\n                    {'volatility': volatility, 'threshold': self.config.max_volatility_threshold}\n                ))\n                triggered = True\n                \n            # Check liquidity crisis\n            if liquidity_score < 0.3:  # Low liquidity\n                await self._handle_emergency_event(self._create_emergency_event(\n                    EmergencyType.LIQUIDITY_CRISIS,\n                    EmergencyLevel.MEDIUM,\n                    f\"Low liquidity detected: {liquidity_score:.2f}\",\n                    {'liquidity_score': liquidity_score}\n                ))\n                triggered = True\n                \n            return not triggered\n            \n        except Exception as e:\n            logger.error(f\"Error checking market conditions: {e}\")\n            return False\n    \n    async def emergency_stop(self, reason: str) -> None:\n        \"\"\"Trigger emergency stop\"\"\"\n        try:\n            self.emergency_stop_active = True\n            \n            event = self._create_emergency_event(\n                EmergencyType.NETWORK_ISSUES,\n                EmergencyLevel.CRITICAL,\n                f\"Emergency stop activated: {reason}\",\n                {'reason': reason}\n            )\n            \n            await self._handle_emergency_event(event)\n            \n            logger.critical(f\"EMERGENCY STOP ACTIVATED: {reason}\")\n            \n        except Exception as e:\n            logger.error(f\"Error in emergency stop: {e}\")\n    \n    async def pause_operation(self, operation: str, duration: int = 300) -> None:\n        \"\"\"Pause specific operation for duration (seconds)\"\"\"\n        try:\n            self.paused_operations.add(operation)\n            logger.warning(f\"Operation paused: {operation} for {duration}s\")\n            \n            # Schedule resume\n            asyncio.create_task(self._resume_operation_after_delay(operation, duration))\n            \n        except Exception as e:\n            logger.error(f\"Error pausing operation: {e}\")\n    \n    async def _resume_operation_after_delay(self, operation: str, delay: int) -> None:\n        \"\"\"Resume operation after delay\"\"\"\n        try:\n            await asyncio.sleep(delay)\n            self.paused_operations.discard(operation)\n            logger.info(f\"Operation resumed: {operation}\")\n            \n        except Exception as e:\n            logger.error(f\"Error resuming operation: {e}\")\n    \n    def is_operation_paused(self, operation: str) -> bool:\n        \"\"\"Check if operation is currently paused\"\"\"\n        return operation in self.paused_operations or self.emergency_stop_active\n    \n    async def resolve_emergency(self, event_id: str) -> bool:\n        \"\"\"Manually resolve emergency event\"\"\"\n        try:\n            for event in self.events:\n                if str(id(event)) == event_id and not event.resolved:\n                    event.resolved = True\n                    event.resolved_at = datetime.now()\n                    logger.info(f\"Emergency event resolved: {event.event_type.value}\")\n                    return True\n                    \n            return False\n            \n        except Exception as e:\n            logger.error(f\"Error resolving emergency: {e}\")\n            return False\n    \n    def clear_emergency_stop(self) -> None:\n        \"\"\"Clear emergency stop (manual intervention required)\"\"\"\n        self.emergency_stop_active = False\n        self.paused_operations.clear()\n        logger.warning(\"Emergency stop cleared manually\")\n    \n    def _create_emergency_event(\n        self,\n        event_type: EmergencyType,\n        level: EmergencyLevel,\n        message: str,\n        data: Dict[str, Any]\n    ) -> EmergencyEvent:\n        \"\"\"Create emergency event\"\"\"\n        return EmergencyEvent(\n            event_type=event_type,\n            level=level,\n            message=message,\n            data=data\n        )\n    \n    async def _handle_emergency_event(self, event: EmergencyEvent) -> None:\n        \"\"\"Handle emergency event\"\"\"\n        try:\n            # Add to events list\n            self.events.append(event)\n            \n            # Keep only recent events (last 100)\n            if len(self.events) > 100:\n                self.events = self.events[-100:]\n                \n            # Log event\n            log_level = {\n                EmergencyLevel.LOW: logger.info,\n                EmergencyLevel.MEDIUM: logger.warning,\n                EmergencyLevel.HIGH: logger.error,\n                EmergencyLevel.CRITICAL: logger.critical\n            }.get(event.level, logger.warning)\n            \n            log_level(f\"Emergency event: {event.message}\")\n            \n            # Trigger appropriate actions\n            if event.level in [EmergencyLevel.HIGH, EmergencyLevel.CRITICAL]:\n                if event.event_type == EmergencyType.BALANCE_CRITICAL:\n                    await self.emergency_stop(\"Critical balance threshold reached\")\n                elif event.event_type == EmergencyType.EXCESSIVE_LOSS:\n                    await self.pause_operation(\"trading\", 1800)  # 30 minutes\n                elif event.event_type == EmergencyType.HIGH_ERROR_RATE:\n                    await self.pause_operation(\"new_positions\", 600)  # 10 minutes\n                    \n            # Call registered callbacks\n            for callback in self.callbacks:\n                try:\n                    await callback(event)\n                except Exception as e:\n                    logger.error(f\"Error in emergency callback: {e}\")\n                    \n        except Exception as e:\n            logger.error(f\"Error handling emergency event: {e}\")\n    \n    def _reset_daily_stats_if_needed(self) -> None:\n        \"\"\"Reset daily stats if new day\"\"\"\n        today = datetime.now().date()\n        if today > self.daily_stats['last_reset']:\n            self.daily_stats = {\n                'trades': 0,\n                'errors': 0,\n                'pnl': 0.0,\n                'last_reset': today\n            }\n            logger.info(\"Daily stats reset for new day\")\n    \n    def _reset_hourly_stats_if_needed(self) -> None:\n        \"\"\"Reset hourly stats if new hour\"\"\"\n        current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)\n        if current_hour > self.hourly_stats['last_reset']:\n            self.hourly_stats = {\n                'trades': 0,\n                'last_reset': current_hour\n            }\n    \n    def record_trade(self) -> None:\n        \"\"\"Record a trade for rate limiting\"\"\"\n        self.hourly_stats['trades'] += 1\n    \n    def get_status(self) -> Dict[str, Any]:\n        \"\"\"Get emergency controls status\"\"\"\n        return {\n            'emergency_stop_active': self.emergency_stop_active,\n            'paused_operations': list(self.paused_operations),\n            'recent_events': [\n                {\n                    'type': event.event_type.value,\n                    'level': event.level.value,\n                    'message': event.message,\n                    'timestamp': event.timestamp.isoformat(),\n                    'resolved': event.resolved\n                }\n                for event in self.events[-10:]  # Last 10 events\n            ],\n            'config': {\n                'max_daily_loss': self.config.max_daily_loss,\n                'max_drawdown_percent': self.config.max_drawdown_percent,\n                'max_position_size': self.config.max_position_size,\n                'position_limit': self.config.position_limit\n            }\n        }\n    \n    def get_recent_events(\n        self, \n        hours: int = 24,\n        min_level: EmergencyLevel = EmergencyLevel.LOW\n    ) -> List[EmergencyEvent]:\n        \"\"\"Get recent emergency events\"\"\"\n        cutoff = datetime.now() - timedelta(hours=hours)\n        \n        return [\n            event for event in self.events\n            if event.timestamp >= cutoff and \n               list(EmergencyLevel).index(event.level) >= list(EmergencyLevel).index(min_level)\n        ]
+        Args:
+            config: Circuit breaker configuration        
+        """
+        self.config = config or CircuitBreakerConfig()
+        self.events: List[EmergencyEvent] = []
+        self.emergency_stop_active = False
+        self.paused_operations: set = set()
+        self.callbacks: List[Callable[[EmergencyEvent], Awaitable[None]]] = []
+        
+        # Load config from environment
+        self._load_env_config()
+        
+        # Monitoring state
+        self.daily_stats = {
+            'trades': 0,
+            'errors': 0,
+            'pnl': 0.0,
+            'last_reset': datetime.now().date()
+        }
+        
+        self.hourly_stats = {
+            'trades': 0,
+            'last_reset': datetime.now().replace(minute=0, second=0, microsecond=0)
+        }
+    
+    def _load_env_config(self) -> None:
+        """Load configuration from environment variables"""
+        try:
+            self.config.max_daily_loss = float(os.getenv('EMERGENCY_MAX_DAILY_LOSS', '100.0'))
+            self.config.max_drawdown_percent = float(os.getenv('EMERGENCY_MAX_DRAWDOWN', '10.0'))
+            self.config.max_position_size = float(os.getenv('EMERGENCY_MAX_POSITION_SIZE', '500.0'))
+            self.config.max_trades_per_hour = int(os.getenv('EMERGENCY_MAX_TRADES_HOUR', '20'))
+            self.config.max_error_rate = float(os.getenv('EMERGENCY_MAX_ERROR_RATE', '0.3'))
+            self.config.min_balance_threshold = float(os.getenv('EMERGENCY_MIN_BALANCE', '10.0'))
+            self.config.position_limit = int(os.getenv('EMERGENCY_POSITION_LIMIT', '5'))
+            
+            logger.info("Emergency controls configuration loaded from environment")
+            
+        except Exception as e:
+            logger.warning(f"Error loading emergency config from environment: {e}")
+    
+    def add_emergency_callback(
+        self, 
+        callback: Callable[[EmergencyEvent], Awaitable[None]]
+    ) -> None:
+        """Add callback for emergency events"""
+        self.callbacks.append(callback)
+    
+    async def check_circuit_breakers(
+        self, 
+        current_balance: float,
+        current_positions: Dict[str, Any],
+        daily_pnl: float,
+        error_count: int,
+        trade_count: int
+    ) -> bool:
+        """Check all circuit breakers and trigger if necessary"""
+        try:
+            # Reset daily stats if new day
+            self._reset_daily_stats_if_needed()
+            self._reset_hourly_stats_if_needed()
+            
+            # Update current stats
+            self.daily_stats['pnl'] = daily_pnl
+            self.daily_stats['errors'] = error_count
+            self.daily_stats['trades'] = trade_count
+            
+            triggered_breakers = []
+            
+            # Check daily loss limit
+            if daily_pnl <= -self.config.max_daily_loss:
+                triggered_breakers.append(self._create_emergency_event(
+                    EmergencyType.EXCESSIVE_LOSS,
+                    EmergencyLevel.HIGH,
+                    f"Daily loss limit exceeded: {daily_pnl:.2f} USD",
+                    {'daily_pnl': daily_pnl, 'limit': -self.config.max_daily_loss}
+                ))
+            
+            # Check balance threshold
+            if current_balance < self.config.min_balance_threshold:
+                triggered_breakers.append(self._create_emergency_event(
+                    EmergencyType.BALANCE_CRITICAL,
+                    EmergencyLevel.CRITICAL,
+                    f"Balance below critical threshold: {current_balance:.4f} SOL",
+                    {'balance': current_balance, 'threshold': self.config.min_balance_threshold}
+                ))
+            
+            # Check position count
+            position_count = len(current_positions)
+            if position_count >= self.config.position_limit:
+                triggered_breakers.append(self._create_emergency_event(
+                    EmergencyType.POSITION_LIMIT,
+                    EmergencyLevel.MEDIUM,
+                    f"Position limit reached: {position_count}/{self.config.position_limit}",
+                    {'position_count': position_count, 'limit': self.config.position_limit}
+                ))
+            
+            # Check error rate
+            if trade_count > 0:
+                error_rate = error_count / trade_count
+                if error_rate > self.config.max_error_rate:
+                    triggered_breakers.append(self._create_emergency_event(
+                        EmergencyType.HIGH_ERROR_RATE,
+                        EmergencyLevel.HIGH,
+                        f"Error rate too high: {error_rate:.1%}",
+                        {'error_rate': error_rate, 'limit': self.config.max_error_rate}
+                    ))
+            
+            # Check hourly trade limit
+            if self.hourly_stats['trades'] >= self.config.max_trades_per_hour:
+                triggered_breakers.append(self._create_emergency_event(
+                    EmergencyType.RAPID_DRAWDOWN,
+                    EmergencyLevel.MEDIUM,
+                    f"Hourly trade limit exceeded: {self.hourly_stats['trades']}",
+                    {'hourly_trades': self.hourly_stats['trades'], 'limit': self.config.max_trades_per_hour}
+                ))
+            
+            # Process triggered breakers
+            if triggered_breakers:
+                for event in triggered_breakers:
+                    await self._handle_emergency_event(event)
+                return False  # Circuit breakers triggered
+                
+            return True  # All checks passed
+            
+        except Exception as e:
+            logger.error(f"Error checking circuit breakers: {e}")
+            return False  # Fail safe
+    
+    async def emergency_stop(self, reason: str) -> None:
+        """Trigger emergency stop"""
+        try:
+            self.emergency_stop_active = True
+            
+            event = self._create_emergency_event(
+                EmergencyType.NETWORK_ISSUES,
+                EmergencyLevel.CRITICAL,
+                f"Emergency stop activated: {reason}",
+                {'reason': reason}
+            )
+            
+            await self._handle_emergency_event(event)
+            
+            logger.critical(f"EMERGENCY STOP ACTIVATED: {reason}")
+            
+        except Exception as e:
+            logger.error(f"Error in emergency stop: {e}")
+    
+    def _create_emergency_event(
+        self,
+        event_type: EmergencyType,
+        level: EmergencyLevel,
+        message: str,
+        data: Dict[str, Any]
+    ) -> EmergencyEvent:
+        """Create emergency event"""
+        return EmergencyEvent(
+            event_type=event_type,
+            level=level,
+            message=message,
+            data=data
+        )
+    
+    async def _handle_emergency_event(self, event: EmergencyEvent) -> None:
+        """Handle emergency event"""
+        try:
+            # Add to events list
+            self.events.append(event)
+            
+            # Keep only recent events (last 100)
+            if len(self.events) > 100:
+                self.events = self.events[-100:]
+                
+            # Log event
+            log_level = {
+                EmergencyLevel.LOW: logger.info,
+                EmergencyLevel.MEDIUM: logger.warning,
+                EmergencyLevel.HIGH: logger.error,
+                EmergencyLevel.CRITICAL: logger.critical
+            }.get(event.level, logger.warning)
+            
+            log_level(f"Emergency event: {event.message}")
+            
+            # Call registered callbacks
+            for callback in self.callbacks:
+                try:
+                    await callback(event)
+                except Exception as e:
+                    logger.error(f"Error in emergency callback: {e}")
+                    
+        except Exception as e:
+            logger.error(f"Error handling emergency event: {e}")
+    
+    def _reset_daily_stats_if_needed(self) -> None:
+        """Reset daily stats if new day"""
+        today = datetime.now().date()
+        if today > self.daily_stats['last_reset']:
+            self.daily_stats = {
+                'trades': 0,
+                'errors': 0,
+                'pnl': 0.0,
+                'last_reset': today
+            }
+            logger.info("Daily stats reset for new day")
+    
+    def _reset_hourly_stats_if_needed(self) -> None:
+        """Reset hourly stats if new hour"""
+        current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
+        if current_hour > self.hourly_stats['last_reset']:
+            self.hourly_stats = {
+                'trades': 0,
+                'last_reset': current_hour
+            }
+    
+    def record_trade(self) -> None:
+        """Record a trade for rate limiting"""
+        self.hourly_stats['trades'] += 1
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get emergency controls status"""
+        return {
+            'emergency_stop_active': self.emergency_stop_active,
+            'paused_operations': list(self.paused_operations),
+            'recent_events': [
+                {
+                    'type': event.event_type.value,
+                    'level': event.level.value,
+                    'message': event.message,
+                    'timestamp': event.timestamp.isoformat(),
+                    'resolved': event.resolved
+                }
+                for event in self.events[-10:]  # Last 10 events
+            ],
+            'config': {
+                'max_daily_loss': self.config.max_daily_loss,
+                'max_drawdown_percent': self.config.max_drawdown_percent,
+                'max_position_size': self.config.max_position_size,
+                'position_limit': self.config.position_limit
+            }
+        }
+    
+    def clear_emergency_stop(self) -> None:
+        """Clear emergency stop (manual intervention required)"""
+        self.emergency_stop_active = False
+        self.paused_operations.clear()
+        logger.warning("Emergency stop cleared manually")
