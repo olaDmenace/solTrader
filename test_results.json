@@ -46,7 +46,7 @@
       "passed_tests": 7,
       "failed_tests": 0,
       "pass_rate": "100.0%",
-      "test_date": "2025-07-02T11:37:57.752675",
+      "test_date": "2025-07-02T11:01:55.021252",
       "strategy_version": "APE_ENHANCED_v1.0"
     }
   },
@@ -117,5 +117,5 @@
     "win_rate": 50.0,
     "max_drawdown": 0.0
   },
-  "timestamp": "2025-07-02T11:37:57.756677"
+  "timestamp": "2025-07-02T11:01:55.021521"
 }

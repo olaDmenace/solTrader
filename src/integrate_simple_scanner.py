@@ -1,4 +1,19 @@
 """
+Integration script to replace complex scanner with simple one
+"""
+import os
+import shutil
+
+def integrate_simple_scanner():
+    """Replace the complex scanner with simplified version"""
+    
+    # Backup original scanner
+    if os.path.exists('src/token_scanner.py'):
+        shutil.copy('src/token_scanner.py', 'src/token_scanner_complex_backup.py')
+        print("✅ Backed up complex scanner")
+    
+    # Replace with simplified version that imports our simple scanner
+    simple_integration = '''"""
 Simplified Token Scanner Integration
 Uses basic APIs only - no complex holder analysis or contract verification
 """
@@ -28,3 +43,12 @@ class TokenScannerCompat(SimpleTokenScanner):
 
 # Export the compatibility class as the main TokenScanner
 TokenScanner = TokenScannerCompat
+'''
+    
+    with open('src/token_scanner.py', 'w') as f:
+        f.write(simple_integration)
+    
+    print("✅ Integrated simplified scanner")
+
+if __name__ == "__main__":
+    integrate_simple_scanner()

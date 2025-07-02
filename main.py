@@ -1,36 +1,59 @@
 import asyncio
 import logging
 import aiohttp
+import os
+from pathlib import Path
 from src.config.settings import Settings, load_settings
 from src.api.alchemy import AlchemyClient
 from src.api.jupiter import JupiterClient
 from src.token_scanner import TokenScanner
 from src.phantom_wallet import PhantomWallet
-# from src.telegram_bot import TradingBot as TgramBot  # Made optional
 from src.trading.strategy import TradingStrategy, TradingMode
 from typing import Dict, Any, Optional
-# from telegram.ext import ApplicationBuilder
-# from telegram.error import TimedOut, RetryAfter
 from dotenv import load_dotenv
+
+# Load environment variables
 load_dotenv(override=True)
-import backoff 
 
-import os
-print("ENV URL:", os.getenv('ALCHEMY_RPC_URL'))
+# Setup logging FIRST
+def setup_logging():
+    """Configure logging for the bot"""
+    # Create logs directory
+    logs_dir = Path("logs")
+    logs_dir.mkdir(exist_ok=True)
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('logs/trading.log'),
+            logging.StreamHandler()
+        ]
+    )
+    
+    # Set third-party loggers to WARNING
+    logging.getLogger("asyncio").setLevel(logging.WARNING)
+    logging.getLogger("aiohttp").setLevel(logging.WARNING)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Setup logging immediately
+setup_logging()
 logger = logging.getLogger(__name__)
 
-# Load settings first
-settings = load_settings()
-logger.info(f"Bot token: {settings.TELEGRAM_BOT_TOKEN[:5] if settings.TELEGRAM_BOT_TOKEN else 'Not Set'}...")
-logger.info(f"Chat ID: {settings.TELEGRAM_CHAT_ID}")
+# Load settings
+try:
+    settings = load_settings()
+    logger.info(f"Settings loaded successfully")
+    logger.info(f"Paper trading: {settings.PAPER_TRADING}")
+except Exception as e:
+    logger.error(f"Failed to load settings: {e}")
+    exit(1)
 
 class TradingBot:
     def __init__(self):
+        """Initialize the trading bot"""
+        logger.info("🚀 Initializing SolTrader APE Bot...")
+        
         # Load settings and initialize core components
         self.settings = settings
         self.alchemy = AlchemyClient(self.settings.ALCHEMY_RPC_URL)
@@ -49,191 +72,156 @@ class TradingBot:
         )
 
         self.telegram_bot: Optional[Any] = None
+        logger.info("✅ Bot components initialized")
 
-        logger.info(f"Paper trading settings:")
-        logger.info(f"Initial balance: {self.settings.INITIAL_PAPER_BALANCE}")
-        logger.info(f"Max position size: {self.settings.MAX_POSITION_SIZE}")
-
-    # async def setup_telegram_bot(self) -> bool:
-    #     try:
-    #         if not self.settings.TELEGRAM_BOT_TOKEN or not self.settings.TELEGRAM_CHAT_ID:
-    #             logger.info("Telegram bot disabled - no token or chat ID provided")
-    #             return True
-
-    #         application = (
-    #             ApplicationBuilder()
-    #             .token(self.settings.TELEGRAM_BOT_TOKEN)
-    #             .base_url("https://api.telegram.org/bot")
-    #             .base_file_url("https://api.telegram.org/file/bot")
-    #             .get_updates_connection_pool_size(8)
-    #             .connect_timeout(30.0)
-    #             .read_timeout(30.0)
-    #             .write_timeout(30.0)
-    #             .pool_timeout(3.0)
-    #             .build()
-    #         )
-
-    #         self.telegram_bot = TgramBot(
-    #             application=application,
-    #             trading_strategy=self.strategy,
-    #             settings=self.settings
-    #         )
-
-    #         await self.telegram_bot.initialize()
-    #         await self.telegram_bot.start()  # Add this line
-    #         return True
-
-    #     except Exception as e:
-    #         logger.error(f"Error setting up Telegram bot: {str(e)}")
-    #         return False
-
-    async def setup_telegram_bot(self) -> bool:
-        """Telegram bot setup - currently disabled"""
-        logger.info("Telegram bot disabled - using console monitoring instead")
-        return True
-        
-        # Telegram setup commented out due to dependency issues
-        # Enable when telegram library conflicts are resolved
-        # try:
-        #     if not self.settings.TELEGRAM_BOT_TOKEN or not self.settings.TELEGRAM_CHAT_ID:
-        #         logger.info("Telegram bot disabled - no token or chat ID provided")
-        #         return True
-        #     # ... rest of telegram setup
-        # except Exception as e:
-        #     logger.error(f"Error setting up Telegram bot: {str(e)}")
-        #     return False
-
-    async def test_connections(self) -> bool:
-        """Test API connections"""
+    async def startup(self) -> bool:
+        """Initialize all bot components"""
         try:
-            # Test Alchemy connection
-            alchemy_ok = await self.alchemy.test_connection()
-            if not alchemy_ok:
-                logger.error("Alchemy connection failed")
+            logger.info("🔧 Starting bot initialization...")
+            
+            # Test connections
+            logger.info("Testing API connections...")
+            if not await self.alchemy.test_connection():
+                logger.error("❌ Alchemy connection failed")
                 return False
+            logger.info("✅ Alchemy connection successful")
 
-            # Test Jupiter connection
-            jupiter_ok = await self.jupiter.test_connection()
-            if not jupiter_ok:
-                logger.error("Jupiter connection failed")
+            if not await self.jupiter.test_connection():
+                logger.error("❌ Jupiter connection failed")
                 return False
+            logger.info("✅ Jupiter connection successful")
 
-            # Connect wallet
-            wallet_ok = await self.connect_wallet()
-            if not wallet_ok:
-                logger.error("Wallet connection failed")
+            if not await self.connect_wallet():
+                logger.error("❌ Wallet connection failed")
                 return False
+            logger.info("✅ Wallet connected")
 
+            # Mode announcement
+            mode = "Paper" if self.settings.PAPER_TRADING else "Live"
+            logger.info(f"🎯 Bot initialized in {mode} trading mode")
+            logger.info(f"💰 Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
+            
             return True
-
+            
         except Exception as e:
-            logger.error(f"Connection test error: {str(e)}")
+            logger.error(f"❌ Startup failed: {str(e)}")
             return False
 
     async def connect_wallet(self) -> bool:
-        """Connect to wallet and validate"""
+        """Connect and validate wallet"""
         try:
-            logger.info("Connecting to wallet...")
-            if not self.settings.WALLET_ADDRESS:
-                logger.error("No wallet address configured")
-                return False
-
-            connected = await self.wallet.connect(self.settings.WALLET_ADDRESS)
-            if not connected:
-                return False
-
-            # Get and log balance
-            balance = await self.wallet.get_balance()
-            logger.info(f"Wallet connected. Balance: {balance} SOL")
-
-            # Start monitoring wallet transactions
-            await self.start_wallet_monitoring()
-            return True
-
+            if self.settings.PAPER_TRADING:
+                # For paper trading, just validate address format
+                if len(self.settings.WALLET_ADDRESS) < 32:
+                    logger.error("Invalid wallet address format")
+                    return False
+                logger.info("📝 Paper trading wallet validated")
+                return True
+            else:
+                # For live trading, actually connect wallet
+                return await self.wallet.connect()
         except Exception as e:
-            logger.error(f"Wallet connection error: {str(e)}")
+            logger.error(f"Wallet connection error: {e}")
             return False
-
-    async def start_wallet_monitoring(self) -> bool:
-        """Start monitoring wallet transactions"""
-        async def transaction_callback(tx_info: Dict[str, Any]) -> None:
-            try:
-                logger.info(f"New transaction: {tx_info}")
-                balance = await self.wallet.get_balance()
-                if balance is not None:
-                    logger.info(f"Current balance: {balance} SOL")
-            except Exception as e:
-                logger.error(f"Transaction callback error: {str(e)}")
-
-        return await self.wallet.monitor_transactions(callback=transaction_callback)
-
-    async def startup(self) -> bool:
-        logger.info("Starting trading bot...")
-
-        if not await self.test_connections():
-            return False
-
-        if not await self.connect_wallet():
-            return False
-
-        # Telegram integration disabled - using console monitoring
-        logger.info("📱 Telegram notifications disabled - monitoring via console logs")
-
-        mode = "Paper" if self.settings.PAPER_TRADING else "Live"
-        logger.info(f"Bot initialized in {mode} trading mode")
-        return True
 
     async def run(self) -> None:
-        """Main bot execution"""
+        """Main bot execution loop"""
         try:
-            if await self.startup():
-                await self.strategy.start_trading()
-                # Keep bot running
-                while True:
-                    await asyncio.sleep(1)
-            else:
-                logger.error("Startup failed")
+            logger.info("🦍 Starting SolTrader APE Bot...")
+            
+            # Initialize all components
+            if not await self.startup():
+                logger.error("❌ Startup failed - exiting")
                 return
 
+            logger.info("🚀 Bot startup complete - starting trading strategy...")
+            
+            # Start the trading strategy
+            await self.strategy.start_trading()
+            
+            logger.info("♻️  Entering main event loop...")
+            
+            # Keep bot running indefinitely
+            while True:
+                try:
+                    await asyncio.sleep(60)  # Check every minute
+                    
+                    # Basic health check
+                    if not self.strategy.is_trading:
+                        logger.warning("⚠️  Strategy is not trading - checking status...")
+                        # Could add restart logic here if needed
+                    
+                except asyncio.CancelledError:
+                    logger.info("📴 Bot shutdown requested")
+                    break
+                except Exception as e:
+                    logger.error(f"💥 Error in main loop: {str(e)}")
+                    await asyncio.sleep(5)  # Brief pause before continuing
+                    
         except KeyboardInterrupt:
-            logger.info("Shutting down...")
-            await self.shutdown()
+            logger.info("⌨️  Keyboard interrupt - shutting down...")
         except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
+            logger.error(f"💥 Unexpected error: {str(e)}")
+        finally:
+            logger.info("🛑 Starting shutdown sequence...")
             await self.shutdown()
 
     async def shutdown(self) -> None:
-        logger.info("Starting shutdown...")
+        """Graceful shutdown"""
+        logger.info("🔄 Starting shutdown...")
         try:
-            if self.telegram_bot:
-                await self.telegram_bot.stop()
-                    
-            await self.wallet.disconnect()
-            await self.jupiter.close()
-            await self.alchemy.close()
-                    
+            # Stop strategy first
+            if hasattr(self.strategy, 'stop_trading'):
+                await self.strategy.stop_trading()
+                logger.info("✅ Trading strategy stopped")
+            
+            # Close connections
+            if self.jupyter:
+                await self.jupiter.close()
+                logger.info("✅ Jupiter client closed")
+                
+            if self.alchemy:
+                await self.alchemy.close()
+                logger.info("✅ Alchemy client closed")
+                
+            if self.wallet and not self.settings.PAPER_TRADING:
+                await self.wallet.disconnect()
+                logger.info("✅ Wallet disconnected")
+                
             # Cancel remaining tasks
             tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
-            for task in tasks:
-                task.cancel()
+            if tasks:
+                logger.info(f"🧹 Cancelling {len(tasks)} remaining tasks...")
+                for task in tasks:
+                    task.cancel()
                 try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
+                    await asyncio.gather(*tasks, return_exceptions=True)
+                except Exception as e:
+                    logger.debug(f"Task cancellation error: {e}")
+                    
+            logger.info("✅ Shutdown complete")
+                    
         except Exception as e:
-            logger.error(f"Error during shutdown: {e}")
+            logger.error(f"❌ Error during shutdown: {e}")
 
-    
 async def main():
+    """Main entry point"""
     bot = None
     try:
         bot = TradingBot()
         await bot.run()
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
+        logger.error(f"💥 Fatal error: {str(e)}")
     finally:
         if bot:
             await bot.shutdown()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        # Run the bot
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("👋 Bot stopped by user")
+    except Exception as e:
+        logger.error(f"💥 Failed to start bot: {str(e)}")
+        exit(1)

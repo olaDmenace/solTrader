@@ -1,5 +1,36 @@
+# Environment files (CRITICAL - Don't commit private keys!)
 .env
+*.env
+.env.local
+.env.production
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
+env/
+ENV/
 
-combined_source.txt
+# Logs
+logs/
+*.log
+
+# Backups
+*_backup*
+*.backup
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+temp_*
+fix_*
+*_temp*
