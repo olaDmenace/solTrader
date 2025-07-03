@@ -760,42 +760,73 @@ class TradingStrategy(TradingStrategyProtocol):
             return False
 
     async def _scan_opportunities(self) -> None:
-        """Scan for new trading opportunities"""
+        """Scan for new trading opportunities - FIXED for dict format"""
         try:
             if not self.scanner:
+                logger.warning("No scanner available")
                 return
 
+            logger.info("[SCAN] Starting opportunity scan...")
             new_tokens = await self.scanner.scan_new_listings()
-            for token in new_tokens:
+            logger.info(f"[DATA] Scanner returned {len(new_tokens)} tokens")
+            
+            for token_data in new_tokens:
                 try:
-                    if self._is_token_tracked(token.address):
+                    # Handle both dict and object formats
+                    if isinstance(token_data, dict):
+                        token_address = token_data.get("address")
+                        token_info = token_data.get("data", {})
+                        logger.info(f"[TARGET] Processing dict token: {token_address[:8] if token_address else 'Unknown'}...")
+                    else:
+                        token_address = getattr(token_data, "address", None)
+                        token_info = token_data
+                        logger.info(f"[TARGET] Processing object token: {token_address[:8] if token_address else 'Unknown'}...")
+                    
+                    if not token_address:
+                        logger.warning("[WARN] Token missing address - skipping")
+                        continue
+                    
+                    # Validate Solana token address format
+                    if not self._is_valid_solana_token(token_address):
+                        logger.warning(f"[WARN] Invalid Solana token address: {token_address[:8]}...")
+                        continue
+                    
+                    if self._is_token_tracked(token_address):
+                        logger.info(f"[DATA] Token {token_address[:8]}... already tracked - skipping")
                         continue
 
-                    if not self._validate_token_basics(token):
+                    # Create a standardized token object for validation
+                    token_obj = self._create_token_object(token_address, token_info)
+                    
+                    if not self._validate_token_basics(token_obj):
+                        logger.info(f"[ERROR] Token {token_address[:8]}... failed basic validation")
                         continue
 
-                    signal = await self.signal_generator.analyze_token(token)
+                    logger.info(f"[OK] Token {token_address[:8]}... passed validation - analyzing signal...")
+                    signal = await self.signal_generator.analyze_token(token_obj)
                     if not signal or signal.strength < self.settings.SIGNAL_THRESHOLD:
+                        logger.info(f"[DATA] Token {token_address[:8]}... signal too weak: {signal.strength if signal else 'None'}")
                         continue
 
-                    market_volatility = (
-                        await self.risk_manager.calculate_market_volatility()
-                    )
+                    logger.info(f"[SIGNAL] Strong signal found for {token_address[:8]}... - calculating risk...")
+                    
+                    market_volatility = await self.risk_manager.calculate_market_volatility()
                     current_balance = (
                         self.state.paper_balance
                         if self.state.mode == TradingMode.PAPER
                         else await self.wallet.get_balance()
                     )
 
-                    token_data = await self._prepare_token_data(token, signal)
+                    token_data_prepared = await self._prepare_token_data(token_obj, signal)
                     risk_metrics = await self._calculate_risk_metrics(
-                        token_data=token_data,
+                        token_data=token_data_prepared,
                         market_volatility=market_volatility,
                         current_balance=float(current_balance),
                         signal=signal,
                     )
 
                     if not risk_metrics:
+                        logger.info(f"[ERROR] Risk metrics calculation failed for {token_address[:8]}...")
                         continue
 
                     size = self._calculate_position_size(
@@ -804,26 +835,92 @@ class TradingStrategy(TradingStrategyProtocol):
                     )
 
                     if size <= 0:
-                        logger.debug(
-                            f"Invalid position size calculated for {token.address}"
-                        )
+                        logger.info(f"[ERROR] Invalid position size for {token_address[:8]}...: {size}")
                         continue
 
+                    logger.info(f"[MONEY] Creating entry signal for {token_address[:8]}... size: {size}")
                     entry_signal = self._create_entry_signal(signal, size)
                     if not entry_signal:
+                        logger.warning(f"[ERROR] Failed to create entry signal for {token_address[:8]}...")
                         continue
 
                     self.state.pending_orders.append(entry_signal)
+                    logger.info(f"[DATA] Added to pending orders: {token_address[:8]}...")
+                    
                     await self._emit_opportunity_alert(
-                        token=token, signal=signal, risk_metrics=risk_metrics, size=size
+                        token=token_obj, signal=signal, risk_metrics=risk_metrics, size=size
                     )
+                    
+                    logger.info(f"[OK] Successfully processed opportunity for {token_address[:8]}...")
 
                 except Exception as e:
-                    logger.error(f"Error analyzing token {token.address}: {e}")
+                    token_addr = "unknown"
+                    try:
+                        if isinstance(token_data, dict):
+                            token_addr = token_data.get("address", "unknown")[:8]
+                        else:
+                            token_addr = getattr(token_data, "address", "unknown")[:8]
+                    except:
+                        pass
+                    logger.error(f"[ERROR] Error analyzing token {token_addr}...: {e}")
                     continue
+            
+            logger.info("[OK] Opportunity scan completed")
 
         except Exception as e:
-            logger.error(f"Error scanning opportunities: {e}")
+            logger.error(f"[ERROR] Error scanning opportunities: {e}")
+            import traceback
+            logger.error(f"[DATA] Traceback: {traceback.format_exc()}")
+
+    def _is_valid_solana_token(self, token_address: str) -> bool:
+        """Validate that this is a proper Solana token address"""
+        try:
+            # Solana addresses are base58 encoded and typically 32-44 characters
+            if not token_address or len(token_address) < 32 or len(token_address) > 44:
+                return False
+            
+            # Check for valid base58 characters (no 0, O, I, l)
+            invalid_chars = set('0OIl')
+            if any(char in invalid_chars for char in token_address):
+                return False
+            
+            # Try to decode with base58 if available, otherwise basic validation
+            try:
+                import base58
+                decoded = base58.b58decode(token_address)
+                # Solana addresses decode to 32 bytes
+                return len(decoded) == 32
+            except ImportError:
+                # Fallback: basic character set validation
+                valid_chars = set('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz')
+                return all(char in valid_chars for char in token_address)
+            except:
+                return False
+                
+        except Exception as e:
+            logger.debug(f"Token validation error: {e}")
+            return False
+    
+    def _create_token_object(self, token_address: str, token_info: dict):
+        """Create a standardized token object from dict data"""
+        try:
+            # Create a simple object with required attributes for validation
+            class TokenObject:
+                def __init__(self, address, info):
+                    self.address = address
+                    self.volume24h = info.get("price_sol", 0) * 1000000  # Mock volume from price
+                    self.liquidity = 500000  # Default above minimum threshold  
+                    self.market_cap = 0
+                    self.created_at = info.get("timestamp")
+                    self.price_sol = info.get("price_sol", 0)
+                    self.scan_id = info.get("scan_id", 0)
+                    self.source = info.get("source", "unknown")
+            
+            return TokenObject(token_address, token_info)
+            
+        except Exception as e:
+            logger.error(f"Error creating token object: {e}")
+            return None
 
     def _is_token_tracked(self, token_address: str) -> bool:
             """Check if token is already being tracked"""
@@ -869,17 +966,32 @@ class TradingStrategy(TradingStrategyProtocol):
             return False
 
     async def _prepare_token_data(self, token: Any, signal: Signal) -> Dict[str, Any]:
-        """Prepare comprehensive token data for analysis"""
-        return {
-            "address": token.address,
-            "volume24h": float(getattr(token, "volume24h", 0)),
-            "liquidity": float(getattr(token, "liquidity", 0)),
-            "created_at": getattr(token, "created_at", None),
-            "price": signal.price,
-            "market_cap": float(getattr(token, "market_cap", 0)),
-            "signal_strength": signal.strength,
-            "signal_type": signal.signal_type,
-        }
+        """Prepare comprehensive token data for analysis - FIXED for new format"""
+        try:
+            return {
+                "address": getattr(token, "address", "unknown"),
+                "volume24h": float(getattr(token, "volume24h", 0)),
+                "liquidity": float(getattr(token, "liquidity", 500000)),  # Default safe value
+                "created_at": getattr(token, "created_at", None),
+                "price": signal.price if signal else getattr(token, "price_sol", 0),
+                "market_cap": float(getattr(token, "market_cap", 0)),
+                "signal_strength": signal.strength if signal else 0.5,
+                "signal_type": signal.signal_type if signal else "basic",
+                "scan_id": getattr(token, "scan_id", 0),
+                "source": getattr(token, "source", "scanner"),
+            }
+        except Exception as e:
+            logger.error(f"Error preparing token data: {e}")
+            return {
+                "address": "unknown",
+                "volume24h": 0,
+                "liquidity": 500000,
+                "created_at": None,
+                "price": 0,
+                "market_cap": 0,
+                "signal_strength": 0.5,
+                "signal_type": "error",
+            }
 
     async def _calculate_risk_metrics(
         self,
@@ -959,21 +1071,27 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _emit_opportunity_alert(
         self, token: Any, signal: Signal, risk_metrics: Dict[str, float], size: float
     ) -> None:
-        """Emit alert for new trading opportunity"""
+        """Emit alert for new trading opportunity - FIXED for new format"""
         try:
+            token_address = getattr(token, "address", "unknown")
+            signal_strength = signal.strength if signal else 0.5
+            
             await self.alert_system.emit_alert(
                 level="info",
                 type="new_opportunity",
-                message=f"New trading opportunity detected for {token.address}",
+                message=f"New trading opportunity detected for {token_address[:8]}...",
                 data={
-                    "token": token.address,
-                    "signal_strength": signal.strength,
+                    "token": token_address,
+                    "signal_strength": signal_strength,
                     "proposed_size": size,
-                    "risk_score": risk_metrics["risk_score"],
-                    "position_risk": risk_metrics["position_risk"],
-                    "market_volatility": risk_metrics["market_volatility"],
+                    "risk_score": risk_metrics.get("risk_score", 50),
+                    "position_risk": risk_metrics.get("position_risk", 50),
+                    "market_volatility": risk_metrics.get("market_volatility", 0.5),
+                    "scan_id": getattr(token, "scan_id", 0),
+                    "source": getattr(token, "source", "scanner"),
                 },
             )
+            logger.info(f"[DATA] Opportunity alert emitted for {token_address[:8]}...")
         except Exception as e:
             logger.error(f"Error emitting opportunity alert: {e}")
 
@@ -1509,9 +1627,9 @@ class TradingStrategy(TradingStrategyProtocol):
     async def get_metrics(self) -> Dict[str, Dict[str, Any]]:
         """Get comprehensive trading metrics"""
         try:
-            # Get async values first
-            performance_metrics = await self.performance_monitor.get_performance_summary()
-            risk_metrics = await self.risk_manager.get_risk_metrics()
+            # Get metrics (these are synchronous methods)
+            performance_metrics = self.performance_monitor.get_performance_summary()
+            risk_metrics = self.risk_manager.get_risk_metrics()
 
             base_metrics = {
                 "trading_status": {

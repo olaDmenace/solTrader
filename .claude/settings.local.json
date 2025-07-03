@@ -10,7 +10,8 @@
       "Bash(rg:*)",
       "Bash(python:*)",
       "Bash(grep:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(venv/Scripts/python.exe:*)"
     ],
     "deny": []
   },

@@ -91,12 +91,29 @@ class SignalGenerator:
         self.volume_analyzer = VolumeAnalysis()
         self.analyzed_tokens: Dict[str, datetime] = {}
 
-    async def analyze_token(self, token_data: Dict[str, Any]) -> Optional[Signal]:
+    async def analyze_token(self, token_data) -> Optional[Signal]:
         try:
-            if not self._validate_token_data(token_data):
+            # Convert TokenObject to dict if needed
+            if hasattr(token_data, 'address'):
+                # It's a TokenObject, convert to dict format
+                token_dict = {
+                    'address': getattr(token_data, 'address', ''),
+                    'price': getattr(token_data, 'price_sol', 0),
+                    'volume24h': getattr(token_data, 'volume24h', 0),
+                    'liquidity': getattr(token_data, 'liquidity', 0),
+                    'market_cap': getattr(token_data, 'market_cap', 0),
+                    'created_at': getattr(token_data, 'created_at', None),
+                    'scan_id': getattr(token_data, 'scan_id', 0),
+                    'source': getattr(token_data, 'source', 'unknown')
+                }
+            else:
+                # It's already a dict
+                token_dict = token_data
+
+            if not self._validate_token_data(token_dict):
                 return None
 
-            market_condition = await self._analyze_market_condition(token_data)
+            market_condition = await self._analyze_market_condition(token_dict)
             if not market_condition:
                 return None
 
@@ -105,10 +122,10 @@ class SignalGenerator:
                 return None
 
             return Signal(
-                token_address=token_data['address'],
-                price=float(token_data['price']),
+                token_address=token_dict['address'],
+                price=float(token_dict['price']),
                 strength=signal_strength,
-                market_data=token_data,
+                market_data=token_dict,
                 signal_type=self._determine_signal_type(market_condition)
             )
 

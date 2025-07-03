@@ -21,18 +21,36 @@ class SimpleTokenScanner:
         self.scan_count = 0
         self.running = False
         
-        # Simple token list to scan (popular Solana tokens)
+        # Expanded meme token list for aggressive momentum trading
         self.token_watchlist = [
-            "So11111111111111111111111111111111111111112",  # SOL
-            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
-            "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
-            # Add more popular tokens as needed
+            "So11111111111111111111111111111111111111112",  # SOL (native token)
+            "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",  # BONK (popular meme token)
+            "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",  # SAMO (Samoyed meme token)
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC (keep one stable for comparison)
+            "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",  # BTC (Wrapped Bitcoin)
+            "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",  # ETH (Wrapped Ethereum)
+            # Additional popular Solana meme tokens
+            "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",  # WIF (dogwifhat)
+            "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",  # DOG (The Doge NFT)
+            "A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump",  # PEPE (popular on Solana)
+            "9jT8FiXxthRAckSVpVFhRdHjgRtg1YQYdPVYsYT6pump",  # DOGE variant
+            "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",  # WOJAK (meme token)
+        ]
+        
+        # Keywords for dynamic meme token detection (for future expansion)
+        self.meme_keywords = [
+            "doge", "shib", "baby", "pepe", "cat", "moon", "floki", "elon", "ape",
+            "meme", "jeet", "rekt", "fomo", "yolo", "rug", "snek", "69", "420",
+            "turbo", "based", "pump", "ponzi", "wojak", "dork", "bonk", "cheems", "kabosu",
+            "babydoge", "dogelon", "dogemoon", "dogeverse", "wif", "babypepe", "pepecoin",
+            "pepecash", "mcpepe", "apecoin", "kong", "babykong", "aped", "apetoken",
+            "nyan", "kitty", "catcoin", "mooncat"
         ]
     
     async def start_scanning(self):
         """Start the simplified scanning process"""
         self.running = True
-        logger.info("🔍 Started simplified token scanning")
+        logger.info("[SCAN] Started simplified token scanning")
         
         while self.running:
             try:
@@ -45,13 +63,13 @@ class SimpleTokenScanner:
     async def stop_scanning(self):
         """Stop scanning"""
         self.running = False
-        logger.info("🛑 Stopped token scanning")
+        logger.info("[WARN] Stopped token scanning")
     
     async def _scan_tokens(self):
         """Simplified token scanning"""
         try:
             self.scan_count += 1
-            logger.info(f"🔍 Scan #{self.scan_count} - Checking {len(self.token_watchlist)} tokens")
+            logger.info(f"[SCAN] Scan #{self.scan_count} - Checking {len(self.token_watchlist)} tokens")
             
             for token_address in self.token_watchlist:
                 try:
@@ -74,11 +92,11 @@ class SimpleTokenScanner:
                         
                         # Simple filtering - just check if we got a valid price
                         if token_info["price_sol"] > 0:
-                            logger.info(f"📊 Token {token_address[:8]}... price: {token_info['price_sol']:.6f} SOL")
+                            logger.info(f"[DATA] Token {token_address[:8]}... price: {token_info['price_sol']:.6f} SOL")
                             
                             # Simple momentum check (mock for now)
                             if self._check_simple_momentum(token_info):
-                                logger.info(f"🚀 Simple momentum signal for {token_address[:8]}...")
+                                logger.info(f"[SIGNAL] Simple momentum signal for {token_address[:8]}...")
                                 return token_info  # Return first good signal
                     
                     # Small delay between token checks
@@ -88,7 +106,7 @@ class SimpleTokenScanner:
                     logger.debug(f"Error checking token {token_address[:8]}: {e}")
                     continue
             
-            logger.info("✅ Scan complete - no signals found")
+            logger.info("[OK] Scan complete - no signals found")
             return None
             
         except Exception as e:
@@ -103,7 +121,7 @@ class SimpleTokenScanner:
             momentum_score = random.uniform(0, 100)
             
             if momentum_score > 80:  # 20% chance of signal
-                logger.info(f"📈 High momentum detected: {momentum_score:.1f}")
+                logger.info(f"[UP] High momentum detected: {momentum_score:.1f}")
                 return True
             
             return False
@@ -144,13 +162,13 @@ class SimpleTokenScanner:
     async def scan_new_listings(self):
         """Scan for new token listings - simplified version"""
         try:
-            logger.info("🔍 Scanning for new listings (simplified)")
+            logger.info("[SCAN] Scanning for new listings (simplified)")
             
             # Use our existing _scan_tokens method
             result = await self._scan_tokens()
             
             if result:
-                logger.info(f"📊 Found potential opportunity: {result['address'][:8]}...")
+                logger.info(f"[DATA] Found potential opportunity: {result['address'][:8]}...")
                 return [{"address": result["address"], "data": result}]  # Return as list for compatibility
             else:
                 logger.debug("No new listings found in this scan")

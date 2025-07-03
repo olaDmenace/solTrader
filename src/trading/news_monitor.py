@@ -40,24 +40,37 @@ class NewsMonitor:
         if self._monitor_task and not self._monitor_task.done():
             return
 
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30),
+            connector=aiohttp.TCPConnector(enable_cleanup_closed=True)
+        )
         self._monitor_task = asyncio.create_task(self._monitor_loop())
         logger.info("News monitoring started")
 
     async def stop_monitoring(self) -> None:
         """Stop news monitoring"""
-        if self._monitor_task:
-            self._monitor_task.cancel()
-            try:
-                await self._monitor_task
-            except asyncio.CancelledError:
-                pass
-            
-        if self.session:
-            await self.session.close()
-            self.session = None
+        try:
+            if self._monitor_task:
+                self._monitor_task.cancel()
+                try:
+                    await self._monitor_task
+                except asyncio.CancelledError:
+                    pass
+                
+            if self.session and not self.session.closed:
+                await self.session.close()
+                self.session = None
 
-        logger.info("News monitoring stopped")
+            logger.info("News monitoring stopped")
+        except Exception as e:
+            logger.error(f"Error stopping news monitoring: {e}")
+            # Force close session even if there's an error
+            if self.session and not self.session.closed:
+                try:
+                    await self.session.close()
+                except:
+                    pass
+                self.session = None
 
     async def _monitor_loop(self) -> None:
         """Main monitoring loop"""

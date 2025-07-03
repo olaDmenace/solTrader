@@ -6,7 +6,7 @@ from pathlib import Path
 from src.config.settings import Settings, load_settings
 from src.api.alchemy import AlchemyClient
 from src.api.jupiter import JupiterClient
-from src.token_scanner import TokenScanner
+from src.simple_token_scanner import SimpleTokenScanner
 from src.phantom_wallet import PhantomWallet
 from src.trading.strategy import TradingStrategy, TradingMode
 from typing import Dict, Any, Optional
@@ -52,14 +52,14 @@ except Exception as e:
 class TradingBot:
     def __init__(self):
         """Initialize the trading bot"""
-        logger.info("🚀 Initializing SolTrader APE Bot...")
+        logger.info("[INIT] Initializing SolTrader APE Bot...")
         
         # Load settings and initialize core components
         self.settings = settings
         self.alchemy = AlchemyClient(self.settings.ALCHEMY_RPC_URL)
         self.jupiter = JupiterClient()
         self.wallet = PhantomWallet(self.alchemy)
-        self.scanner = TokenScanner(self.jupiter, self.alchemy, self.settings)
+        self.scanner = SimpleTokenScanner(self.jupiter, self.alchemy, self.settings)
 
         # Initialize trading strategy
         mode = TradingMode.PAPER if self.settings.PAPER_TRADING else TradingMode.LIVE
@@ -72,34 +72,34 @@ class TradingBot:
         )
 
         self.telegram_bot: Optional[Any] = None
-        logger.info("✅ Bot components initialized")
+        logger.info("[OK] Bot components initialized")
 
     async def startup(self) -> bool:
         """Initialize all bot components"""
         try:
-            logger.info("🔧 Starting bot initialization...")
+            logger.info("[SETUP] Starting bot initialization...")
             
             # Test connections
             logger.info("Testing API connections...")
             if not await self.alchemy.test_connection():
-                logger.error("❌ Alchemy connection failed")
+                logger.error("[ERROR] Alchemy connection failed")
                 return False
-            logger.info("✅ Alchemy connection successful")
+            logger.info("[OK] Alchemy connection successful")
 
             if not await self.jupiter.test_connection():
-                logger.error("❌ Jupiter connection failed")
+                logger.error("[ERROR] Jupiter connection failed")
                 return False
-            logger.info("✅ Jupiter connection successful")
+            logger.info("[OK] Jupiter connection successful")
 
             if not await self.connect_wallet():
-                logger.error("❌ Wallet connection failed")
+                logger.error("[ERROR] Wallet connection failed")
                 return False
-            logger.info("✅ Wallet connected")
+            logger.info("[OK] Wallet connected")
 
             # Mode announcement
             mode = "Paper" if self.settings.PAPER_TRADING else "Live"
-            logger.info(f"🎯 Bot initialized in {mode} trading mode")
-            logger.info(f"💰 Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
+            logger.info(f"[MODE] Bot initialized in {mode} trading mode")
+            logger.info(f"[BALANCE] Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
             
             return True
             
@@ -115,7 +115,7 @@ class TradingBot:
                 if len(self.settings.WALLET_ADDRESS) < 32:
                     logger.error("Invalid wallet address format")
                     return False
-                logger.info("📝 Paper trading wallet validated")
+                logger.info("[WALLET] Paper trading wallet validated")
                 return True
             else:
                 # For live trading, actually connect wallet
@@ -127,19 +127,19 @@ class TradingBot:
     async def run(self) -> None:
         """Main bot execution loop"""
         try:
-            logger.info("🦍 Starting SolTrader APE Bot...")
+            logger.info("[START] Starting SolTrader APE Bot...")
             
             # Initialize all components
             if not await self.startup():
-                logger.error("❌ Startup failed - exiting")
+                logger.error("[ERROR] Startup failed - exiting")
                 return
 
-            logger.info("🚀 Bot startup complete - starting trading strategy...")
+            logger.info("[READY] Bot startup complete - starting trading strategy...")
             
             # Start the trading strategy
             await self.strategy.start_trading()
             
-            logger.info("♻️  Entering main event loop...")
+            logger.info("[LOOP] Entering main event loop...")
             
             # Keep bot running indefinitely
             while True:
@@ -148,50 +148,50 @@ class TradingBot:
                     
                     # Basic health check
                     if not self.strategy.is_trading:
-                        logger.warning("⚠️  Strategy is not trading - checking status...")
+                        logger.warning("[WARN] Strategy is not trading - checking status...")
                         # Could add restart logic here if needed
                     
                 except asyncio.CancelledError:
-                    logger.info("📴 Bot shutdown requested")
+                    logger.info("[STOP] Bot shutdown requested")
                     break
                 except Exception as e:
-                    logger.error(f"💥 Error in main loop: {str(e)}")
+                    logger.error(f"[ERROR] Error in main loop: {str(e)}")
                     await asyncio.sleep(5)  # Brief pause before continuing
                     
         except KeyboardInterrupt:
-            logger.info("⌨️  Keyboard interrupt - shutting down...")
+            logger.info("[INTERRUPT] Keyboard interrupt - shutting down...")
         except Exception as e:
-            logger.error(f"💥 Unexpected error: {str(e)}")
+            logger.error(f"[ERROR] Unexpected error: {str(e)}")
         finally:
-            logger.info("🛑 Starting shutdown sequence...")
+            logger.info("[SHUTDOWN] Starting shutdown sequence...")
             await self.shutdown()
 
     async def shutdown(self) -> None:
         """Graceful shutdown"""
-        logger.info("🔄 Starting shutdown...")
+        logger.info("[CLEANUP] Starting shutdown...")
         try:
             # Stop strategy first
             if hasattr(self.strategy, 'stop_trading'):
                 await self.strategy.stop_trading()
-                logger.info("✅ Trading strategy stopped")
+                logger.info("[OK] Trading strategy stopped")
             
             # Close connections
-            if self.jupyter:
+            if self.jupiter:
                 await self.jupiter.close()
-                logger.info("✅ Jupiter client closed")
+                logger.info("[OK] Jupiter client closed")
                 
             if self.alchemy:
                 await self.alchemy.close()
-                logger.info("✅ Alchemy client closed")
+                logger.info("[OK] Alchemy client closed")
                 
             if self.wallet and not self.settings.PAPER_TRADING:
                 await self.wallet.disconnect()
-                logger.info("✅ Wallet disconnected")
+                logger.info("[OK] Wallet disconnected")
                 
             # Cancel remaining tasks
             tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
             if tasks:
-                logger.info(f"🧹 Cancelling {len(tasks)} remaining tasks...")
+                logger.info(f"[CLEANUP] Cancelling {len(tasks)} remaining tasks...")
                 for task in tasks:
                     task.cancel()
                 try:
@@ -199,10 +199,10 @@ class TradingBot:
                 except Exception as e:
                     logger.debug(f"Task cancellation error: {e}")
                     
-            logger.info("✅ Shutdown complete")
+            logger.info("[OK] Shutdown complete")
                     
         except Exception as e:
-            logger.error(f"❌ Error during shutdown: {e}")
+            logger.error(f"[ERROR] Error during shutdown: {e}")
 
 async def main():
     """Main entry point"""

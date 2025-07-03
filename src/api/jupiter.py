@@ -39,7 +39,7 @@ class JupiterClient:
             }
             async with self.session.get(f"{self.base_url}/quote", params=params) as response:
                 if response.status == 200:
-                    logger.info("✅ Jupiter API connection successful")
+                    logger.info("[OK] Jupiter API connection successful")
                     return True
                 logger.error(f"❌ Jupiter API failed: {response.status}")
                 return False

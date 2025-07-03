@@ -225,7 +225,17 @@ class MonitoringSystem:
         if len(values) < 2:
             return 0.0
             
-        returns = np.diff(values) / values[:-1]
+        # Avoid division by zero - use safe division
+        prev_values = np.array(values[:-1])
+        diff_values = np.diff(values)
+        
+        # Only calculate returns where previous values are non-zero
+        mask = prev_values != 0
+        if not np.any(mask):
+            return 0.0  # All values are zero
+            
+        returns = np.zeros_like(diff_values)
+        returns[mask] = diff_values[mask] / prev_values[mask]
         return float(np.std(returns) * np.sqrt(365))
 
     def get_performance_metrics(self) -> Dict[str, Any]:

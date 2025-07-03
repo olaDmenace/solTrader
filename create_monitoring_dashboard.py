@@ -132,7 +132,11 @@ class BotMonitor:
                         except:
                             pass
                     
-            elif "New token" in line or "token found" in line.lower():
+            elif any(indicator in line for indicator in [
+                "New token", "token found", "Processing dict token", "Processing object token",
+                "Strong signal found", "Creating entry signal", "Successfully processed opportunity",
+                "Opportunity alert emitted", "Starting opportunity scan", "Scanner returned"
+            ]):
                 event = {
                     "type": "token_discovery",
                     "message": line,
