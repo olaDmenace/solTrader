@@ -102,7 +102,7 @@ class BotMonitor:
                     "timestamp": timestamp
                 }
                 self.data["recent_events"].append(event)
-                self.data["performance"]["total_trades"] += 1
+                # Don't increment here - use JSON data instead
                 
             elif "Position closed" in line or "sold" in line.lower():
                 event = {
@@ -191,7 +191,9 @@ class BotMonitor:
     
     def get_status(self) -> Dict[str, Any]:
         """Get current bot status"""
-        self.update_from_logs()
+        # Load fresh data from JSON file instead of parsing logs
+        self.load_data()
+        self.update_from_logs()  # Still get recent events from logs
         return self.data
 
 # HTML Template for the dashboard
@@ -202,6 +204,7 @@ DASHBOARD_HTML = """
     <title>🦍 SolTrader APE Bot Dashboard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="10">
     <style>
         body { 
             font-family: 'Courier New', monospace; 
@@ -310,7 +313,7 @@ DASHBOARD_HTML = """
         <h2>📊 Performance Metrics</h2>
         <div class="metrics">
             <div class="metric">
-                <div class="metric-value">${{ "%.2f"|format(data.performance.total_pnl) }}</div>
+                <div class="metric-value">${{ "%.6f"|format(data.performance.total_pnl) }}</div>
                 <div class="metric-label">Total P&L</div>
             </div>
             <div class="metric">
@@ -348,7 +351,7 @@ DASHBOARD_HTML = """
                     <td>${{ "%.4f"|format(trade.entry_price) }}</td>
                     <td>${{ "%.4f"|format(trade.exit_price) }}</td>
                     <td class="{% if trade.pnl > 0 %}profit{% else %}loss{% endif %}">
-                        ${{ "%.2f"|format(trade.pnl) }}
+                        ${{ "%.6f"|format(trade.pnl) }}
                     </td>
                     <td>{{ trade.reason }}</td>
                     <td>{{ trade.timestamp[:19] }}</td>

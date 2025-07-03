@@ -1,0 +1,45 @@
+{
+  "status": "running",
+  "trades": [
+    {
+      "token": "DezXAZ8z...",
+      "entry_price": 0.001075,
+      "exit_price": 0.001075,
+      "entry_time": "17:23:42",
+      "exit_time": "17:24:33",
+      "pnl": 2.959999999998901e-06,
+      "pnl_percentage": 0.013771067173957893,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-03 17:24:33"
+    },
+    {
+      "token": "7dHbWXmc...",
+      "entry_price": 1.211357,
+      "exit_price": 1.211357,
+      "entry_time": "17:32:09",
+      "exit_time": "17:32:16",
+      "pnl": 0.0,
+      "pnl_percentage": 0.0,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-03 17:32:16"
+    },
+    {
+      "token": "A8C3xuqs...",
+      "entry_price": 0.269837719,
+      "exit_price": 0.269691589,
+      "entry_time": "21:54:22",
+      "exit_time": "21:57:26",
+      "pnl": -0.0029225999999993313,
+      "pnl_percentage": -0.05415477144615449,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-03 21:57:26"
+    }
+  ],
+  "performance": {
+    "total_pnl": -0.0029196399999993324,
+    "win_rate": 33.33333333333333,
+    "total_trades": 3,
+    "balance": 99.9970774
+  },
+  "last_update": "2025-07-03T21:57:26.598629"
+}

@@ -82,7 +82,7 @@ class EntrySignal:
     size: float
     stop_loss: float
     take_profit: float
-    slippage: float = 0.01
+    slippage: float = 0.05  # 5% slippage tolerance for volatile meme tokens
     timestamp: datetime = field(default_factory=datetime.now)
 
     @classmethod
@@ -501,11 +501,17 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _monitor_paper_positions_with_momentum(self) -> None:
         """Enhanced paper position monitoring with momentum analysis"""
         try:
+            if not self.state.paper_positions:
+                return
+                
+            logger.info(f"[MONITOR] Monitoring {len(self.state.paper_positions)} paper positions...")
+            
             for token_address, position in list(self.state.paper_positions.items()):
                 try:
                     # Get current price and volume
                     current_price = await self._get_current_price(token_address)
                     if not current_price:
+                        logger.warning(f"[MONITOR] Cannot get price for {token_address[:8]}...")
                         continue
                         
                     # Get volume data for momentum analysis
@@ -513,16 +519,40 @@ class TradingStrategy(TradingStrategyProtocol):
                     current_volume = float(market_depth.get('volume24h', 0)) if market_depth else 0
                     
                     # Update position with price and volume
+                    old_price = position.current_price
                     position.update_price(current_price, current_volume)
                     
+                    # Log position status
+                    pnl_pct = ((current_price - position.entry_price) / position.entry_price) * 100
+                    age_mins = position.age_minutes
+                    logger.info(f"[HOLD] {token_address[:8]}... - Age: {age_mins:.1f}m, Price: {old_price:.6f}→{current_price:.6f}, P&L: {pnl_pct:+.2f}%")
+                    
                     # Check for momentum-based exits
-                    should_close, reason = position.check_exits()
+                    age_minutes = (datetime.now() - position.entry_time).total_seconds() / 60
+                    
+                    # Simple exit conditions for now
+                    should_close = False
+                    reason = ""
+                    
+                    # Time-based exit (3 hours max)
+                    if age_minutes > 180:
+                        should_close = True
+                        reason = "time_limit"
+                    # Take profit (10% gain)
+                    elif position.current_price >= position.entry_price * 1.10:
+                        should_close = True
+                        reason = "take_profit"
+                    # Stop loss (5% loss)
+                    elif position.current_price <= position.entry_price * 0.95:
+                        should_close = True
+                        reason = "stop_loss"
                     
                     if should_close:
+                        logger.info(f"[EXIT_TRIGGER] Exit condition met for {token_address[:8]}... - Reason: {reason}")
                         await self._close_paper_position(token_address, reason)
                         
                         # Record exit result for learning
-                        profit = position.pnl
+                        profit = position.unrealized_pnl
                         success = profit > 0
                         if hasattr(self.scanner, 'record_entry_result'):
                             self.scanner.record_entry_result(token_address, success, profit)
@@ -536,14 +566,14 @@ class TradingStrategy(TradingStrategyProtocol):
                                 "token": token_address,
                                 "reason": reason,
                                 "profit": profit,
-                                "profit_percentage": (profit / (position.entry_price * position.size)) * 100,
+                                "profit_percentage": (profit / (position.entry_price * position.size)) * 100 if position.entry_price * position.size > 0 else 0,
                                 "hold_time_minutes": position.age_minutes,
                                 "exit_price": current_price
                             }
                         )
                         
                 except Exception as e:
-                    logger.error(f"Error monitoring paper position {token_address}: {e}")
+                    logger.error(f"Error monitoring paper position {token_address[:8]}...: {e}")
                     
         except Exception as e:
             logger.error(f"Error in paper position monitoring: {e}")
@@ -733,8 +763,21 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _validate_price_conditions(self, token_address: str, size: float) -> bool:
         """Validate price-related conditions for trading"""
         try:
+            # For paper trading, use more permissive validation
+            if self.state.mode == TradingMode.PAPER:
+                # For paper trading, we just need to ensure we can get a price
+                current_price = await self._get_current_price(token_address)
+                if current_price and current_price > 0:
+                    logger.info(f"[OK] Paper trading price validation passed for {token_address[:8]}... - price: {current_price}")
+                    return True
+                else:
+                    logger.warning(f"[ERROR] Cannot get valid price for {token_address[:8]}...")
+                    return False
+            
+            # For live trading, use stricter validation
             market_depth = await self.jupiter.get_market_depth(token_address)
             if not market_depth:
+                logger.warning(f"[ERROR] No market depth data for {token_address[:8]}...")
                 return False
 
             liquidity = float(market_depth.get("liquidity", 0))
@@ -1002,34 +1045,56 @@ class TradingStrategy(TradingStrategyProtocol):
     ) -> Optional[Dict[str, float]]:
         """Calculate comprehensive risk metrics"""
         try:
+            logger.info(f"[RISK] Calculating risk metrics...")
+            logger.info(f"[RISK] Token data keys: {list(token_data.keys())}")
+            logger.info(f"[RISK] Market volatility: {market_volatility:.4f}")
+            logger.info(f"[RISK] Signal price: {signal.price:.6f} SOL")
+            
             risk_score = self.risk_manager.calculate_risk_score(token_data=token_data)
+            logger.info(f"[RISK] Risk score: {risk_score:.2f}")
 
-            # Create market conditions object
+            # Create market conditions object with safe defaults
+            trend_strength = float(token_data.get("trend_strength", 0.5))
+            liquidity = float(token_data.get("liquidity", 1000000))  # Default 1M liquidity
+            min_liquidity = getattr(self.settings, 'MIN_LIQUIDITY', 100000)
+            
+            liquidity_score = min(liquidity / min_liquidity, 1.0)
+            
+            logger.info(f"[RISK] Trend strength: {trend_strength:.2f}")
+            logger.info(f"[RISK] Liquidity: {liquidity:.0f}")
+            logger.info(f"[RISK] Liquidity score: {liquidity_score:.2f}")
+
             market_conditions = MarketCondition(
                 volatility=market_volatility,
-                trend_strength=float(token_data.get("trend_strength", 0.5)),
-                liquidity_score=min(
-                    float(token_data["liquidity"]) / self.settings.MIN_LIQUIDITY, 1.0
-                ),
+                trend_strength=trend_strength,
+                liquidity_score=liquidity_score,
                 market_regime="trending",  # Could be derived from trend analysis
             )
 
             position_value = current_balance * self.settings.MAX_POSITION_SIZE
+            logger.info(f"[RISK] Calculated position value: {position_value:.4f} SOL")
+            
             position_risk = self.risk_manager.calculate_position_risk(
                 position_size=position_value,
                 entry_price=signal.price,
                 market_conditions=market_conditions,
             )
+            logger.info(f"[RISK] Calculated position risk: {position_risk:.2f}%")
 
-            return {
+            metrics = {
                 "risk_score": risk_score,
                 "position_risk": position_risk,
                 "market_volatility": market_volatility,
                 "position_value": position_value,
             }
+            
+            logger.info(f"[RISK] Final risk metrics: {metrics}")
+            return metrics
 
         except Exception as e:
             logger.error(f"Error calculating risk metrics: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return None
 
     def _calculate_position_size(
@@ -1037,20 +1102,39 @@ class TradingStrategy(TradingStrategyProtocol):
     ) -> float:
         """Calculate final position size based on risk metrics"""
         try:
-            size = risk_metrics["position_value"] * (
-                1 - (risk_metrics["position_risk"] / 100)
-            )
-
-            size = min(
-                size,
-                current_balance * self.settings.MAX_POSITION_SIZE,
-                self.circuit_breakers.max_position_size,
-            )
+            position_value = risk_metrics["position_value"]
+            position_risk = risk_metrics["position_risk"]
+            max_position_size = self.settings.MAX_POSITION_SIZE
+            
+            logger.info(f"[RISK] Position value: {position_value:.4f} SOL")
+            logger.info(f"[RISK] Position risk: {position_risk:.2f}%")
+            logger.info(f"[RISK] Current balance: {current_balance:.4f} SOL")
+            logger.info(f"[RISK] Max position size: {max_position_size:.2%}")
+            
+            # Cap position risk at 50% to prevent zero sizes
+            capped_risk = min(position_risk, 50.0)
+            
+            # Calculate size with risk adjustment
+            risk_adjusted_size = position_value * (1 - (capped_risk / 100))
+            
+            # Apply maximum position size limit
+            max_allowed_size = current_balance * max_position_size
+            
+            # Apply circuit breaker limit
+            circuit_breaker_limit = getattr(self.circuit_breakers, 'max_position_size', float('inf'))
+            
+            size = min(risk_adjusted_size, max_allowed_size, circuit_breaker_limit)
+            
+            logger.info(f"[CALC] Risk-adjusted size: {risk_adjusted_size:.4f} SOL")
+            logger.info(f"[CALC] Max allowed size: {max_allowed_size:.4f} SOL")
+            logger.info(f"[CALC] Final position size: {size:.4f} SOL")
 
             return max(size, 0)
 
         except Exception as e:
             logger.error(f"Error calculating position size: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return 0.0
 
     def _create_entry_signal(
@@ -1109,23 +1193,35 @@ class TradingStrategy(TradingStrategyProtocol):
 
     async def _process_pending_orders(self) -> None:
         """Process pending entry orders"""
+        if not self.state.pending_orders:
+            return
+            
+        logger.info(f"[PROCESS] Processing {len(self.state.pending_orders)} pending orders...")
+        
         for signal in self.state.pending_orders[:]:
             try:
+                logger.info(f"[ORDER] Processing order for {signal.token_address[:8]}... size: {signal.size}")
+                
                 current_price = await self._get_current_price(signal.token_address)
                 if not current_price:
+                    logger.warning(f"[ERROR] Cannot get current price for {signal.token_address[:8]}...")
                     continue
 
                 price_deviation = abs(current_price - signal.price) / signal.price
+                logger.info(f"[PRICE] Current price: {current_price}, Signal price: {signal.price}, Deviation: {price_deviation:.2%}")
+                
                 if price_deviation > signal.slippage:
                     logger.warning(
-                        f"Price deviation too high for {signal.token_address}: {price_deviation:.2%}"
+                        f"[SLIPPAGE] Price deviation too high for {signal.token_address[:8]}...: {price_deviation:.2%} > {signal.slippage:.2%}"
                     )
                     self.state.pending_orders.remove(signal)
                     continue
 
+                logger.info(f"[VALIDATE] Validating price conditions for {signal.token_address[:8]}...")
                 if await self._validate_price_conditions(
                     signal.token_address, signal.size
                 ):
+                    logger.info(f"[EXECUTE] Executing trade for {signal.token_address[:8]}...")
                     success = await self._execute_trade(
                         token_address=signal.token_address,
                         size=signal.size,
@@ -1134,11 +1230,15 @@ class TradingStrategy(TradingStrategyProtocol):
                     if success:
                         self.state.pending_orders.remove(signal)
                         logger.info(
-                            f"Successfully executed entry for {signal.token_address}"
+                            f"[SUCCESS] Successfully executed entry for {signal.token_address[:8]}... - Position opened!"
                         )
+                    else:
+                        logger.error(f"[FAILED] Trade execution failed for {signal.token_address[:8]}...")
+                else:
+                    logger.warning(f"[BLOCKED] Price conditions not met for {signal.token_address[:8]}...")
 
             except Exception as e:
-                logger.error(f"Error processing order for {signal.token_address}: {e}")
+                logger.error(f"[ERROR] Error processing order for {signal.token_address[:8]}...: {e}")
                 self.state.pending_orders.remove(signal)
 
     async def _execute_trade(
@@ -1160,9 +1260,11 @@ class TradingStrategy(TradingStrategyProtocol):
         """Execute paper trade"""
         try:
             cost = size * price
+            logger.info(f"[PAPER] Attempting paper trade for {token_address[:8]}... - Cost: {cost:.4f} SOL, Balance: {self.state.paper_balance:.4f} SOL")
+            
             if cost > self.state.paper_balance:
                 logger.warning(
-                    f"Insufficient paper trading balance: {self.state.paper_balance} < {cost}"
+                    f"[BALANCE] Insufficient paper trading balance: {self.state.paper_balance:.4f} < {cost:.4f}"
                 )
                 return False
 
@@ -1173,32 +1275,48 @@ class TradingStrategy(TradingStrategyProtocol):
                 size=size,
             )
 
+            stop_loss_price = price * (1 - self.settings.STOP_LOSS_PERCENTAGE)
+            take_profit_price = price * (1 + self.settings.TAKE_PROFIT_PERCENTAGE)
+
             position = Position(
                 token_address=token_address,
                 entry_price=price,
                 # current_price=price,
                 size=size,
-                stop_loss=price * (1 - self.settings.STOP_LOSS_PERCENTAGE),
-                take_profit=price * (1 + self.settings.TAKE_PROFIT_PERCENTAGE),
+                stop_loss=stop_loss_price,
+                take_profit=take_profit_price,
                 # unrealized_pnl=0.0,
                 status="open",
                 trade_entry=trade_entry,
             )
 
+            # Update balances and positions
             self.state.paper_balance -= cost
             self.state.paper_positions[token_address] = position
             self.state.daily_stats.trade_count += 1
 
+            logger.info(f"[TRADE] Paper position opened!")
+            logger.info(f"  Token: {token_address[:8]}...")
+            logger.info(f"  Size: {size:.4f} tokens")
+            logger.info(f"  Entry Price: {price:.6f} SOL")
+            logger.info(f"  Stop Loss: {stop_loss_price:.6f} SOL ({self.settings.STOP_LOSS_PERCENTAGE:.1%})")
+            logger.info(f"  Take Profit: {take_profit_price:.6f} SOL ({self.settings.TAKE_PROFIT_PERCENTAGE:.1%})")
+            logger.info(f"  Remaining Balance: {self.state.paper_balance:.4f} SOL")
+            logger.info(f"  Total Active Positions: {len(self.state.paper_positions)}")
+
             await self.alert_system.emit_alert(
                 level="info",
                 type="paper_trade_opened",
-                message=f"Paper position opened for {token_address}",
+                message=f"Paper position opened for {token_address[:8]}...",
                 data={
+                    "token": token_address,
                     "size": size,
                     "price": price,
+                    "cost": cost,
                     "remaining_balance": self.state.paper_balance,
-                    "stop_loss": position.stop_loss,
-                    "take_profit": position.take_profit,
+                    "stop_loss": stop_loss_price,
+                    "take_profit": take_profit_price,
+                    "total_positions": len(self.state.paper_positions)
                 },
             )
             return True
@@ -1466,12 +1584,28 @@ class TradingStrategy(TradingStrategyProtocol):
         try:
             position = self.state.paper_positions.get(token_address)
             if not position:
-                logger.warning(f"Position not found for {token_address}")
+                logger.warning(f"[CLOSE] Position not found for {token_address[:8]}...")
                 return False
 
             exit_value = position.size * position.current_price
+            old_balance = self.state.paper_balance
             self.state.paper_balance += exit_value
             realized_pnl = position.unrealized_pnl
+
+            # Calculate percentage gain/loss
+            entry_cost = position.size * position.entry_price
+            pnl_percentage = (realized_pnl / entry_cost) * 100 if entry_cost > 0 else 0
+
+            logger.info(f"[EXIT] Closing paper position for {token_address[:8]}...")
+            logger.info(f"  Reason: {reason}")
+            logger.info(f"  Entry Price: {position.entry_price:.6f} SOL")
+            logger.info(f"  Exit Price: {position.current_price:.6f} SOL")
+            logger.info(f"  Size: {position.size:.4f} tokens")
+            logger.info(f"  Entry Cost: {entry_cost:.4f} SOL")
+            logger.info(f"  Exit Value: {exit_value:.4f} SOL")
+            logger.info(f"  Realized P&L: {realized_pnl:.4f} SOL ({pnl_percentage:+.2f}%)")
+            logger.info(f"  Balance: {old_balance:.4f} → {self.state.paper_balance:.4f} SOL")
+            logger.info(f"  Remaining Positions: {len(self.state.paper_positions)-1}")
 
             del self.state.paper_positions[token_address]
             self.state.daily_stats.total_pnl += realized_pnl
@@ -1479,14 +1613,46 @@ class TradingStrategy(TradingStrategyProtocol):
             await self.alert_system.emit_alert(
                 level="info",
                 type="paper_trade_closed",
-                message=f"Paper position closed for {token_address}",
+                message=f"Paper position closed for {token_address[:8]}... - {reason}",
                 data={
+                    "token": token_address,
                     "pnl": realized_pnl,
+                    "pnl_percentage": pnl_percentage,
                     "reason": reason,
-                    "new_balance": self.state.paper_balance,
+                    "entry_price": position.entry_price,
                     "exit_price": position.current_price,
+                    "size": position.size,
+                    "entry_cost": entry_cost,
+                    "exit_value": exit_value,
+                    "new_balance": self.state.paper_balance,
+                    "remaining_positions": len(self.state.paper_positions)
                 },
             )
+            
+            # Record completed trade for dashboard updates
+            trade_record = {
+                "token": token_address,
+                "entry_time": position.trade_entry.entry_time,
+                "exit_time": datetime.now(),
+                "entry_price": position.entry_price,
+                "exit_price": position.current_price,
+                "size": position.size,
+                "pnl": realized_pnl,
+                "pnl_percentage": pnl_percentage,
+                "reason": reason,
+                "type": "paper"
+            }
+            
+            # Store completed trade (this will help dashboard show activity)
+            if not hasattr(self.state, 'completed_trades'):
+                self.state.completed_trades = []
+            self.state.completed_trades.append(trade_record)
+            
+            # Save to dashboard data file
+            await self._save_trade_to_dashboard(trade_record)
+            
+            logger.info(f"[COMPLETE] Trade completed and recorded - Total completed trades: {len(self.state.completed_trades)}")
+            
             return True
 
         except Exception as e:
@@ -1547,21 +1713,84 @@ class TradingStrategy(TradingStrategyProtocol):
 
     async def _get_current_price(self, token_address: str) -> Optional[float]:
         try:
-            price_data = await self.jupiter.get_price(
-                input_mint=token_address,
-                output_mint="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
-                amount=1000000  # 1 USDC
+            # Use same method as scanner for consistency
+            price_data = await self.jupiter.get_quote(
+                token_address,
+                "So11111111111111111111111111111111111111112",  # SOL
+                "1000000000",  # 1 token
+                50  # 0.5% slippage
             )
-            if not price_data:
+            
+            if price_data and "outAmount" in price_data:
+                price_sol = float(price_data["outAmount"]) / 1e9
+                logger.debug(f"[PRICE] Got price for {token_address[:8]}...: {price_sol:.6f} SOL")
+                return price_sol
+            else:
+                logger.warning(f"[PRICE] No price data for {token_address[:8]}...")
                 return None
 
-            # Convert the output amount to price
-            outAmount = float(price_data.get('outAmount', 0))
-            return outAmount / 1e9 if outAmount > 0 else None
-
         except Exception as e:
-            logger.error(f"Error getting current price for {token_address}: {e}")
+            logger.error(f"Error getting current price for {token_address[:8]}...: {e}")
             return None
+
+    async def _save_trade_to_dashboard(self, trade_record: Dict[str, Any]) -> None:
+        """Save completed trade to dashboard data file"""
+        try:
+            import json
+            dashboard_file = "bot_data.json"
+            
+            # Load existing data
+            try:
+                with open(dashboard_file, 'r') as f:
+                    data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                data = {
+                    "status": "running",
+                    "trades": [],
+                    "performance": {
+                        "total_pnl": 0.0,
+                        "win_rate": 0.0,
+                        "total_trades": 0,
+                        "balance": self.state.paper_balance
+                    },
+                    "last_update": datetime.now().isoformat()
+                }
+            
+            # Format trade for dashboard
+            dashboard_trade = {
+                "token": trade_record["token"][:8] + "...",
+                "entry_price": trade_record["entry_price"],
+                "exit_price": trade_record["exit_price"],
+                "entry_time": trade_record["entry_time"].strftime("%H:%M:%S"),
+                "exit_time": trade_record["exit_time"].strftime("%H:%M:%S"),
+                "pnl": trade_record["pnl"],
+                "pnl_percentage": trade_record["pnl_percentage"],
+                "reason": trade_record["reason"],
+                "timestamp": trade_record["exit_time"].strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            # Add trade
+            data["trades"].append(dashboard_trade)
+            
+            # Update performance metrics
+            data["performance"]["total_trades"] = len(data["trades"])
+            data["performance"]["total_pnl"] = sum(t["pnl"] for t in data["trades"])
+            data["performance"]["balance"] = self.state.paper_balance
+            
+            # Calculate win rate
+            wins = sum(1 for t in data["trades"] if t["pnl"] > 0)
+            data["performance"]["win_rate"] = (wins / len(data["trades"])) * 100 if data["trades"] else 0
+            
+            data["last_update"] = datetime.now().isoformat()
+            
+            # Save back to file
+            with open(dashboard_file, 'w') as f:
+                json.dump(data, f, indent=2)
+                
+            logger.info(f"[DASHBOARD] Trade saved to dashboard - Total: {data['performance']['total_trades']}, Win Rate: {data['performance']['win_rate']:.1f}%")
+            
+        except Exception as e:
+            logger.error(f"Error saving trade to dashboard: {e}")
 
     async def _update_metrics(self) -> None:
         """Update trading metrics"""
