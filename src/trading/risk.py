@@ -249,22 +249,28 @@ class RiskManager:
                               market_conditions: Optional[MarketCondition]) -> float:
         """Calculate risk percentage for a position"""
         try:
-            # Basic risk calculation based on position size relative to total portfolio
+            # For meme tokens with very small prices, use position_size directly as SOL amount
             portfolio_value = self.settings.PORTFOLIO_VALUE
-            position_value = position_size * entry_price
-            base_risk = (position_value / portfolio_value) * 100
+            
+            # Use position_size as SOL amount rather than token quantity
+            position_value_sol = position_size  # position_size is already in SOL
+            base_risk = (position_value_sol / portfolio_value) * 100
+            
+            # Cap base risk to reasonable range (2-20%)
+            base_risk = max(2.0, min(base_risk, 20.0))
 
             # Adjust risk based on market conditions
             if market_conditions:
-                volatility_adjustment = 1 + (market_conditions.volatility - 0.5)
-                liquidity_adjustment = 1 - (market_conditions.liquidity_score - 0.5)
-                return float(base_risk * volatility_adjustment * liquidity_adjustment)
+                volatility_adjustment = 1 + (market_conditions.volatility * 0.2)  # Reduce volatility impact
+                liquidity_adjustment = max(0.8, 1 - (market_conditions.liquidity_score - 0.5) * 0.2)  # Reduce liquidity impact
+                final_risk = base_risk * volatility_adjustment * liquidity_adjustment
+                return float(min(final_risk, 50.0))  # Cap at 50%
 
             return float(base_risk)
 
         except Exception as e:
             logger.error(f"Error calculating position risk: {str(e)}")
-            return 100.0  # Return max risk on error
+            return 25.0  # Return moderate risk on error instead of max
 
     def can_open_position(self, token_address: str, position_size: float, entry_price: float) -> bool:
         """Enhanced position validation with correlation and market condition checks"""

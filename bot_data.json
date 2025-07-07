@@ -41,5 +41,57 @@
     "total_trades": 3,
     "balance": 99.9970774
   },
-  "last_update": "2025-07-03T21:57:26.598629"
+  "last_update": "2025-07-08T00:49:25.229405",
+  "activity": [
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T00:48:14.753201"
+      },
+      "timestamp": "2025-07-08T00:48:14.754200"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-07-08T00:48:16.462352"
+      },
+      "timestamp": "2025-07-08T00:48:16.463353"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "DezXAZ8z",
+        "size": 0.1960949587070384,
+        "price": 0.001533757,
+        "timestamp": "2025-07-08T00:48:16.482125"
+      },
+      "timestamp": "2025-07-08T00:48:16.483124"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T00:49:17.403104"
+      },
+      "timestamp": "2025-07-08T00:49:17.404100"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-07-08T00:49:25.205922"
+      },
+      "timestamp": "2025-07-08T00:49:25.206922"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "EKpQGSJt",
+        "size": 0.1960949587070384,
+        "price": 5.655499181,
+        "timestamp": "2025-07-08T00:49:25.229405"
+      },
+      "timestamp": "2025-07-08T00:49:25.229405"
+    }
+  ]
 }

@@ -82,7 +82,7 @@ class EntrySignal:
     size: float
     stop_loss: float
     take_profit: float
-    slippage: float = 0.05  # 5% slippage tolerance for volatile meme tokens
+    slippage: float = 0.20  # 20% slippage tolerance for volatile meme tokens
     timestamp: datetime = field(default_factory=datetime.now)
 
     @classmethod
@@ -810,8 +810,20 @@ class TradingStrategy(TradingStrategyProtocol):
                 return
 
             logger.info("[SCAN] Starting opportunity scan...")
+            
+            # Update dashboard that we're scanning
+            await self._update_dashboard_activity("scan_started", {
+                "timestamp": datetime.now().isoformat()
+            })
+            
             new_tokens = await self.scanner.scan_new_listings()
             logger.info(f"[DATA] Scanner returned {len(new_tokens)} tokens")
+            
+            # Update dashboard with scan results
+            await self._update_dashboard_activity("scan_completed", {
+                "tokens_found": len(new_tokens),
+                "timestamp": datetime.now().isoformat()
+            })
             
             for token_data in new_tokens:
                 try:
@@ -895,6 +907,14 @@ class TradingStrategy(TradingStrategyProtocol):
                     )
                     
                     logger.info(f"[OK] Successfully processed opportunity for {token_address[:8]}...")
+                    
+                    # Update dashboard with real-time activity
+                    await self._update_dashboard_activity("signal_generated", {
+                        "token": token_address[:8],
+                        "size": size,
+                        "price": signal.price,
+                        "timestamp": datetime.now().isoformat()
+                    })
 
                 except Exception as e:
                     token_addr = "unknown"
@@ -1071,7 +1091,8 @@ class TradingStrategy(TradingStrategyProtocol):
                 market_regime="trending",  # Could be derived from trend analysis
             )
 
-            position_value = current_balance * self.settings.MAX_POSITION_SIZE
+            # Use MAX_POSITION_SIZE as absolute SOL amount, not percentage
+            position_value = min(self.settings.MAX_POSITION_SIZE, current_balance * 0.5)
             logger.info(f"[RISK] Calculated position value: {position_value:.4f} SOL")
             
             position_risk = self.risk_manager.calculate_position_risk(
@@ -1791,6 +1812,58 @@ class TradingStrategy(TradingStrategyProtocol):
             
         except Exception as e:
             logger.error(f"Error saving trade to dashboard: {e}")
+
+    async def _update_dashboard_activity(self, activity_type: str, data: Dict[str, Any]) -> None:
+        """Update dashboard with real-time bot activity"""
+        try:
+            import json
+            dashboard_file = "bot_data.json"
+            
+            # Load existing data
+            try:
+                with open(dashboard_file, 'r') as f:
+                    dashboard_data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                dashboard_data = {
+                    "status": "running",
+                    "trades": [],
+                    "performance": {
+                        "total_pnl": 0.0,
+                        "win_rate": 0.0,
+                        "total_trades": 0,
+                        "balance": self.state.paper_balance
+                    },
+                    "activity": [],
+                    "last_update": datetime.now().isoformat()
+                }
+            
+            # Add activity entry
+            if "activity" not in dashboard_data:
+                dashboard_data["activity"] = []
+            
+            activity_entry = {
+                "type": activity_type,
+                "data": data,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Keep only last 50 activities for performance
+            dashboard_data["activity"].append(activity_entry)
+            if len(dashboard_data["activity"]) > 50:
+                dashboard_data["activity"] = dashboard_data["activity"][-50:]
+            
+            # Update status and timestamp
+            dashboard_data["status"] = "running"
+            dashboard_data["last_update"] = datetime.now().isoformat()
+            
+            # Save updated data
+            with open(dashboard_file, 'w') as f:
+                json.dump(dashboard_data, f, indent=2)
+                
+            logger.debug(f"[DASHBOARD] Updated with {activity_type} activity")
+            
+        except Exception as e:
+            logger.error(f"Error updating dashboard activity: {e}")
 
     async def _update_metrics(self) -> None:
         """Update trading metrics"""

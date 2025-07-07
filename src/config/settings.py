@@ -18,13 +18,13 @@ class Settings:
     PAPER_TRADING: bool = True
     INITIAL_PAPER_BALANCE: float = 100.0  # Test with small amount
     MAX_POSITION_SIZE: float = 5.0  # Smaller positions for more opportunities
-    MAX_SLIPPAGE: float = 0.03  # Higher slippage tolerance for new tokens
+    MAX_SLIPPAGE: float = 0.30  # Higher slippage tolerance for meme tokens
     MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
 
     # Trading parameters (optimized for new token sniping)
     MIN_BALANCE: float = 0.1  # Minimum SOL balance to maintain
     MAX_TRADE_SIZE: float = 2.0  # Smaller trades for more opportunities
-    SLIPPAGE_TOLERANCE: float = 0.02  # Higher tolerance for new tokens
+    SLIPPAGE_TOLERANCE: float = 0.25  # Higher tolerance for meme tokens
 
     # Position Management
     MAX_POSITIONS: int = 3  # Maximum number of open positions
