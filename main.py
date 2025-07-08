@@ -6,7 +6,7 @@ from pathlib import Path
 from src.config.settings import Settings, load_settings
 from src.api.alchemy import AlchemyClient
 from src.api.jupiter import JupiterClient
-from src.simple_token_scanner import SimpleTokenScanner
+from src.practical_solana_scanner import PracticalSolanaScanner
 from src.phantom_wallet import PhantomWallet
 from src.trading.strategy import TradingStrategy, TradingMode
 from typing import Dict, Any, Optional
@@ -59,7 +59,7 @@ class TradingBot:
         self.alchemy = AlchemyClient(self.settings.ALCHEMY_RPC_URL)
         self.jupiter = JupiterClient()
         self.wallet = PhantomWallet(self.alchemy)
-        self.scanner = SimpleTokenScanner(self.jupiter, self.alchemy, self.settings)
+        self.scanner = PracticalSolanaScanner(self.jupiter, self.alchemy, self.settings)
 
         # Initialize trading strategy
         mode = TradingMode.PAPER if self.settings.PAPER_TRADING else TradingMode.LIVE

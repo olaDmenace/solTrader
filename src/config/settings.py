@@ -20,6 +20,9 @@ class Settings:
     MAX_POSITION_SIZE: float = 5.0  # Smaller positions for more opportunities
     MAX_SLIPPAGE: float = 0.30  # Higher slippage tolerance for meme tokens
     MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
+    
+    # Trading pause (disable while fixing scanner)
+    TRADING_PAUSED: bool = False  # Trading enabled with new scanner
 
     # Trading parameters (optimized for new token sniping)
     MIN_BALANCE: float = 0.1  # Minimum SOL balance to maintain
@@ -45,9 +48,21 @@ class Settings:
     VOLUME_THRESHOLD: float = 50.0  # Lower volume threshold
     MAX_PRICE_IMPACT: float = 2.0  # Higher impact tolerance for new tokens
     
-    # New token sniping settings
-    NEW_TOKEN_MAX_AGE_MINUTES: int = 30  # Consider tokens new if < 30 min old
+    # New token sniping settings - Solana specific
+    NEW_TOKEN_MAX_AGE_MINUTES: int = 2880  # Consider tokens new if < 48 hours old (48 * 60 = 2880)
     MIN_CONTRACT_SCORE: int = 70  # Minimum security score for entry
+    MAX_TOKEN_PRICE_SOL: float = 0.01  # Max price in SOL (target micro-cap)
+    MIN_TOKEN_PRICE_SOL: float = 0.000001  # Min price in SOL (avoid dust)
+    MAX_MARKET_CAP_SOL: float = 10000.0  # Max market cap in SOL (~$1.5M)
+    MIN_MARKET_CAP_SOL: float = 10.0  # Min market cap in SOL (~$1.5K)
+    
+    # Solana blockchain specific
+    SOLANA_ONLY: bool = True  # Only trade Solana tokens
+    EXCLUDE_MAJOR_TOKENS: bool = True  # Exclude BTC, ETH, USDC, etc.
+    
+    # Raydium/Jupiter DEX settings for new token detection
+    RAYDIUM_PROGRAM_ID: str = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
+    JUPITER_API_URL: str = "https://quote-api.jup.ag/v6"
     MAX_HOLD_TIME_MINUTES: int = 180  # Maximum hold time (3 hours)
     FAST_EXIT_THRESHOLD: float = -0.1  # Quick exit at 10% loss
     

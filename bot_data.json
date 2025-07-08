@@ -33,65 +33,560 @@
       "pnl_percentage": -0.05415477144615449,
       "reason": "trading_stopped",
       "timestamp": "2025-07-03 21:57:26"
+    },
+    {
+      "token": "EPjFWdd5...",
+      "entry_price": 6.609624122,
+      "exit_price": 6.608714062,
+      "entry_time": "12:26:15",
+      "exit_time": "12:29:01",
+      "pnl": -0.0001783353643402533,
+      "pnl_percentage": -0.013768710341193344,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-08 12:29:01"
+    },
+    {
+      "token": "DezXAZ8z...",
+      "entry_price": 0.001497215,
+      "exit_price": 0.001496641,
+      "entry_time": "12:27:17",
+      "exit_time": "12:29:01",
+      "pnl": -1.1248104425131474e-07,
+      "pnl_percentage": -0.03833784726977403,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-08 12:29:01"
+    },
+    {
+      "token": "DezXAZ8z...",
+      "entry_price": 0.00147981,
+      "exit_price": 0.009230684,
+      "entry_time": "12:55:46",
+      "exit_time": "13:03:19",
+      "pnl": 0.0015194245542585467,
+      "pnl_percentage": 523.774944080659,
+      "reason": "take_profit",
+      "timestamp": "2025-07-08 13:03:19"
+    },
+    {
+      "token": "HeLp6NuQ...",
+      "entry_price": 0.000993615,
+      "exit_price": 0.008889565,
+      "entry_time": "13:03:39",
+      "exit_time": "13:03:46",
+      "pnl": 0.001547864190438107,
+      "pnl_percentage": 794.6689613180156,
+      "reason": "take_profit",
+      "timestamp": "2025-07-08 13:03:46"
+    },
+    {
+      "token": "DezXAZ8z...",
+      "entry_price": 0.00149134,
+      "exit_price": 0.009236687,
+      "entry_time": "13:09:02",
+      "exit_time": "13:32:14",
+      "pnl": 0.0015183410816706313,
+      "pnl_percentage": 519.354875481111,
+      "reason": "take_profit",
+      "timestamp": "2025-07-08 13:32:14"
+    },
+    {
+      "token": "EKpQGSJt...",
+      "entry_price": 5.5596,
+      "exit_price": 5.566685768,
+      "entry_time": "12:53:35",
+      "exit_time": "13:50:16",
+      "pnl": 0.0013890420467395318,
+      "pnl_percentage": 0.12745103964314866,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-08 13:50:16"
+    },
+    {
+      "token": "7vfCXTUX...",
+      "entry_price": 170.11950589,
+      "exit_price": 169.580387094,
+      "entry_time": "12:54:44",
+      "exit_time": "13:50:16",
+      "pnl": -0.10568489905844161,
+      "pnl_percentage": -0.31690592632487036,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-08 13:50:16"
+    },
+    {
+      "token": "7dHbWXmc...",
+      "entry_price": 1.212107071,
+      "exit_price": 1.212060003,
+      "entry_time": "12:58:59",
+      "exit_time": "13:50:16",
+      "pnl": -9.226865888906999e-06,
+      "pnl_percentage": -0.003883155302538736,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-08 13:50:16"
+    },
+    {
+      "token": "9n4nbM75...",
+      "entry_price": 190.938337475,
+      "exit_price": 190.856497425,
+      "entry_time": "13:05:54",
+      "exit_time": "13:50:16",
+      "pnl": -0.016043323822805506,
+      "pnl_percentage": -0.04286203131454753,
+      "reason": "trading_stopped",
+      "timestamp": "2025-07-08 13:50:16"
     }
   ],
   "performance": {
-    "total_pnl": -0.0029196399999993324,
-    "win_rate": 33.33333333333333,
-    "total_trades": 3,
-    "balance": 99.9970774
+    "total_pnl": -0.11886086571941304,
+    "win_rate": 41.66666666666667,
+    "total_trades": 12,
+    "balance": 100.0,
+    "unrealized_pnl": 0,
+    "open_positions": 0
   },
-  "last_update": "2025-07-08T00:49:25.229405",
+  "last_update": "2025-07-08T15:07:52.171812",
   "activity": [
     {
-      "type": "scan_started",
+      "type": "position_update",
       "data": {
-        "timestamp": "2025-07-08T00:48:14.753201"
+        "token": "7vfCXTUX",
+        "age_minutes": 55.275743733333336,
+        "entry_price": 170.11950589,
+        "current_price": 169.533510512,
+        "pnl_percentage": -0.34446101576318594,
+        "unrealized_pnl": -0.11487424076500652,
+        "timestamp": "2025-07-08T13:50:01.217183"
       },
-      "timestamp": "2025-07-08T00:48:14.754200"
+      "timestamp": "2025-07-08T13:50:01.218149"
     },
     {
-      "type": "scan_completed",
+      "type": "position_update",
       "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-08T00:48:16.462352"
+        "token": "7dHbWXmc",
+        "age_minutes": 51.02973096666666,
+        "entry_price": 1.212107071,
+        "current_price": 1.212060003,
+        "pnl_percentage": -0.003883155302538736,
+        "unrealized_pnl": -9.226865888906999e-06,
+        "timestamp": "2025-07-08T13:50:01.720331"
       },
-      "timestamp": "2025-07-08T00:48:16.463353"
+      "timestamp": "2025-07-08T13:50:01.722344"
     },
     {
-      "type": "signal_generated",
+      "type": "position_update",
       "data": {
-        "token": "DezXAZ8z",
-        "size": 0.1960949587070384,
-        "price": 0.001533757,
-        "timestamp": "2025-07-08T00:48:16.482125"
+        "token": "9n4nbM75",
+        "age_minutes": 44.13480056666666,
+        "entry_price": 190.938337475,
+        "current_price": 190.856497287,
+        "pnl_percentage": -0.04286210358918442,
+        "unrealized_pnl": -0.016043350875312546,
+        "timestamp": "2025-07-08T13:50:02.315299"
       },
-      "timestamp": "2025-07-08T00:48:16.483124"
+      "timestamp": "2025-07-08T13:50:02.316299"
     },
     {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-08T00:49:17.403104"
-      },
-      "timestamp": "2025-07-08T00:49:17.404100"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-08T00:49:25.205922"
-      },
-      "timestamp": "2025-07-08T00:49:25.206922"
-    },
-    {
-      "type": "signal_generated",
+      "type": "position_update",
       "data": {
         "token": "EKpQGSJt",
-        "size": 0.1960949587070384,
-        "price": 5.655499181,
-        "timestamp": "2025-07-08T00:49:25.229405"
+        "age_minutes": 56.5173885,
+        "entry_price": 5.5596,
+        "current_price": 5.565996593,
+        "pnl_percentage": 0.11505491402260465,
+        "unrealized_pnl": 0.0012539412287955456,
+        "timestamp": "2025-07-08T13:50:06.370586"
       },
-      "timestamp": "2025-07-08T00:49:25.229405"
+      "timestamp": "2025-07-08T13:50:06.372584"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "7vfCXTUX",
+        "age_minutes": 55.3805206,
+        "entry_price": 170.11950589,
+        "current_price": 169.528007296,
+        "pnl_percentage": -0.3476959275807363,
+        "unrealized_pnl": -0.11595305091180794,
+        "timestamp": "2025-07-08T13:50:07.504162"
+      },
+      "timestamp": "2025-07-08T13:50:07.506164"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "7dHbWXmc",
+        "age_minutes": 51.13788686666667,
+        "entry_price": 1.212107071,
+        "current_price": 1.212060003,
+        "pnl_percentage": -0.003883155302538736,
+        "unrealized_pnl": -9.226865888906999e-06,
+        "timestamp": "2025-07-08T13:50:08.210685"
+      },
+      "timestamp": "2025-07-08T13:50:08.211686"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "9n4nbM75",
+        "age_minutes": 44.24639293333333,
+        "entry_price": 190.938337475,
+        "current_price": 190.856497425,
+        "pnl_percentage": -0.04286203131454753,
+        "unrealized_pnl": -0.016043323822805506,
+        "timestamp": "2025-07-08T13:50:09.011359"
+      },
+      "timestamp": "2025-07-08T13:50:09.012367"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "EKpQGSJt",
+        "age_minutes": 56.62460553333334,
+        "entry_price": 5.5596,
+        "current_price": 5.566685768,
+        "pnl_percentage": 0.12745103964314866,
+        "unrealized_pnl": 0.0013890420467395318,
+        "timestamp": "2025-07-08T13:50:12.804609"
+      },
+      "timestamp": "2025-07-08T13:50:12.806654"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "7vfCXTUX",
+        "age_minutes": 55.483551649999995,
+        "entry_price": 170.11950589,
+        "current_price": 169.580387094,
+        "pnl_percentage": -0.3169059263248703,
+        "unrealized_pnl": -0.10568489905844161,
+        "timestamp": "2025-07-08T13:50:13.685812"
+      },
+      "timestamp": "2025-07-08T13:50:13.687812"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "7dHbWXmc",
+        "age_minutes": 51.23957673333334,
+        "entry_price": 1.212107071,
+        "current_price": 1.212060003,
+        "pnl_percentage": -0.003883155302538736,
+        "unrealized_pnl": -9.226865888906999e-06,
+        "timestamp": "2025-07-08T13:50:14.313074"
+      },
+      "timestamp": "2025-07-08T13:50:14.314516"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "EKpQGSJt",
+        "exit_reason": "trading_stopped",
+        "realized_pnl": 0.0013890420467395318,
+        "pnl_percentage": 0.12745103964314866,
+        "timestamp": "2025-07-08T13:50:16.426075"
+      },
+      "timestamp": "2025-07-08T13:50:16.428300"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "7vfCXTUX",
+        "exit_reason": "trading_stopped",
+        "realized_pnl": -0.10568489905844161,
+        "pnl_percentage": -0.31690592632487036,
+        "timestamp": "2025-07-08T13:50:16.472296"
+      },
+      "timestamp": "2025-07-08T13:50:16.475296"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "7dHbWXmc",
+        "exit_reason": "trading_stopped",
+        "realized_pnl": -9.226865888906999e-06,
+        "pnl_percentage": -0.003883155302538736,
+        "timestamp": "2025-07-08T13:50:16.540103"
+      },
+      "timestamp": "2025-07-08T13:50:16.541838"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "9n4nbM75",
+        "exit_reason": "trading_stopped",
+        "realized_pnl": -0.016043323822805506,
+        "pnl_percentage": -0.04286203131454753,
+        "timestamp": "2025-07-08T13:50:16.800230"
+      },
+      "timestamp": "2025-07-08T13:50:16.801232"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:54:41.457435"
+      },
+      "timestamp": "2025-07-08T14:54:41.461812"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:54:41.469439"
+      },
+      "timestamp": "2025-07-08T14:54:41.470653"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:54:56.107225"
+      },
+      "timestamp": "2025-07-08T14:54:56.110282"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:54:56.126318"
+      },
+      "timestamp": "2025-07-08T14:54:56.128302"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:55:42.790434"
+      },
+      "timestamp": "2025-07-08T14:55:42.792488"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:55:42.809066"
+      },
+      "timestamp": "2025-07-08T14:55:42.812500"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:55:56.877864"
+      },
+      "timestamp": "2025-07-08T14:55:56.879913"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:55:56.893463"
+      },
+      "timestamp": "2025-07-08T14:55:56.894530"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:56:43.526338"
+      },
+      "timestamp": "2025-07-08T14:56:43.530012"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:56:43.550164"
+      },
+      "timestamp": "2025-07-08T14:56:43.552158"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:56:57.560911"
+      },
+      "timestamp": "2025-07-08T14:56:57.562921"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:56:57.579284"
+      },
+      "timestamp": "2025-07-08T14:56:57.581365"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:57:44.933254"
+      },
+      "timestamp": "2025-07-08T14:57:44.936181"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:57:44.951440"
+      },
+      "timestamp": "2025-07-08T14:57:44.953646"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:57:58.879193"
+      },
+      "timestamp": "2025-07-08T14:57:58.881241"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:57:58.896890"
+      },
+      "timestamp": "2025-07-08T14:57:58.898404"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:58:45.404449"
+      },
+      "timestamp": "2025-07-08T14:58:45.407519"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-07-08T14:58:45.426294"
+      },
+      "timestamp": "2025-07-08T14:58:45.429291"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:58:59.296946"
+      },
+      "timestamp": "2025-07-08T14:58:59.297938"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-07-08T14:58:59.313819"
+      },
+      "timestamp": "2025-07-08T14:58:59.314834"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T14:59:46.315690"
+      },
+      "timestamp": "2025-07-08T14:59:46.317095"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T14:59:46.327997"
+      },
+      "timestamp": "2025-07-08T14:59:46.329993"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:00:00.017815"
+      },
+      "timestamp": "2025-07-08T15:00:00.020813"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:00:00.037292"
+      },
+      "timestamp": "2025-07-08T15:00:00.039291"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:00:46.881290"
+      },
+      "timestamp": "2025-07-08T15:00:46.884835"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:00:46.909760"
+      },
+      "timestamp": "2025-07-08T15:00:46.913209"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:01:00.404619"
+      },
+      "timestamp": "2025-07-08T15:01:00.405620"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:01:00.413620"
+      },
+      "timestamp": "2025-07-08T15:01:00.414620"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:01:47.365204"
+      },
+      "timestamp": "2025-07-08T15:01:47.367218"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:01:47.379723"
+      },
+      "timestamp": "2025-07-08T15:01:47.382113"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:02:01.077837"
+      },
+      "timestamp": "2025-07-08T15:02:01.079515"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:02:01.093401"
+      },
+      "timestamp": "2025-07-08T15:02:01.096482"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:06:50.680691"
+      },
+      "timestamp": "2025-07-08T15:06:50.683389"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:06:50.695582"
+      },
+      "timestamp": "2025-07-08T15:06:50.698080"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-08T15:07:52.163083"
+      },
+      "timestamp": "2025-07-08T15:07:52.164128"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-08T15:07:52.170811"
+      },
+      "timestamp": "2025-07-08T15:07:52.171812"
     }
   ]
 }

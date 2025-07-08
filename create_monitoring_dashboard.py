@@ -194,6 +194,27 @@ class BotMonitor:
         # Load fresh data from JSON file instead of parsing logs
         self.load_data()
         self.update_from_logs()  # Still get recent events from logs
+        
+        # Process active positions for display
+        active_positions = {}
+        closed_tokens = set()
+        
+        # Find latest position updates and closed positions
+        for activity in self.data.get('activity', []):
+            if activity.get('type') == 'position_update':
+                token = activity['data']['token']
+                active_positions[token] = activity
+            elif activity.get('type') == 'position_closed':
+                token = activity['data']['token']
+                closed_tokens.add(token)
+        
+        # Remove closed positions from active positions
+        for token in closed_tokens:
+            active_positions.pop(token, None)
+        
+        # Add processed active positions to data
+        self.data['active_positions'] = list(active_positions.values())
+        
         return self.data
 
 # HTML Template for the dashboard
@@ -204,7 +225,7 @@ DASHBOARD_HTML = """
     <title>🦍 SolTrader APE Bot Dashboard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="10">
+    <meta http-equiv="refresh" content="3">
     <style>
         body { 
             font-family: 'Courier New', monospace; 
@@ -299,7 +320,7 @@ DASHBOARD_HTML = """
 <body>
     <div class="auto-refresh">
         <label>
-            <input type="checkbox" id="autoRefresh" checked> Auto-refresh (5s)
+            <input type="checkbox" id="autoRefresh" checked> Auto-refresh (3s)
         </label>
     </div>
     
@@ -328,7 +349,51 @@ DASHBOARD_HTML = """
                 <div class="metric-value">${{ "%.2f"|format(data.performance.balance) }}</div>
                 <div class="metric-label">Balance</div>
             </div>
+            <div class="metric">
+                <div class="metric-value">${{ "%.6f"|format(data.performance.get('unrealized_pnl', 0)) }}</div>
+                <div class="metric-label">Unrealized P&L</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{{ data.performance.get('open_positions', 0) }}</div>
+                <div class="metric-label">Open Positions</div>
+            </div>
         </div>
+    </div>
+    
+    <div class="card">
+        <h2>📊 Active Positions</h2>
+        <table class="trades-table">
+            <thead>
+                <tr>
+                    <th>Token</th>
+                    <th>Entry Price</th>
+                    <th>Current Price</th>
+                    <th>Age</th>
+                    <th>P&L</th>
+                    <th>Unrealized P&L</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position in data.get('active_positions', []) %}
+                <tr>
+                    <td>{{ position.data.token }}...</td>
+                    <td>${{ "%.6f"|format(position.data.entry_price) }}</td>
+                    <td>${{ "%.6f"|format(position.data.current_price) }}</td>
+                    <td>{{ "%.1f"|format(position.data.age_minutes) }}m</td>
+                    <td class="{% if position.data.pnl_percentage > 0 %}profit{% else %}loss{% endif %}">
+                        {{ "%.2f"|format(position.data.pnl_percentage) }}%
+                    </td>
+                    <td class="{% if position.data.unrealized_pnl > 0 %}profit{% else %}loss{% endif %}">
+                        ${{ "%.6f"|format(position.data.unrealized_pnl) }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #8892b0;">No active positions</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     
     <div class="card">
@@ -369,6 +434,25 @@ DASHBOARD_HTML = """
                 <strong>{{ event.timestamp[:19] }}</strong> - {{ event.message }}
             </div>
             {% endfor %}
+            
+            {% for activity in data.get('activity', [])[-10:] %}
+                {% if activity.type == 'position_update' %}
+                <div style="color: #00ff41;">
+                    <strong>{{ activity.timestamp[:19] }}</strong> - 📊 Position Update: {{ activity.data.token }}... P&L: {{ "%.2f"|format(activity.data.pnl_percentage) }}%
+                </div>
+                {% elif activity.type == 'position_closed' %}
+                <div style="color: #ff6b35;">
+                    <strong>{{ activity.timestamp[:19] }}</strong> - 🔴 Position Closed: {{ activity.data.token }}... Reason: {{ activity.data.exit_reason }}
+                </div>
+                {% elif activity.type in ['scan_started', 'scan_completed', 'signal_generated'] %}
+                <div style="color: #8892b0;">
+                    <strong>{{ activity.timestamp[:19] }}</strong> - 
+                    {% if activity.type == 'scan_started' %}🔍 Scan Started{% endif %}
+                    {% if activity.type == 'scan_completed' %}✅ Scan Completed ({{ activity.data.get('tokens_found', 0) }} tokens){% endif %}
+                    {% if activity.type == 'signal_generated' %}🚀 Signal: {{ activity.data.token }}... @ ${{ "%.6f"|format(activity.data.price) }}{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
     
@@ -386,7 +470,7 @@ DASHBOARD_HTML = """
         function toggleAutoRefresh() {
             const checkbox = document.getElementById('autoRefresh');
             if (checkbox.checked) {
-                autoRefreshInterval = setInterval(refreshData, 5000);
+                autoRefreshInterval = setInterval(refreshData, 3000);
             } else {
                 clearInterval(autoRefreshInterval);
             }
@@ -433,7 +517,7 @@ def run_dashboard(port=5000):
     app = create_flask_app(monitor)
     print(f"🚀 Starting SolTrader Dashboard at http://localhost:{port}")
     print("📊 Open your browser and navigate to the URL above")
-    print("🔄 Dashboard auto-refreshes every 5 seconds")
+    print("🔄 Dashboard auto-refreshes every 3 seconds")
     
     app.run(host='0.0.0.0', port=port, debug=False)
 

@@ -163,6 +163,19 @@ class TradingStrategy(TradingStrategyProtocol):
 
         self.market_analyzer = MarketAnalyzer(jupiter_client, settings)
         self.signal_generator = SignalGenerator(settings)
+        
+        # Major tokens to exclude from trading (not new launches)
+        self._excluded_tokens = {
+            "So11111111111111111111111111111111111111112",  # SOL
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
+            "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",  # USDT
+            "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",  # BTC
+            "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",  # ETH
+            "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",   # mSOL
+            "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",  # SAMO
+            "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",  # BONK
+            "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",  # WIF
+        }
 
         self.backtest_engine = BacktestEngine(
             settings=settings,
@@ -525,7 +538,18 @@ class TradingStrategy(TradingStrategyProtocol):
                     # Log position status
                     pnl_pct = ((current_price - position.entry_price) / position.entry_price) * 100
                     age_mins = position.age_minutes
-                    logger.info(f"[HOLD] {token_address[:8]}... - Age: {age_mins:.1f}m, Price: {old_price:.6f}→{current_price:.6f}, P&L: {pnl_pct:+.2f}%")
+                    logger.info(f"[HOLD] {token_address[:8]}... - Age: {age_mins:.1f}m, Price: {old_price:.6f}->{current_price:.6f}, P&L: {pnl_pct:+.2f}%")
+                    
+                    # Update dashboard with position monitoring activity
+                    await self._update_dashboard_activity("position_update", {
+                        "token": token_address[:8],
+                        "age_minutes": age_mins,
+                        "entry_price": position.entry_price,
+                        "current_price": current_price,
+                        "pnl_percentage": pnl_pct,
+                        "unrealized_pnl": position.unrealized_pnl,
+                        "timestamp": datetime.now().isoformat()
+                    })
                     
                     # Check for momentum-based exits
                     age_minutes = (datetime.now() - position.entry_time).total_seconds() / 60
@@ -805,6 +829,11 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _scan_opportunities(self) -> None:
         """Scan for new trading opportunities - FIXED for dict format"""
         try:
+            # Check if trading is paused
+            if getattr(self.settings, 'TRADING_PAUSED', False):
+                logger.info("[SCAN] Trading paused - scanning disabled")
+                return
+            
             if not self.scanner:
                 logger.warning("No scanner available")
                 return
@@ -816,7 +845,8 @@ class TradingStrategy(TradingStrategyProtocol):
                 "timestamp": datetime.now().isoformat()
             })
             
-            new_tokens = await self.scanner.scan_new_listings()
+            new_token = await self.scanner.scan_for_new_tokens()
+            new_tokens = [new_token] if new_token else []
             logger.info(f"[DATA] Scanner returned {len(new_tokens)} tokens")
             
             # Update dashboard with scan results
@@ -997,35 +1027,62 @@ class TradingStrategy(TradingStrategyProtocol):
             )
 
     def _validate_token_basics(self, token: Any) -> bool:
-        """Validate basic token properties"""
+        """Validate basic token properties with Solana-specific filtering"""
         try:
-            if not all(
-                hasattr(token, attr) for attr in ["address", "volume24h", "liquidity"]
-            ):
-                logger.debug(
-                    f"Token missing required attributes: {token.address if hasattr(token, 'address') else 'Unknown'}"
-                )
-                return False
+            # Handle both dict and object types
+            if isinstance(token, dict):
+                address = token.get("address", "")
+                volume_24h = float(token.get("volume_24h_sol", token.get("volume24h", 0)))
+                liquidity = float(token.get("liquidity_sol", token.get("liquidity", 0)))
+                price_sol = float(token.get("price_sol", 0))
+                market_cap_sol = float(token.get("market_cap_sol", 0))
+            else:
+                address = getattr(token, "address", "")
+                volume_24h = float(getattr(token, "volume24h", 0))
+                liquidity = float(getattr(token, "liquidity", 0))
+                price_sol = float(getattr(token, "price_sol", 0))
+                market_cap_sol = float(getattr(token, "market_cap_sol", 0))
 
-            volume_24h = float(getattr(token, "volume24h", 0))
-            liquidity = float(getattr(token, "liquidity", 0))
-
+            # Solana-specific validations
             validations = {
+                "has_address": bool(address),
                 "volume": volume_24h >= self.settings.MIN_VOLUME_24H,
                 "liquidity": liquidity >= self.settings.MIN_LIQUIDITY,
-                "volume_threshold": volume_24h >= self.settings.VOLUME_THRESHOLD,
+                "price_range": (self.settings.MIN_TOKEN_PRICE_SOL <= price_sol <= self.settings.MAX_TOKEN_PRICE_SOL),
+                "market_cap_range": (self.settings.MIN_MARKET_CAP_SOL <= market_cap_sol <= self.settings.MAX_MARKET_CAP_SOL),
+                "not_excluded": address not in getattr(self, '_excluded_tokens', set()),
+                "solana_only": self._is_solana_token(address) if getattr(self.settings, 'SOLANA_ONLY', True) else True,
             }
 
             failed_checks = [k for k, v in validations.items() if not v]
             if failed_checks:
-                logger.debug(
-                    f"Token {token.address} failed validations: {', '.join(failed_checks)}"
-                )
+                logger.debug(f"Token {address[:8]}... failed validations: {', '.join(failed_checks)}")
+                if failed_checks != ["has_address"]:  # Don't log address issues
+                    logger.info(f"[FILTER] Token {address[:8]}... rejected: {', '.join(failed_checks)}")
 
             return all(validations.values())
 
         except Exception as e:
             logger.error(f"Error validating token: {e}")
+            return False
+    
+    def _is_solana_token(self, address: str) -> bool:
+        """Check if token address is a valid Solana token"""
+        try:
+            # Basic Solana address validation (base58, correct length)
+            if not address or len(address) < 32 or len(address) > 44:
+                return False
+            
+            # Check if it contains only valid base58 characters
+            import base58
+            try:
+                decoded = base58.b58decode(address)
+                return len(decoded) == 32  # Solana public keys are 32 bytes
+            except:
+                return False
+                
+        except Exception as e:
+            logger.debug(f"Error validating Solana address: {e}")
             return False
 
     async def _prepare_token_data(self, token: Any, signal: Signal) -> Dict[str, Any]:
@@ -1625,7 +1682,7 @@ class TradingStrategy(TradingStrategyProtocol):
             logger.info(f"  Entry Cost: {entry_cost:.4f} SOL")
             logger.info(f"  Exit Value: {exit_value:.4f} SOL")
             logger.info(f"  Realized P&L: {realized_pnl:.4f} SOL ({pnl_percentage:+.2f}%)")
-            logger.info(f"  Balance: {old_balance:.4f} → {self.state.paper_balance:.4f} SOL")
+            logger.info(f"  Balance: {old_balance:.4f} -> {self.state.paper_balance:.4f} SOL")
             logger.info(f"  Remaining Positions: {len(self.state.paper_positions)-1}")
 
             del self.state.paper_positions[token_address]
@@ -1671,6 +1728,15 @@ class TradingStrategy(TradingStrategyProtocol):
             
             # Save to dashboard data file
             await self._save_trade_to_dashboard(trade_record)
+            
+            # Update dashboard to indicate position closed
+            await self._update_dashboard_activity("position_closed", {
+                "token": token_address[:8],
+                "exit_reason": reason,
+                "realized_pnl": realized_pnl,
+                "pnl_percentage": pnl_percentage,
+                "timestamp": datetime.now().isoformat()
+            })
             
             logger.info(f"[COMPLETE] Trade completed and recorded - Total completed trades: {len(self.state.completed_trades)}")
             
@@ -1855,6 +1921,21 @@ class TradingStrategy(TradingStrategyProtocol):
             # Update status and timestamp
             dashboard_data["status"] = "running"
             dashboard_data["last_update"] = datetime.now().isoformat()
+            
+            # Update performance metrics with current positions
+            if "performance" not in dashboard_data:
+                dashboard_data["performance"] = {
+                    "total_pnl": 0.0,
+                    "win_rate": 0.0,
+                    "total_trades": 0,
+                    "balance": self.state.paper_balance
+                }
+            
+            # Update current balance and add unrealized P&L
+            dashboard_data["performance"]["balance"] = self.state.paper_balance
+            unrealized_pnl = sum(pos.unrealized_pnl for pos in self.state.paper_positions.values())
+            dashboard_data["performance"]["unrealized_pnl"] = unrealized_pnl
+            dashboard_data["performance"]["open_positions"] = len(self.state.paper_positions)
             
             # Save updated data
             with open(dashboard_file, 'w') as f:
