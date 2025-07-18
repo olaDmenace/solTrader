@@ -860,7 +860,7 @@ class TradingStrategy(TradingStrategyProtocol):
                     # Handle both dict and object formats
                     if isinstance(token_data, dict):
                         token_address = token_data.get("address")
-                        token_info = token_data.get("data", {})
+                        token_info = token_data  # FIX: Use flat structure, not nested
                         logger.info(f"[TARGET] Processing dict token: {token_address[:8] if token_address else 'Unknown'}...")
                     else:
                         token_address = getattr(token_data, "address", None)
