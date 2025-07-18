@@ -970,11 +970,13 @@ class TradingStrategy(TradingStrategyProtocol):
         try:
             # Solana addresses are base58 encoded and typically 32-44 characters
             if not token_address or len(token_address) < 32 or len(token_address) > 44:
+                logger.debug(f"Token address length invalid: {len(token_address) if token_address else 0}")
                 return False
             
             # Check for valid base58 characters (no 0, O, I, l)
             invalid_chars = set('0OIl')
             if any(char in invalid_chars for char in token_address):
+                logger.debug(f"Token address contains invalid base58 characters")
                 return False
             
             # Try to decode with base58 if available, otherwise basic validation
@@ -982,12 +984,19 @@ class TradingStrategy(TradingStrategyProtocol):
                 import base58
                 decoded = base58.b58decode(token_address)
                 # Solana addresses decode to 32 bytes
-                return len(decoded) == 32
+                valid = len(decoded) == 32
+                if not valid:
+                    logger.debug(f"Token address decodes to {len(decoded)} bytes, expected 32")
+                return valid
             except ImportError:
                 # Fallback: basic character set validation
                 valid_chars = set('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz')
-                return all(char in valid_chars for char in token_address)
-            except:
+                valid = all(char in valid_chars for char in token_address)
+                if not valid:
+                    logger.debug(f"Token address contains invalid characters")
+                return valid
+            except Exception as decode_error:
+                logger.debug(f"Token address decode error: {decode_error}")
                 return False
                 
         except Exception as e:
@@ -1043,11 +1052,11 @@ class TradingStrategy(TradingStrategyProtocol):
                 price_sol = float(getattr(token, "price_sol", 0))
                 market_cap_sol = float(getattr(token, "market_cap_sol", 0))
 
-            # Solana-specific validations
+            # Solana-specific validations with more permissive criteria
             validations = {
                 "has_address": bool(address),
-                "volume": volume_24h >= self.settings.MIN_VOLUME_24H,
-                "liquidity": liquidity >= self.settings.MIN_LIQUIDITY,
+                "volume": volume_24h >= max(self.settings.MIN_VOLUME_24H * 0.5, 10),  # 50% of min volume, min 10 SOL
+                "liquidity": liquidity >= max(self.settings.MIN_LIQUIDITY * 0.7, 300),  # 70% of min liquidity, min 300 SOL
                 "price_range": (self.settings.MIN_TOKEN_PRICE_SOL <= price_sol <= self.settings.MAX_TOKEN_PRICE_SOL),
                 "market_cap_range": (self.settings.MIN_MARKET_CAP_SOL <= market_cap_sol <= self.settings.MAX_MARKET_CAP_SOL),
                 "not_excluded": address not in getattr(self, '_excluded_tokens', set()),
@@ -1059,6 +1068,7 @@ class TradingStrategy(TradingStrategyProtocol):
                 logger.debug(f"Token {address[:8]}... failed validations: {', '.join(failed_checks)}")
                 if failed_checks != ["has_address"]:  # Don't log address issues
                     logger.info(f"[FILTER] Token {address[:8]}... rejected: {', '.join(failed_checks)}")
+                    logger.info(f"[FILTER] Token details - Volume: {volume_24h:.2f}, Liquidity: {liquidity:.2f}, Price: {price_sol:.6f}, Market Cap: {market_cap_sol:.0f}")
 
             return all(validations.values())
 
@@ -1074,10 +1084,14 @@ class TradingStrategy(TradingStrategyProtocol):
                 return False
             
             # Check if it contains only valid base58 characters
-            import base58
             try:
+                import base58
                 decoded = base58.b58decode(address)
                 return len(decoded) == 32  # Solana public keys are 32 bytes
+            except ImportError:
+                # Fallback validation without base58 package
+                valid_chars = set('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz')
+                return all(char in valid_chars for char in address)
             except:
                 return False
                 

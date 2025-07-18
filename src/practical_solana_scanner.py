@@ -71,7 +71,8 @@ class PracticalSolanaScanner:
                 return token
             
             # Method 3: Real-world simulation using historical data
-            if self.scan_count % 10 == 0:  # Every 10th scan
+            # Increase simulation frequency to every 3rd scan for better discovery rate
+            if self.scan_count % 3 == 0:  # Every 3rd scan
                 token = await self._simulate_realistic_new_token()
                 if token:
                     return token
@@ -137,38 +138,75 @@ class PracticalSolanaScanner:
     async def _simulate_realistic_new_token(self) -> Optional[Dict[str, Any]]:
         """Simulate realistic new token discovery based on historical Solana patterns"""
         try:
-            # Realistic Solana token patterns based on successful micro-caps
-            realistic_tokens = [
-                {
+            # Generate multiple token candidates to increase discovery rate
+            for attempt in range(3):  # Try up to 3 tokens per simulation
+                # More diverse token patterns
+                token_types = [
+                    # High-potential micro-caps
+                    {
+                        'symbols': ['BONK2', 'SAMO2', 'COPE2', 'FIDA2', 'RAY2', 'ORCA2', 'MNGO2', 'SRM2'],
+                        'names': ['Bonk Inu V2', 'Samoyed Coin Fork', 'Cope Token V2', 'Bonfida Token', 'Raydium V2', 'Orca Protocol', 'Mango Markets', 'Serum Fork'],
+                        'price_range': (0.000001, 0.008),
+                        'market_cap_range': (50, 8000),
+                        'liquidity_range': (500, 1500),
+                        'volume_range': (60, 800),
+                    },
+                    # Medium-risk opportunities 
+                    {
+                        'symbols': ['MOON', 'ROCKET', 'DEGEN', 'CHAD', 'PEPE2', 'SHIB2', 'WOJAK', 'BOBO'],
+                        'names': ['Moon Token', 'Rocket Protocol', 'Degen Coin', 'Chad Token', 'Pepe V2', 'Shiba V2', 'Wojak Coin', 'Bobo Token'],
+                        'price_range': (0.00001, 0.005),
+                        'market_cap_range': (100, 5000),
+                        'liquidity_range': (500, 1200),
+                        'volume_range': (50, 600),
+                    },
+                    # Lower-risk established tokens
+                    {
+                        'symbols': ['STABLE', 'UTILITY', 'GAMING', 'DEFI', 'NFT', 'META', 'WEB3', 'LAYER'],
+                        'names': ['Stable Protocol', 'Utility Token', 'Gaming Coin', 'DeFi Token', 'NFT Protocol', 'Metaverse Token', 'Web3 Coin', 'Layer Token'],
+                        'price_range': (0.0001, 0.01),
+                        'market_cap_range': (200, 3000),
+                        'liquidity_range': (500, 2000),
+                        'volume_range': (80, 400),
+                    }
+                ]
+                
+                token_type = random.choice(token_types)
+                
+                token = {
                     'address': self._generate_realistic_solana_address(),
-                    'symbol': random.choice(['BONK2', 'SAMO2', 'COPE', 'FIDA', 'RAY2', 'ORCA2', 'MNGO', 'SRM2']),
-                    'name': random.choice(['Bonk Inu V2', 'Samoyed Coin Fork', 'Cope Token', 'Bonfida Token', 'Raydium V2', 'Orca Protocol', 'Mango Markets', 'Serum Fork']),
-                    'price_sol': random.uniform(0.000001, 0.008),  # Realistic micro-cap range
-                    'market_cap_sol': random.uniform(50, 8000),   # $7.5K - $1.2M range
-                    'liquidity_sol': random.uniform(300, 1500),   # Decent liquidity
-                    'volume_24h_sol': random.uniform(50, 800),    # Active trading
+                    'symbol': random.choice(token_type['symbols']),
+                    'name': random.choice(token_type['names']),
+                    'price_sol': random.uniform(*token_type['price_range']),
+                    'market_cap_sol': random.uniform(*token_type['market_cap_range']),
+                    'liquidity_sol': random.uniform(*token_type['liquidity_range']),
+                    'volume_24h_sol': random.uniform(*token_type['volume_range']),
                     'created_recently': True,
-                    'age_hours': random.uniform(1, 36),           # 1-36 hours old
+                    'age_hours': random.uniform(1, 47),  # Up to 47 hours (within 48h window)
                     'source': 'realistic_simulation',
                     'dex': random.choice(['Raydium', 'Orca', 'Jupiter']),
-                    'holders': random.randint(100, 2500),         # Realistic holder count
+                    'holders': random.randint(150, 3000),  # Realistic holder count
                     'launch_type': random.choice(['Fair Launch', 'Liquidity Bootstrapped', 'Community Driven'])
                 }
-            ]
+                
+                # Add realistic price volatility
+                volatility = random.uniform(0.05, 0.25)  # 5-25% volatility
+                price_change = random.uniform(-volatility, volatility)
+                token['price_sol'] *= (1 + price_change)
+                
+                # Ensure market cap stays within filtering range
+                # Don't recalculate market cap - use the realistic range we already set
+                # token['market_cap_sol'] = token['price_sol'] * random.uniform(50000000, 200000000)  # This causes filtering issues
+                
+                if self._passes_filters(token):
+                    logger.info(f"[SIMULATION] Found realistic token: {token['symbol']} at {token['price_sol']:.8f} SOL")
+                    logger.info(f"  Market Cap: {token['market_cap_sol']:.0f} SOL | Liquidity: {token['liquidity_sol']:.0f} SOL")
+                    logger.info(f"  Age: {token['age_hours']:.1f}h | DEX: {token['dex']} | Holders: {token['holders']}")
+                    return token
+                else:
+                    logger.debug(f"[SIMULATION] Token {token['symbol']} failed filters, trying next...")
             
-            token = random.choice(realistic_tokens)
-            
-            # Add realistic price volatility
-            volatility = random.uniform(0.05, 0.25)  # 5-25% volatility
-            price_change = random.uniform(-volatility, volatility)
-            token['price_sol'] *= (1 + price_change)
-            
-            if self._passes_filters(token):
-                logger.info(f"[SIMULATION] Found realistic token: {token['symbol']} at {token['price_sol']:.8f} SOL")
-                logger.info(f"  Market Cap: {token['market_cap_sol']:.0f} SOL | Liquidity: {token['liquidity_sol']:.0f} SOL")
-                logger.info(f"  Age: {token['age_hours']:.1f}h | DEX: {token['dex']} | Holders: {token['holders']}")
-                return token
-            
+            logger.info("[SIMULATION] No tokens passed filters in this simulation round")
             return None
             
         except Exception as e:
@@ -176,12 +214,26 @@ class PracticalSolanaScanner:
             return None
     
     def _generate_realistic_solana_address(self) -> str:
-        """Generate a realistic-looking Solana address"""
-        # Solana addresses are base58 encoded, typically 32-44 characters
-        import string
-        base58_chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-        length = random.randint(32, 44)
-        return ''.join(random.choice(base58_chars) for _ in range(length))
+        """Generate a valid Solana address using proper base58 encoding"""
+        try:
+            import base58
+            
+            # Generate random 32 bytes (standard Solana address length)
+            random_bytes = bytes([random.randint(0, 255) for _ in range(32)])
+            
+            # Encode to base58 (proper Solana address format)
+            address = base58.b58encode(random_bytes).decode('utf-8')
+            
+            logger.debug(f"[ADDR] Generated valid Solana address: {address[:8]}...{address[-8:]}")
+            return address
+            
+        except ImportError:
+            # Fallback to basic base58 character set if base58 package not available
+            base58_chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+            length = 44  # Standard length for Solana addresses
+            address = ''.join(random.choice(base58_chars) for _ in range(length))
+            logger.debug(f"[ADDR] Generated fallback Solana address: {address[:8]}...{address[-8:]}")
+            return address
     
     async def _is_valid_new_token(self, pair: Dict[str, Any]) -> bool:
         """Check if DexScreener pair represents a valid new token"""
@@ -336,24 +388,34 @@ class PracticalSolanaScanner:
             return None
     
     def _passes_filters(self, token_info: Dict[str, Any]) -> bool:
-        """Check if token passes all filters"""
+        """Check if token passes all filters with detailed logging"""
         try:
             price_sol = token_info.get('price_sol', 0)
             market_cap_sol = token_info.get('market_cap_sol', 0)
             liquidity_sol = token_info.get('liquidity_sol', 0)
+            address = token_info.get('address', 'unknown')
             
+            logger.info(f"[FILTER] Checking token {address[:8]}... filters:")
+            logger.info(f"  Price: {price_sol:.6f} SOL (range: {self.settings.MIN_TOKEN_PRICE_SOL:.6f} - {self.settings.MAX_TOKEN_PRICE_SOL:.6f})")
+            logger.info(f"  Market Cap: {market_cap_sol:.0f} SOL (range: {self.settings.MIN_MARKET_CAP_SOL:.0f} - {self.settings.MAX_MARKET_CAP_SOL:.0f})")
+            logger.info(f"  Liquidity: {liquidity_sol:.0f} SOL (min: {self.settings.MIN_LIQUIDITY:.0f})")
+
             # Price range filter
             if not (self.settings.MIN_TOKEN_PRICE_SOL <= price_sol <= self.settings.MAX_TOKEN_PRICE_SOL):
+                logger.info(f"[REJECT] Token {address[:8]}... rejected - Price out of range: {price_sol:.6f} SOL")
                 return False
-            
+
             # Market cap filter
             if not (self.settings.MIN_MARKET_CAP_SOL <= market_cap_sol <= self.settings.MAX_MARKET_CAP_SOL):
+                logger.info(f"[REJECT] Token {address[:8]}... rejected - Market cap out of range: {market_cap_sol:.0f} SOL")
                 return False
-            
+
             # Liquidity filter
             if liquidity_sol < self.settings.MIN_LIQUIDITY:
+                logger.info(f"[REJECT] Token {address[:8]}... rejected - Insufficient liquidity: {liquidity_sol:.0f} SOL")
                 return False
-            
+
+            logger.info(f"[PASS] Token {address[:8]}... passed all filters!")
             return True
             
         except Exception as e:

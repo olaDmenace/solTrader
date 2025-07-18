@@ -34,3 +34,7 @@ Thumbs.db
 temp_*
 fix_*
 *_temp*
+
+# Deployment and server scripts (server-specific)
+deploy_fixed_service.sh
+troubleshoot_service.sh
