@@ -113,6 +113,7 @@ class TradingState:
     paper_positions: Dict[str, Position] = field(default_factory=dict)
     pending_orders: List[EntrySignal] = field(default_factory=list)
     daily_stats: DailyStats = field(default_factory=DailyStats)
+    completed_trades: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @runtime_checkable
@@ -1012,7 +1013,7 @@ class TradingStrategy(TradingStrategyProtocol):
                     self.address = address
                     self.volume24h = info.get("price_sol", 0) * 1000000  # Mock volume from price
                     self.liquidity = 500000  # Default above minimum threshold  
-                    self.market_cap = 0
+                    self.market_cap = info.get("market_cap_sol", 0)
                     self.created_at = info.get("timestamp")
                     self.price_sol = info.get("price_sol", 0)
                     self.scan_id = info.get("scan_id", 0)
