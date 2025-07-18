@@ -1013,7 +1013,7 @@ class TradingStrategy(TradingStrategyProtocol):
                     self.address = address
                     self.volume24h = info.get("price_sol", 0) * 1000000  # Mock volume from price
                     self.liquidity = 500000  # Default above minimum threshold  
-                    self.market_cap = info.get("market_cap_sol", 0)
+                    self.market_cap = info.get("market_cap_sol", info.get("market_cap", 0))  # FIX: Check both fields
                     self.created_at = info.get("timestamp")
                     self.price_sol = info.get("price_sol", 0)
                     self.scan_id = info.get("scan_id", 0)
@@ -1045,13 +1045,13 @@ class TradingStrategy(TradingStrategyProtocol):
                 volume_24h = float(token.get("volume_24h_sol", token.get("volume24h", 0)))
                 liquidity = float(token.get("liquidity_sol", token.get("liquidity", 0)))
                 price_sol = float(token.get("price_sol", 0))
-                market_cap_sol = float(token.get("market_cap_sol", 0))
+                market_cap_sol = float(token.get("market_cap_sol", token.get("market_cap", 0)))  # FIX: Check both fields
             else:
                 address = getattr(token, "address", "")
                 volume_24h = float(getattr(token, "volume24h", 0))
                 liquidity = float(getattr(token, "liquidity", 0))
                 price_sol = float(getattr(token, "price_sol", 0))
-                market_cap_sol = float(getattr(token, "market_cap_sol", 0))
+                market_cap_sol = float(getattr(token, "market_cap_sol", getattr(token, "market_cap", 0)))  # FIX: Check both fields
 
             # Solana-specific validations with more permissive criteria
             validations = {

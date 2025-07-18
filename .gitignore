@@ -38,3 +38,5 @@ fix_*
 # Deployment and server scripts (server-specific)
 deploy_fixed_service.sh
 troubleshoot_service.sh
+*.sh
+
