@@ -180,11 +180,56 @@ class SignalGenerator:
             # Volatility weight: 20% (inverse - lower is better)
             volatility_score = (1 - min(market_condition.volatility / 100, 1.0)) * 0.2
             
-            return float(volume_score + liquidity_score + momentum_score + volatility_score)
+            base_signal = float(volume_score + liquidity_score + momentum_score + volatility_score)
+            
+            # Apply trending signal enhancement if available
+            enhanced_signal = self._apply_trending_boost(base_signal, market_condition)
+            
+            return enhanced_signal
 
         except Exception as e:
             logger.error(f"Error calculating signal strength: {str(e)}")
             return 0.0
+    
+    def _apply_trending_boost(self, base_signal: float, market_condition: MarketCondition) -> float:
+        """Apply trending signal boost if token has trending data"""
+        try:
+            # Check if token has trending information (added by scanner)
+            trending_token = getattr(market_condition, 'trending_token', None)
+            trending_score = getattr(market_condition, 'trending_score', None)
+            
+            if not trending_token or trending_score is None:
+                logger.debug("No trending data available for signal boost")
+                return base_signal
+            
+            # Import here to avoid circular imports
+            try:
+                from ..trending_analyzer import TrendingAnalyzer
+                from ..config.settings import Settings
+                
+                # Create a temporary settings object with trending boost factor
+                class TempSettings:
+                    def __init__(self):
+                        self.TRENDING_SIGNAL_BOOST = getattr(self.settings, 'TRENDING_SIGNAL_BOOST', 0.5)
+                
+                temp_settings = TempSettings()
+                temp_settings.TRENDING_SIGNAL_BOOST = getattr(self.settings, 'TRENDING_SIGNAL_BOOST', 0.5)
+                
+                analyzer = TrendingAnalyzer(temp_settings)
+                enhanced_signal = analyzer.enhance_signal_strength(base_signal, trending_token)
+                
+                if enhanced_signal != base_signal:
+                    logger.info(f"[TRENDING] Signal enhanced: {base_signal:.3f} → {enhanced_signal:.3f} (boost: +{(enhanced_signal - base_signal):.3f})")
+                
+                return enhanced_signal
+                
+            except ImportError as e:
+                logger.debug(f"Trending analyzer not available: {e}")
+                return base_signal
+            
+        except Exception as e:
+            logger.error(f"Error applying trending boost: {e}")
+            return base_signal
 
     def _aggregate_momentum(self, trend_analysis: Mapping[str, TrendData]) -> float:
         weights = {'5m': 0.1, '15m': 0.2, '1h': 0.3, '4h': 0.4}

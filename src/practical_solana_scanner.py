@@ -9,6 +9,8 @@ import json
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 import random
+from .birdeye_client import BirdeyeClient
+from .trending_analyzer import TrendingAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,12 @@ class PracticalSolanaScanner:
         self.scan_count = 0
         self.running = False
         self.session = None
+        
+        # Birdeye trending integration
+        self.birdeye_client = None
+        self.trending_analyzer = None
+        if getattr(settings, 'ENABLE_TRENDING_FILTER', True):
+            self.trending_analyzer = TrendingAnalyzer(settings)
         
         # Known major tokens to exclude
         self.excluded_tokens = {
@@ -45,6 +53,19 @@ class PracticalSolanaScanner:
         self.running = True
         self.session = aiohttp.ClientSession()
         
+        # Initialize Birdeye client if trending is enabled
+        if self.trending_analyzer and getattr(self.settings, 'ENABLE_TRENDING_FILTER', True):
+            api_key = getattr(self.settings, 'BIRDEYE_API_KEY', None)
+            cache_duration = getattr(self.settings, 'TRENDING_CACHE_DURATION', 300)
+            self.birdeye_client = BirdeyeClient(api_key, cache_duration)
+            await self.birdeye_client.__aenter__()
+            
+            if api_key:
+                logger.info(f"[SCANNER] Birdeye trending filter enabled with API key (length: {len(api_key)})")
+            else:
+                logger.info("[SCANNER] Birdeye trending filter enabled in fallback mode (no API key)")
+                logger.info(f"[SCANNER] Fallback mode: {getattr(self.settings, 'TRENDING_FALLBACK_MODE', 'permissive')}")
+        
         while self.running:
             try:
                 await self.scan_for_new_tokens()
@@ -59,6 +80,10 @@ class PracticalSolanaScanner:
         try:
             self.scan_count += 1
             logger.info(f"[SCAN] Starting practical scan #{self.scan_count}...")
+            
+            # Refresh trending data every few scans
+            if self.birdeye_client and self.scan_count % 3 == 0:
+                await self._refresh_trending_data()
             
             # Method 1: DexScreener API for new Solana pairs
             token = await self._scan_dexscreener_new_pairs()
@@ -400,6 +425,7 @@ class PracticalSolanaScanner:
             logger.info(f"  Market Cap: {market_cap_sol:.0f} SOL (range: {self.settings.MIN_MARKET_CAP_SOL:.0f} - {self.settings.MAX_MARKET_CAP_SOL:.0f})")
             logger.info(f"  Liquidity: {liquidity_sol:.0f} SOL (min: {self.settings.MIN_LIQUIDITY:.0f})")
 
+            # Basic filters first
             # Price range filter
             if not (self.settings.MIN_TOKEN_PRICE_SOL <= price_sol <= self.settings.MAX_TOKEN_PRICE_SOL):
                 logger.info(f"[REJECT] Token {address[:8]}... rejected - Price out of range: {price_sol:.6f} SOL")
@@ -415,6 +441,10 @@ class PracticalSolanaScanner:
                 logger.info(f"[REJECT] Token {address[:8]}... rejected - Insufficient liquidity: {liquidity_sol:.0f} SOL")
                 return False
 
+            # Enhanced trending filter
+            if not self._passes_trending_filter(token_info):
+                return False
+
             logger.info(f"[PASS] Token {address[:8]}... passed all filters!")
             return True
             
@@ -422,18 +452,103 @@ class PracticalSolanaScanner:
             logger.error(f"[SCANNER] Error checking filters: {e}")
             return False
     
+    def _passes_trending_filter(self, token_info: Dict[str, Any]) -> bool:
+        """Enhanced trending filter validation"""
+        try:
+            # Skip trending filter if disabled or not available
+            if (not getattr(self.settings, 'ENABLE_TRENDING_FILTER', True) or 
+                not self.trending_analyzer or not self.birdeye_client):
+                logger.debug("[TRENDING] Trending filter disabled or unavailable")
+                return True
+            
+            address = token_info.get('address', '')
+            symbol = token_info.get('symbol', 'UNKNOWN')
+            
+            # Check if token is in trending list
+            trending_token = self.birdeye_client.get_cached_token_by_address(address)
+            
+            if trending_token is None:
+                # Token not found in trending data
+                fallback_mode = getattr(self.settings, 'TRENDING_FALLBACK_MODE', 'permissive')
+                
+                if fallback_mode == 'strict':
+                    logger.info(f"[TRENDING] ❌ Token {symbol} ({address[:8]}...) not in trending list - REJECTED (strict mode)")
+                    return False
+                else:
+                    logger.info(f"[TRENDING] ⚠️ Token {symbol} ({address[:8]}...) not in trending list - ALLOWED (permissive mode)")
+                    return True
+            
+            # Validate trending criteria
+            passes_criteria, reason = self.trending_analyzer.meets_trending_criteria(trending_token)
+            
+            if not passes_criteria:
+                logger.info(f"[TRENDING] ❌ Token {symbol} failed trending criteria: {reason}")
+                return False
+            
+            # Calculate and log trending score
+            trending_score = self.trending_analyzer.calculate_trending_score(trending_token)
+            logger.info(f"[TRENDING] ✅ TRENDING TOKEN VALIDATED: {symbol} rank #{trending_token.rank}, score {trending_score:.1f}")
+            logger.info(f"  Price Change 24h: {trending_token.price_24h_change_percent:.1f}%")
+            logger.info(f"  Volume Change 24h: {trending_token.volume_24h_change_percent:.1f}%")
+            logger.info(f"  Daily Volume: ${trending_token.volume_24h_usd:,.0f}")
+            
+            # Store trending data in token_info for later use
+            token_info['trending_token'] = trending_token
+            token_info['trending_score'] = trending_score
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"[TRENDING] Error in trending filter: {e}")
+            # Default to permissive behavior on error
+            fallback_mode = getattr(self.settings, 'TRENDING_FALLBACK_MODE', 'permissive')
+            return fallback_mode == 'permissive'
+    
+    async def _refresh_trending_data(self):
+        """Refresh trending data from Birdeye API"""
+        try:
+            if not self.birdeye_client:
+                return
+            
+            logger.info("[TRENDING] Refreshing trending data...")
+            trending_tokens = await self.birdeye_client.get_trending_tokens(limit=50)
+            
+            if trending_tokens:
+                logger.info(f"[TRENDING] Successfully fetched {len(trending_tokens)} trending tokens")
+                
+                # Log top 10 trending tokens
+                top_10 = trending_tokens[:10]
+                logger.info("[TRENDING] Top 10 trending tokens:")
+                for token in top_10:
+                    logger.info(f"  #{token.rank}: {token.symbol} - {token.price_24h_change_percent:+.1f}% | Vol: ${token.volume_24h_usd:,.0f}")
+            else:
+                logger.warning("[TRENDING] Failed to fetch trending data")
+                
+        except Exception as e:
+            logger.error(f"[TRENDING] Error refreshing trending data: {e}")
+    
     async def stop_scanning(self):
         """Stop the scanning process"""
         logger.info("[SCANNER] Stopping practical scanner...")
         self.running = False
         if self.session:
             await self.session.close()
+        
+        # Clean up Birdeye client
+        if self.birdeye_client:
+            await self.birdeye_client.__aexit__(None, None, None)
     
     def get_stats(self) -> Dict[str, Any]:
         """Get scanner statistics"""
-        return {
+        stats = {
             'scans_completed': self.scan_count,
             'tokens_discovered': len(self.discovered_tokens),
             'tokens_processed': len(self.processed_tokens),
             'is_running': self.running
         }
+        
+        # Add Birdeye client stats if available
+        if self.birdeye_client:
+            stats['birdeye_stats'] = self.birdeye_client.get_stats()
+        
+        return stats

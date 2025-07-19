@@ -1103,7 +1103,7 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _prepare_token_data(self, token: Any, signal: Signal) -> Dict[str, Any]:
         """Prepare comprehensive token data for analysis - FIXED for new format"""
         try:
-            return {
+            token_data = {
                 "address": getattr(token, "address", "unknown"),
                 "volume24h": float(getattr(token, "volume24h", 0)),
                 "liquidity": float(getattr(token, "liquidity", 500000)),  # Default safe value
@@ -1115,6 +1115,18 @@ class TradingStrategy(TradingStrategyProtocol):
                 "scan_id": getattr(token, "scan_id", 0),
                 "source": getattr(token, "source", "scanner"),
             }
+            
+            # Add trending data if available (from scanner's trending filter)
+            trending_token = getattr(signal, 'trending_token', None) if signal else None
+            trending_score = getattr(signal, 'trending_score', None) if signal else None
+            
+            if trending_token:
+                token_data['trending_token'] = trending_token
+                token_data['trending_score'] = trending_score
+                logger.debug(f"[TRENDING] Added trending data to token preparation: score {trending_score}")
+            
+            return token_data
+            
         except Exception as e:
             logger.error(f"Error preparing token data: {e}")
             return {

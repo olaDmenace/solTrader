@@ -124,6 +124,18 @@ class Settings:
     # Gas optimization for fast execution
     PRIORITY_FEE_MULTIPLIER: float = 2.0  # Higher priority for fast execution
     MAX_GAS_PRICE: int = 200  # Higher gas limit for speed
+    
+    # Birdeye Trending API Configuration
+    BIRDEYE_API_KEY: Optional[str] = None  # Optional API key for higher rate limits
+    ENABLE_TRENDING_FILTER: bool = True    # Enable trending-based filtering
+    MAX_TRENDING_RANK: int = 50            # Maximum allowed trending rank
+    MIN_PRICE_CHANGE_24H: float = 20.0     # Minimum 24h price change % for trending
+    MIN_VOLUME_CHANGE_24H: float = 10.0    # Minimum 24h volume change % for trending
+    MIN_TRENDING_SCORE: float = 60.0       # Minimum trending composite score (0-100)
+    TRENDING_SIGNAL_BOOST: float = 0.5     # Signal boost factor for trending tokens
+    TRENDING_FALLBACK_MODE: str = "permissive"  # "permissive" or "strict" when API fails
+    TRENDING_CACHE_DURATION: int = 300     # Cache duration in seconds (5 minutes)
+    TRENDING_REQUEST_INTERVAL: float = 2.0 # Minimum seconds between API requests
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary"""
@@ -216,6 +228,7 @@ def load_settings() -> Settings:
         DISCORD_WEBHOOK_URL=os.getenv('DISCORD_WEBHOOK_URL'),
         TELEGRAM_BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN'),
         TELEGRAM_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID'),
+        BIRDEYE_API_KEY=os.getenv('BIRDEYE_API_KEY'),
     )
 
     # Add new environment mappings for grid and DCA settings
@@ -285,6 +298,18 @@ def load_settings() -> Settings:
         'CLOSE_POSITIONS_ON_STOP': ('CLOSE_POSITIONS_ON_STOP', lambda x: x.lower() == 'true'),
         'PRIORITY_FEE_MULTIPLIER': ('PRIORITY_FEE_MULTIPLIER', float),
         'MAX_GAS_PRICE': ('MAX_GAS_PRICE', int),
+        
+        # Birdeye trending settings
+        'BIRDEYE_API_KEY': ('BIRDEYE_API_KEY', str),
+        'ENABLE_TRENDING_FILTER': ('ENABLE_TRENDING_FILTER', lambda x: x.lower() == 'true'),
+        'MAX_TRENDING_RANK': ('MAX_TRENDING_RANK', int),
+        'MIN_PRICE_CHANGE_24H': ('MIN_PRICE_CHANGE_24H', float),
+        'MIN_VOLUME_CHANGE_24H': ('MIN_VOLUME_CHANGE_24H', float),
+        'MIN_TRENDING_SCORE': ('MIN_TRENDING_SCORE', float),
+        'TRENDING_SIGNAL_BOOST': ('TRENDING_SIGNAL_BOOST', float),
+        'TRENDING_FALLBACK_MODE': ('TRENDING_FALLBACK_MODE', str),
+        'TRENDING_CACHE_DURATION': ('TRENDING_CACHE_DURATION', int),
+        'TRENDING_REQUEST_INTERVAL': ('TRENDING_REQUEST_INTERVAL', float),
     }
 
     for attr, (env_var, type_func) in env_mappings.items():
