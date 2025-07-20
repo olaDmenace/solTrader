@@ -107,8 +107,8 @@ class SignalGenerator:
                     'source': getattr(token_data, 'source', 'unknown')
                 }
             else:
-                # It's already a dict
-                token_dict = token_data
+                # It's already a dict - normalize field names
+                token_dict = self._normalize_token_fields(token_data)
 
             if not self._validate_token_data(token_dict):
                 return None
@@ -118,7 +118,11 @@ class SignalGenerator:
                 return None
 
             signal_strength = self._calculate_signal_strength(market_condition)
+            
+            logger.info(f"[SIGNAL] Token {token_dict['address'][:8]}... signal strength: {signal_strength:.3f} (threshold: {self.signal_threshold})")
+            
             if signal_strength < self.signal_threshold:
+                logger.info(f"[SIGNAL] Signal too weak: {signal_strength:.3f} < {self.signal_threshold}")
                 return None
 
             return Signal(
@@ -131,18 +135,69 @@ class SignalGenerator:
 
         except Exception as e:
             logger.error(f"Error analyzing token: {str(e)}")
+            logger.error(f"Token data keys: {list(token_data.keys()) if isinstance(token_data, dict) else 'not a dict'}")
             return None
+    
+    def _normalize_token_fields(self, token_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize field names from scanner format to signal generator format"""
+        normalized = token_data.copy()
+        
+        # Map scanner fields to expected signal generator fields
+        field_mappings = {
+            'price_sol': 'price',
+            'volume_24h_sol': 'volume24h', 
+            'liquidity_sol': 'liquidity',
+            'market_cap_sol': 'market_cap'
+        }
+        
+        for scanner_field, signal_field in field_mappings.items():
+            if scanner_field in token_data and signal_field not in token_data:
+                normalized[signal_field] = token_data[scanner_field]
+                logger.debug(f"[NORMALIZE] Mapped {scanner_field} -> {signal_field}: {token_data[scanner_field]}")
+        
+        # Copy trending data if available
+        if 'trending_token' in token_data:
+            normalized['trending_token'] = token_data['trending_token']
+        if 'trending_score' in token_data:
+            normalized['trending_score'] = token_data['trending_score']
+            
+        return normalized
 
     def _validate_token_data(self, token_data: Dict[str, Any]) -> bool:
-        required_fields = ['address', 'price', 'volume24h', 'liquidity']
-        return all(field in token_data for field in required_fields)
+        # Check for scanner format fields (from practical_solana_scanner.py)
+        scanner_fields = ['address', 'price_sol', 'volume_24h_sol', 'liquidity_sol']
+        legacy_fields = ['address', 'price', 'volume24h', 'liquidity']
+        
+        # Accept either scanner format or legacy format
+        has_scanner_fields = all(field in token_data for field in scanner_fields)
+        has_legacy_fields = all(field in token_data for field in legacy_fields)
+        
+        return has_scanner_fields or has_legacy_fields
 
     async def _analyze_market_condition(self, token_data: Dict[str, Any]) -> Optional[MarketCondition]:
         try:
             volume_24h = float(token_data.get('volume24h', 0))
             liquidity = float(token_data.get('liquidity', 0))
             
-            if volume_24h < self.min_volume or liquidity < self.min_liquidity:
+            # Check if this is a trending token (apply permissive thresholds)
+            is_trending = token_data.get('source') == 'birdeye_trending'
+            
+            if is_trending:
+                # More permissive thresholds for trending tokens (same as strategy.py)
+                min_volume = max(self.min_volume * 0.2, 5)  # 20% of min volume, min 5 SOL for trending
+                min_liquidity = max(self.min_liquidity * 0.5, 200)  # 50% of min liquidity, min 200 SOL for trending
+                logger.info(f"[SIGNALS] Trending token detected - using permissive thresholds")
+                logger.info(f"[SIGNALS] Volume: {volume_24h:.1f} SOL (trending threshold: {min_volume:.1f})")
+                logger.info(f"[SIGNALS] Liquidity: {liquidity:.1f} SOL (trending threshold: {min_liquidity:.1f})")
+            else:
+                # Standard thresholds for non-trending tokens
+                min_volume = self.min_volume
+                min_liquidity = self.min_liquidity
+                logger.debug(f"[MARKET] Analyzing: volume={volume_24h}, liquidity={liquidity}")
+                logger.debug(f"[MARKET] Thresholds: min_volume={min_volume}, min_liquidity={min_liquidity}")
+            
+            if volume_24h < min_volume or liquidity < min_liquidity:
+                logger.info(f"[MARKET] Token failed volume/liquidity check: vol={volume_24h:.1f} (min={min_volume:.1f}), liq={liquidity:.1f} (min={min_liquidity:.1f})")
                 return None
 
             price_history = token_data.get('price_history', {})
@@ -154,13 +209,21 @@ class SignalGenerator:
             momentum_score = self._aggregate_momentum(trend_analysis)
             volatility = self._aggregate_volatility(trend_analysis)
             
-            return MarketCondition(
+            market_condition = MarketCondition(
                 volume_24h=volume_24h,
                 liquidity=liquidity,
                 price_change_24h=self._calculate_price_change(price_history),
                 volatility=volatility,
                 momentum_score=momentum_score
             )
+            
+            # Pass through trending data if available
+            if 'trending_token' in token_data:
+                market_condition.trending_token = token_data['trending_token']
+            if 'trending_score' in token_data:
+                market_condition.trending_score = token_data['trending_score']
+                
+            return market_condition
 
         except Exception as e:
             logger.error(f"Error analyzing market condition: {str(e)}")

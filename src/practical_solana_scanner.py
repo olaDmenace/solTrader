@@ -95,12 +95,18 @@ class PracticalSolanaScanner:
             if token:
                 return token
             
-            # Method 3: Real-world simulation using historical data
-            # Increase simulation frequency to every 3rd scan for better discovery rate
-            if self.scan_count % 3 == 0:  # Every 3rd scan
-                token = await self._simulate_realistic_new_token()
-                if token:
-                    return token
+            # Method 3: Birdeye trending tokens (real market data)
+            token = await self._scan_birdeye_trending_tokens()
+            if token:
+                return token
+            
+            # Method 4: Additional real token sources (disabled simulation for paper trading)
+            # Focus only on real token sources for accurate paper trading
+            # Simulation disabled to ensure paper trading uses real market data
+            # if self.scan_count % 3 == 0:  # Every 3rd scan
+            #     token = await self._simulate_realistic_new_token()
+            #     if token:
+            #         return token
             
             return None
             
@@ -112,12 +118,15 @@ class PracticalSolanaScanner:
         """Scan DexScreener for new Solana pairs"""
         try:
             if not self.session:
+                logger.warning("[DEXSCREENER] No session available - scanner not initialized")
                 return None
             
             # DexScreener API for new Solana pairs
             url = "https://api.dexscreener.com/latest/dex/pairs/solana"
+            logger.debug(f"[DEXSCREENER] Requesting: {url}")
             
-            async with self.session.get(url) as response:
+            async with self.session.get(url, timeout=10) as response:
+                logger.debug(f"[DEXSCREENER] Response status: {response.status}")
                 if response.status == 200:
                     data = await response.json()
                     pairs = data.get('pairs', [])
@@ -138,10 +147,15 @@ class PracticalSolanaScanner:
         """Scan Jupiter for potential new tokens"""
         try:
             if not self.session:
+                logger.warning("[JUPITER] No session available - scanner not initialized")
                 return None
                 
             # Get Jupiter token list
-            async with self.session.get("https://token.jup.ag/all") as response:
+            url = "https://token.jup.ag/all"
+            logger.debug(f"[JUPITER] Requesting: {url}")
+            
+            async with self.session.get(url, timeout=10) as response:
+                logger.debug(f"[JUPITER] Response status: {response.status}")
                 if response.status == 200:
                     tokens = await response.json()
                     
@@ -238,6 +252,79 @@ class PracticalSolanaScanner:
             logger.error(f"[SCANNER] Error simulating realistic token: {e}")
             return None
     
+    async def _scan_birdeye_trending_tokens(self) -> Optional[Dict[str, Any]]:
+        """Scan Birdeye trending tokens for real market opportunities"""
+        try:
+            if not self.birdeye_client:
+                logger.warning("[BIRDEYE] Birdeye client not available - trending filter disabled")
+                return None
+            
+            # Get trending tokens from Birdeye
+            trending_tokens = await self.birdeye_client.get_trending_tokens(limit=20)
+            if not trending_tokens:
+                logger.debug("[SCANNER] No trending tokens available")
+                return None
+            
+            logger.info(f"[SCANNER] Scanning {len(trending_tokens)} trending tokens from Birdeye")
+            
+            for trending_token in trending_tokens:
+                try:
+                    # Skip if already processed
+                    if trending_token.address in self.processed_tokens:
+                        continue
+                    
+                    # Convert SOL price to actual SOL (Birdeye gives USD prices)
+                    # Use dynamic SOL price for accurate calculations
+                    from src.utils.price_manager import get_sol_usd_price
+                    sol_price_usd = await get_sol_usd_price()
+                    price_sol = trending_token.price / sol_price_usd if trending_token.price > 0 else 0
+                    
+                    # Create token info from trending data
+                    token_info = {
+                        'address': trending_token.address,
+                        'symbol': trending_token.symbol,
+                        'name': trending_token.name,
+                        'price_sol': price_sol,
+                        'market_cap_sol': trending_token.marketcap / sol_price_usd,
+                        'liquidity_sol': trending_token.liquidity / sol_price_usd,
+                        'volume_24h_sol': trending_token.volume_24h_usd / sol_price_usd,
+                        'price_24h_change_percent': trending_token.price_24h_change_percent,
+                        'volume_24h_change_percent': trending_token.volume_24h_change_percent,
+                        'trending_rank': trending_token.rank,
+                        'source': 'birdeye_trending',
+                        'created_recently': True,  # Trending tokens are considered recent opportunities
+                        'trending_token': trending_token,  # Store full trending data
+                        'trending_score': self.trending_analyzer.calculate_trending_score(trending_token) if self.trending_analyzer else 0
+                    }
+                    
+                    volume_sol = trending_token.volume_24h_usd / sol_price_usd
+                    market_cap_sol = trending_token.marketcap / sol_price_usd
+                    
+                    logger.info(f"[BIRDEYE_SCAN] Found trending token: {trending_token.symbol} (#{trending_token.rank})")
+                    logger.info(f"  Price: ${trending_token.price:.6f} ({price_sol:.8f} SOL)")
+                    logger.info(f"  24h Change: {trending_token.price_24h_change_percent:+.1f}%")
+                    logger.info(f"  Volume: ${trending_token.volume_24h_usd:,.0f} = {volume_sol:.2f} SOL (SOL@${sol_price_usd:.2f})")
+                    logger.info(f"  Market Cap: ${trending_token.marketcap:,.0f} = {market_cap_sol:.0f} SOL")
+                    
+                    # Apply filters (this will include trending validation)
+                    if self._passes_filters(token_info):
+                        logger.info(f"[SUCCESS] Trending token {trending_token.symbol} passed all filters!")
+                        self.processed_tokens.add(trending_token.address)
+                        return token_info
+                    else:
+                        logger.debug(f"[FILTER] Trending token {trending_token.symbol} failed filters")
+                
+                except Exception as e:
+                    logger.error(f"[SCANNER] Error processing trending token {trending_token.symbol}: {e}")
+                    continue
+            
+            logger.info("[SCANNER] No trending tokens passed filters in this scan")
+            return None
+            
+        except Exception as e:
+            logger.error(f"[SCANNER] Error scanning Birdeye trending tokens: {e}")
+            return None
+    
     def _generate_realistic_solana_address(self) -> str:
         """Generate a valid Solana address using proper base58 encoding"""
         try:
@@ -326,8 +413,9 @@ class PracticalSolanaScanner:
             base_token = pair.get('baseToken', {})
             price_usd = float(pair.get('priceUsd', 0))
             
-            # Convert USD to SOL (approximate)
-            sol_price_usd = 150  # Approximate SOL price
+            # Convert USD to SOL using dynamic price
+            from src.utils.price_manager import get_sol_usd_price
+            sol_price_usd = await get_sol_usd_price()
             price_sol = price_usd / sol_price_usd
             
             token_info = {
@@ -395,8 +483,9 @@ class PracticalSolanaScanner:
                         token_price_data = price_data['data'][token_address]
                         price_usd = token_price_data.get('price', 0)
                         
-                        # Convert USD to SOL
-                        sol_price_usd = 150
+                        # Convert USD to SOL using dynamic price
+                        from src.utils.price_manager import get_sol_usd_price
+                        sol_price_usd = await get_sol_usd_price()
                         price_sol = price_usd / sol_price_usd
                         
                         return {
@@ -472,22 +561,22 @@ class PracticalSolanaScanner:
                 fallback_mode = getattr(self.settings, 'TRENDING_FALLBACK_MODE', 'permissive')
                 
                 if fallback_mode == 'strict':
-                    logger.info(f"[TRENDING] ❌ Token {symbol} ({address[:8]}...) not in trending list - REJECTED (strict mode)")
+                    logger.info(f"[TRENDING] REJECT - Token {symbol} ({address[:8]}...) not in trending list - REJECTED (strict mode)")
                     return False
                 else:
-                    logger.info(f"[TRENDING] ⚠️ Token {symbol} ({address[:8]}...) not in trending list - ALLOWED (permissive mode)")
+                    logger.info(f"[TRENDING] ALLOW - Token {symbol} ({address[:8]}...) not in trending list - ALLOWED (permissive mode)")
                     return True
             
             # Validate trending criteria
             passes_criteria, reason = self.trending_analyzer.meets_trending_criteria(trending_token)
             
             if not passes_criteria:
-                logger.info(f"[TRENDING] ❌ Token {symbol} failed trending criteria: {reason}")
+                logger.info(f"[TRENDING] FAIL - Token {symbol} failed trending criteria: {reason}")
                 return False
             
             # Calculate and log trending score
             trending_score = self.trending_analyzer.calculate_trending_score(trending_token)
-            logger.info(f"[TRENDING] ✅ TRENDING TOKEN VALIDATED: {symbol} rank #{trending_token.rank}, score {trending_score:.1f}")
+            logger.info(f"[TRENDING] PASS - TRENDING TOKEN VALIDATED: {symbol} rank #{trending_token.rank}, score {trending_score:.1f}")
             logger.info(f"  Price Change 24h: {trending_token.price_24h_change_percent:.1f}%")
             logger.info(f"  Volume Change 24h: {trending_token.volume_24h_change_percent:.1f}%")
             logger.info(f"  Daily Volume: ${trending_token.volume_24h_usd:,.0f}")

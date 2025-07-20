@@ -310,8 +310,9 @@ class SolanaNewTokenScanner:
                         token_price_data = price_data['data'][token_address]
                         price_usd = token_price_data.get('price', 0)
                         
-                        # Convert USD to SOL (approximate)
-                        sol_price_usd = 150  # Approximate SOL price
+                        # Convert USD to SOL using dynamic price
+                        from src.utils.price_manager import get_sol_usd_price
+                        sol_price_usd = await get_sol_usd_price()
                         price_sol = price_usd / sol_price_usd
                         
                         # Get additional market data

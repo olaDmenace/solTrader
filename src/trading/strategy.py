@@ -249,6 +249,37 @@ class TradingStrategy(TradingStrategyProtocol):
             # Initialize monitoring systems first
             await self.monitoring.start_monitoring()
             
+            # Initialize scanner if available (CRITICAL FIX)
+            if self.scanner and hasattr(self.scanner, 'start_scanning'):
+                if not self.scanner.running:
+                    # Don't await start_scanning as it's a blocking loop - just initialize it
+                    self.scanner.running = True
+                    if not self.scanner.session:
+                        import aiohttp
+                        self.scanner.session = aiohttp.ClientSession()
+                    
+                    # Initialize Birdeye client if trending is enabled
+                    if (self.scanner.trending_analyzer and 
+                        getattr(self.settings, 'ENABLE_TRENDING_FILTER', True)):
+                        api_key = getattr(self.settings, 'BIRDEYE_API_KEY', None)
+                        cache_duration = getattr(self.settings, 'TRENDING_CACHE_DURATION', 300)
+                        
+                        if not self.scanner.birdeye_client:
+                            from ..birdeye_client import BirdeyeClient
+                            self.scanner.birdeye_client = BirdeyeClient(api_key, cache_duration)
+                            await self.scanner.birdeye_client.__aenter__()
+                            
+                            if api_key:
+                                logger.info(f"[SCANNER] Birdeye trending filter enabled with API key (length: {len(api_key)})")
+                            else:
+                                logger.info("[SCANNER] Birdeye trending filter enabled in fallback mode (no API key)")
+                    
+                    logger.info("[SCANNER] Scanner initialized and ready")
+                else:
+                    logger.info("[SCANNER] Scanner already running")
+            else:
+                logger.warning("[SCANNER] No scanner available for token discovery")
+            
             # Reset state
             self.state.last_error = None
             self.state.daily_stats = DailyStats()
@@ -301,6 +332,20 @@ class TradingStrategy(TradingStrategyProtocol):
             if self.transaction_manager:
                 await self.transaction_manager.stop_monitoring()
                 self.transaction_manager = None
+            
+            # Stop scanner if running (CRITICAL FIX)
+            if self.scanner and self.scanner.running:
+                self.scanner.running = False
+                if self.scanner.session:
+                    await self.scanner.session.close()
+                    self.scanner.session = None
+                
+                # Clean up Birdeye client
+                if self.scanner.birdeye_client:
+                    await self.scanner.birdeye_client.__aexit__(None, None, None)
+                    self.scanner.birdeye_client = None
+                
+                logger.info("[SCANNER] Scanner stopped and cleaned up")
 
             if self.settings.CLOSE_POSITIONS_ON_STOP:
                 await self._cleanup_positions()
@@ -1004,6 +1049,22 @@ class TradingStrategy(TradingStrategyProtocol):
             logger.debug(f"Token validation error: {e}")
             return False
     
+    # def _create_token_object(self, token_address: str, token_info: dict):
+    #     """Create a standardized token object from dict data"""
+    #     try:
+    #         # Create a simple object with required attributes for validation
+    #         class TokenObject:
+    #             def __init__(self, address, info):
+    #                 self.address = address
+    #                 self.volume24h = info.get("price_sol", 0) * 1000000  # Mock volume from price
+    #                 self.liquidity = 500000  # Default above minimum threshold  
+    #                 self.market_cap = info.get("market_cap_sol", info.get("market_cap", 0))  # FIX: Check both fields
+    #                 self.created_at = info.get("timestamp")
+    #                 self.price_sol = info.get("price_sol", 0)
+    #                 self.scan_id = info.get("scan_id", 0)
+    #                 self.source = info.get("source", "unknown")
+            
+    #         return TokenObject(token_address, token_info)
     def _create_token_object(self, token_address: str, token_info: dict):
         """Create a standardized token object from dict data"""
         try:
@@ -1011,9 +1072,10 @@ class TradingStrategy(TradingStrategyProtocol):
             class TokenObject:
                 def __init__(self, address, info):
                     self.address = address
-                    self.volume24h = info.get("price_sol", 0) * 1000000  # Mock volume from price
-                    self.liquidity = 500000  # Default above minimum threshold  
-                    self.market_cap = info.get("market_cap_sol", info.get("market_cap", 0))  # FIX: Check both fields
+                    # FIX: Use the corrected volume from scanner instead of mock data
+                    self.volume24h = info.get("volume_24h_sol", info.get("volume24h", 0))
+                    self.liquidity = info.get("liquidity_sol", 500000)  # Use scanner liquidity
+                    self.market_cap = info.get("market_cap_sol", info.get("market_cap", 0))
                     self.created_at = info.get("timestamp")
                     self.price_sol = info.get("price_sol", 0)
                     self.scan_id = info.get("scan_id", 0)
@@ -1053,11 +1115,24 @@ class TradingStrategy(TradingStrategyProtocol):
                 price_sol = float(getattr(token, "price_sol", 0))
                 market_cap_sol = float(getattr(token, "market_cap_sol", getattr(token, "market_cap", 0)))  # FIX: Check both fields
 
-            # Solana-specific validations with more permissive criteria
+            # Check if this is a trending token (more permissive validation)
+            is_trending = token.get('source') == 'birdeye_trending' if isinstance(token, dict) else getattr(token, 'source', '') == 'birdeye_trending'
+            
+            # Solana-specific validations with special handling for trending tokens
+            if is_trending:
+                # More permissive thresholds for trending tokens (they're already validated by Birdeye)
+                min_volume = max(self.settings.MIN_VOLUME_24H * 0.2, 5)  # 20% of min volume, min 5 SOL for trending
+                min_liquidity = max(self.settings.MIN_LIQUIDITY * 0.5, 200)  # 50% of min liquidity, min 200 SOL for trending
+                logger.info(f"[TRENDING_VALIDATION] Using permissive thresholds - Volume: {min_volume:.1f} SOL, Liquidity: {min_liquidity:.1f} SOL")
+            else:
+                # Standard thresholds for non-trending tokens
+                min_volume = max(self.settings.MIN_VOLUME_24H * 0.5, 10)  # 50% of min volume, min 10 SOL
+                min_liquidity = max(self.settings.MIN_LIQUIDITY * 0.7, 300)  # 70% of min liquidity, min 300 SOL
+            
             validations = {
                 "has_address": bool(address),
-                "volume": volume_24h >= max(self.settings.MIN_VOLUME_24H * 0.5, 10),  # 50% of min volume, min 10 SOL
-                "liquidity": liquidity >= max(self.settings.MIN_LIQUIDITY * 0.7, 300),  # 70% of min liquidity, min 300 SOL
+                "volume": volume_24h >= min_volume,
+                "liquidity": liquidity >= min_liquidity,
                 "price_range": (self.settings.MIN_TOKEN_PRICE_SOL <= price_sol <= self.settings.MAX_TOKEN_PRICE_SOL),
                 "market_cap_range": (self.settings.MIN_MARKET_CAP_SOL <= market_cap_sol <= self.settings.MAX_MARKET_CAP_SOL),
                 "not_excluded": address not in getattr(self, '_excluded_tokens', set()),
@@ -1068,10 +1143,19 @@ class TradingStrategy(TradingStrategyProtocol):
             if failed_checks:
                 logger.debug(f"Token {address[:8]}... failed validations: {', '.join(failed_checks)}")
                 if failed_checks != ["has_address"]:  # Don't log address issues
-                    logger.info(f"[FILTER] Token {address[:8]}... rejected: {', '.join(failed_checks)}")
-                    logger.info(f"[FILTER] Token details - Volume: {volume_24h:.2f}, Liquidity: {liquidity:.2f}, Price: {price_sol:.6f}, Market Cap: {market_cap_sol:.0f}")
-
-            return all(validations.values())
+                    logger.info(f"[FILTER] FAIL - Token {address[:8]}... REJECTED: {', '.join(failed_checks)}")
+                    logger.info(f"  Volume: {volume_24h:.2f} SOL (need: {min_volume:.2f})")
+                    logger.info(f"  Liquidity: {liquidity:.2f} SOL (need: {min_liquidity:.2f})")
+                    logger.info(f"  Price: {price_sol:.6f} SOL, Market Cap: {market_cap_sol:.0f} SOL")
+                return False
+            else:
+                logger.info(f"[FILTER] PASS - Token {address[:8]}... PASSED all validations!")
+                logger.info(f"  Volume: {volume_24h:.2f} SOL (threshold: {min_volume:.2f})")
+                logger.info(f"  Liquidity: {liquidity:.2f} SOL (threshold: {min_liquidity:.2f})")
+                logger.info(f"  Price: {price_sol:.6f} SOL, Market Cap: {market_cap_sol:.0f} SOL")
+                if is_trending:
+                    logger.info(f"  [TRENDING] TRENDING TOKEN - Used permissive validation thresholds")
+                return True
 
         except Exception as e:
             logger.error(f"Error validating token: {e}")
@@ -1242,17 +1326,51 @@ class TradingStrategy(TradingStrategyProtocol):
             logger.error(f"Traceback: {traceback.format_exc()}")
             return 0.0
 
-    def _create_entry_signal(
-        self, signal: Signal, size: float
-    ) -> Optional[EntrySignal]:
-        """Create entry signal with validation"""
+    # def _create_entry_signal(
+    #     self, signal: Signal, size: float
+    # ) -> Optional[EntrySignal]:
+    #     """Create entry signal with validation"""
+    #     try:
+    #         return EntrySignal.from_signal(
+    #             signal=signal,
+    #             size=size,
+    #             stop_loss=signal.price * (1 - self.settings.STOP_LOSS_PERCENTAGE),
+    #             take_profit=signal.price * (1 + self.settings.TAKE_PROFIT_PERCENTAGE),
+    #         )
+    #     except Exception as e:
+    #         logger.error(f"Error creating entry signal: {e}")
+    #         return None
+
+    def _create_entry_signal(self, signal: Signal, size: float) -> Optional[EntrySignal]:
+        """Create entry signal with dynamic slippage based on opportunity potential"""
         try:
-            return EntrySignal.from_signal(
-                signal=signal,
+            # Dynamic slippage: higher tolerance for higher potential gains
+            base_slippage = 0.20  # 20% base slippage
+            
+            # Check if this is a trending token with high potential
+            trending_data = getattr(signal, 'market_data', {})
+            trending_score = trending_data.get('trending_score', 0)
+            
+            if trending_score > 70:  # High-potential trending token
+                dynamic_slippage = min(1.5, base_slippage * (1 + trending_score / 50))  # Up to 150%
+                logger.info(f"[SLIPPAGE] High-potential token detected - using {dynamic_slippage:.1%} slippage tolerance")
+            else:
+                dynamic_slippage = base_slippage  # Standard 20% slippage
+                
+            # Create EntrySignal manually instead of using from_signal
+            entry_signal = EntrySignal(
+                token_address=signal.token_address,
+                price=signal.price,
+                confidence=signal.strength,
+                entry_type=signal.signal_type,
                 size=size,
                 stop_loss=signal.price * (1 - self.settings.STOP_LOSS_PERCENTAGE),
                 take_profit=signal.price * (1 + self.settings.TAKE_PROFIT_PERCENTAGE),
+                slippage=dynamic_slippage  # Set dynamic slippage directly
             )
+            
+            return entry_signal
+            
         except Exception as e:
             logger.error(f"Error creating entry signal: {e}")
             return None
@@ -1826,25 +1944,68 @@ class TradingStrategy(TradingStrategyProtocol):
             return 100.0
 
     async def _get_current_price(self, token_address: str) -> Optional[float]:
+        """Get current token price in SOL using multiple methods"""
         try:
-            # Use same method as scanner for consistency
-            price_data = await self.jupiter.get_quote(
-                token_address,
-                "So11111111111111111111111111111111111111112",  # SOL
-                "1000000000",  # 1 token
-                50  # 0.5% slippage
-            )
+            # Method 1: Try Jupiter quote API first
+            try:
+                price_data = await self.jupiter.get_quote(
+                    token_address,
+                    "So11111111111111111111111111111111111111112",  # SOL
+                    "1000000000",  # 1 token (adjust for decimals)
+                    50  # 0.5% slippage
+                )
+                
+                if price_data and "outAmount" in price_data:
+                    price_sol = float(price_data["outAmount"]) / 1e9
+                    logger.debug(f"[PRICE] Jupiter price for {token_address[:8]}...: {price_sol:.8f} SOL")
+                    return price_sol
+            except Exception as e:
+                logger.debug(f"[PRICE] Jupiter quote failed for {token_address[:8]}...: {e}")
             
-            if price_data and "outAmount" in price_data:
-                price_sol = float(price_data["outAmount"]) / 1e9
-                logger.debug(f"[PRICE] Got price for {token_address[:8]}...: {price_sol:.6f} SOL")
-                return price_sol
-            else:
-                logger.warning(f"[PRICE] No price data for {token_address[:8]}...")
-                return None
+            # Method 2: Try Jupiter price API if quote fails
+            try:
+                if hasattr(self.jupiter, 'get_price'):
+                    price_info = await self.jupiter.get_price(token_address)
+                    if price_info and 'price' in price_info:
+                        # Convert USD to SOL (approximate)
+                        price_usd = float(price_info['price'])
+                        from src.utils.price_manager import get_sol_usd_price
+                        sol_price_usd = await get_sol_usd_price()
+                        price_sol = price_usd / sol_price_usd
+                        logger.debug(f"[PRICE] Jupiter price API for {token_address[:8]}...: {price_sol:.8f} SOL")
+                        return price_sol
+            except Exception as e:
+                logger.debug(f"[PRICE] Jupiter price API failed for {token_address[:8]}...: {e}")
+            
+            # Method 3: Use Birdeye data if available
+            try:
+                if hasattr(self, 'scanner') and hasattr(self.scanner, 'birdeye_client') and self.scanner.birdeye_client:
+                    trending_token = self.scanner.birdeye_client.get_cached_token_by_address(token_address)
+                    if trending_token and trending_token.price > 0:
+                        # Convert USD price to SOL
+                        from src.utils.price_manager import get_sol_usd_price
+                        sol_price_usd = await get_sol_usd_price()
+                        price_sol = trending_token.price / sol_price_usd
+                        logger.debug(f"[PRICE] Birdeye price for {token_address[:8]}...: {price_sol:.8f} SOL")
+                        return price_sol
+            except Exception as e:
+                logger.debug(f"[PRICE] Birdeye price failed for {token_address[:8]}...: {e}")
+            
+            # Method 4: Try market depth API for fallback pricing
+            try:
+                market_depth = await self.jupiter.get_market_depth(token_address)
+                if market_depth and 'price' in market_depth:
+                    price_sol = float(market_depth['price'])
+                    logger.debug(f"[PRICE] Market depth price for {token_address[:8]}...: {price_sol:.8f} SOL")
+                    return price_sol
+            except Exception as e:
+                logger.debug(f"[PRICE] Market depth failed for {token_address[:8]}...: {e}")
+            
+            logger.warning(f"[PRICE] All price methods failed for {token_address[:8]}...")
+            return None
 
         except Exception as e:
-            logger.error(f"Error getting current price for {token_address[:8]}...: {e}")
+            logger.error(f"[PRICE] Error getting current price for {token_address[:8]}...: {e}")
             return None
 
     async def _save_trade_to_dashboard(self, trade_record: Dict[str, Any]) -> None:

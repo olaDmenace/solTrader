@@ -12,7 +12,8 @@
       "Bash(grep:*)",
       "Bash(mv:*)",
       "Bash(venv/Scripts/python.exe:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   },

@@ -53,7 +53,7 @@ class Settings:
     MIN_CONTRACT_SCORE: int = 70  # Minimum security score for entry
     MAX_TOKEN_PRICE_SOL: float = 0.01  # Max price in SOL (target micro-cap)
     MIN_TOKEN_PRICE_SOL: float = 0.000001  # Min price in SOL (avoid dust)
-    MAX_MARKET_CAP_SOL: float = 10000.0  # Max market cap in SOL (~$1.5M)
+    MAX_MARKET_CAP_SOL: float = 50000.0  # Max market cap in SOL (~$7.5M)
     MIN_MARKET_CAP_SOL: float = 10.0  # Min market cap in SOL (~$1.5K)
     
     # Solana blockchain specific
@@ -129,8 +129,8 @@ class Settings:
     BIRDEYE_API_KEY: Optional[str] = None  # Optional API key for higher rate limits
     ENABLE_TRENDING_FILTER: bool = True    # Enable trending-based filtering
     MAX_TRENDING_RANK: int = 50            # Maximum allowed trending rank
-    MIN_PRICE_CHANGE_24H: float = 20.0     # Minimum 24h price change % for trending
-    MIN_VOLUME_CHANGE_24H: float = 10.0    # Minimum 24h volume change % for trending
+    MIN_PRICE_CHANGE_24H: float = 10.0     # Minimum 24h price change % for trending
+    MIN_VOLUME_CHANGE_24H: float = 5.0     # Minimum 24h volume change % for trending
     MIN_TRENDING_SCORE: float = 60.0       # Minimum trending composite score (0-100)
     TRENDING_SIGNAL_BOOST: float = 0.5     # Signal boost factor for trending tokens
     TRENDING_FALLBACK_MODE: str = "permissive"  # "permissive" or "strict" when API fails
