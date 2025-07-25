@@ -23706,3 +23706,1520 @@ client_session: <aiohttp.client.ClientSession object at 0x000001416EB74440>
 2025-07-20 09:40:18,533 - asyncio - ERROR - Unclosed connector
 connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x000001416EB7E090>, 174443.5)])']
 connector: <aiohttp.connector.TCPConnector object at 0x000001416EB74140>
+2025-07-25 00:45:34,669 - __main__ - INFO - Settings loaded successfully
+2025-07-25 00:45:34,670 - __main__ - INFO - Paper trading: True
+2025-07-25 00:45:34,672 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 00:45:34,672 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 00:45:35,323 - src.api.solana_tracker - INFO - SolanaTracker client initialized with daily limit: 333
+2025-07-25 00:45:35,323 - src.api.solana_tracker - INFO - SolanaTracker client initialized with daily limit: 333
+2025-07-25 00:45:35,324 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 00:45:35,324 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 00:45:35,324 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 00:45:35,324 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 00:45:35,324 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 00:45:35,325 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 00:45:35,325 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 00:45:35,325 - src.notifications.email_system - WARNING - Email notifications disabled - missing configuration
+2025-07-25 00:45:35,325 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 00:45:35,326 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 00:45:35,326 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 00:45:35,326 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 00:45:35,326 - __main__ - INFO - Testing API connections...
+2025-07-25 00:45:36,116 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 00:45:37,010 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 00:45:37,011 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 00:45:37,012 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 00:45:37,012 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 00:45:37,725 - src.api.solana_tracker - ERROR - API request failed: 401
+2025-07-25 00:45:37,727 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed
+2025-07-25 00:45:37,728 - __main__ - ERROR - [ERROR] Solana Tracker API connection failed
+2025-07-25 00:45:37,730 - __main__ - ERROR - [ERROR] Startup failed - exiting
+2025-07-25 00:45:37,731 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 00:45:37,732 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 00:45:37,734 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 00:45:37,735 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 00:45:37,737 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 00:45:37,738 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 00:45:37,739 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 00:45:37,741 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 00:45:37,743 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 00:45:37,813 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 00:45:37,814 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 00:45:37,814 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 00:45:37,814 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 00:45:37,815 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 00:45:37,815 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 00:45:37,815 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 00:45:37,816 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 00:45:37,816 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 00:45:37,816 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 00:45:37,817 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 00:45:37,817 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 00:46:55,838 - __main__ - INFO - Settings loaded successfully
+2025-07-25 00:46:55,838 - __main__ - INFO - Paper trading: True
+2025-07-25 00:46:55,839 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 00:46:55,839 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 00:46:56,400 - src.api.solana_tracker - INFO - SolanaTracker client initialized with daily limit: 333
+2025-07-25 00:46:56,401 - src.api.solana_tracker - INFO - SolanaTracker client initialized with daily limit: 333
+2025-07-25 00:46:56,401 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 00:46:56,401 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 00:46:56,401 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 00:46:56,402 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 00:46:56,403 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 00:46:56,403 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 00:46:56,403 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 00:46:56,403 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 00:46:56,403 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 00:46:56,403 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 00:46:56,404 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 00:46:56,404 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 00:46:56,404 - __main__ - INFO - Testing API connections...
+2025-07-25 00:46:57,044 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 00:46:57,365 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 00:46:57,365 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 00:46:57,366 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 00:46:57,366 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 00:46:57,859 - src.api.solana_tracker - ERROR - API request failed: 401
+2025-07-25 00:46:57,859 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed
+2025-07-25 00:46:57,860 - __main__ - ERROR - [ERROR] Solana Tracker API connection failed
+2025-07-25 00:46:57,860 - __main__ - ERROR - [ERROR] Startup failed - exiting
+2025-07-25 00:46:57,861 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 00:46:57,861 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 00:46:57,861 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 00:46:57,861 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 00:46:57,862 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 00:46:57,862 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 00:46:57,862 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 00:46:57,863 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 00:46:57,863 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 00:46:57,906 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 00:46:57,906 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 00:46:57,907 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 00:46:57,907 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 00:46:57,907 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 00:46:57,908 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 00:46:57,908 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 00:46:57,908 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 00:46:57,909 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 00:46:57,909 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 00:46:57,909 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 00:46:57,911 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:01:50,886 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:01:50,886 - __main__ - INFO - Paper trading: True
+2025-07-25 01:01:50,886 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:01:50,886 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:01:51,508 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:01:51,508 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:01:51,508 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:01:51,508 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:01:51,508 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:01:51,508 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:01:51,508 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:01:51,508 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:01:51,508 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:01:51,508 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:01:51,508 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:01:51,508 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:01:51,508 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:01:51,508 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:01:51,508 - __main__ - INFO - Testing API connections...
+2025-07-25 01:01:52,152 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:01:52,508 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:01:52,508 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:01:52,508 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:01:52,508 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:01:53,821 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:01:53,823 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:01:53,824 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:01:53,825 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:01:53,826 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:01:53,826 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:01:54,513 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:01:54,513 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 01:01:54,513 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:01:54,513 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:01:54,513 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:01:54,548 - __main__ - ERROR - [ERROR] Startup failed - exiting
+2025-07-25 01:01:54,548 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:01:54,548 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:01:54,549 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:01:54,549 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:01:54,549 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:01:54,549 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:01:54,549 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API
+2025-07-25 01:01:57,507 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:01:57,507 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:01:57,507 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:01:57,507 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:01:57,507 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:01:57,507 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:01:57,507 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:01:57,507 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:01:57,507 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:01:57,507 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:01:57,507 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:01:57,507 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:01:57,561 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:01:57,561 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:01:57,561 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:05:18,067 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:05:18,082 - __main__ - INFO - Paper trading: True
+2025-07-25 01:05:18,082 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:05:18,082 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:05:18,670 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:05:18,670 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:05:18,670 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:05:18,670 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:05:18,670 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:05:18,670 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:05:18,670 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:05:18,670 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:05:18,670 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:05:18,670 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:05:18,670 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:05:18,670 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:05:18,670 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:05:18,670 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:05:18,670 - __main__ - INFO - Testing API connections...
+2025-07-25 01:05:19,314 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:05:19,997 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:05:19,997 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:05:19,997 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:05:19,997 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:05:20,804 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:05:20,804 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:05:20,804 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:05:20,804 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:05:20,804 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:05:20,804 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:05:21,465 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:06:21,479 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 01:06:21,480 - src.enhanced_token_scanner - ERROR - Failed to connect to Solana Tracker API
+2025-07-25 01:06:21,481 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:06:21,481 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:06:21,483 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:06:21,484 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:06:21,485 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:06:21,485 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:06:21,486 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:06:21,487 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:06:24,731 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:06:24,747 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:06:25,038 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:06:25,038 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:06:25,052 - src.trading.strategy - ERROR - [ERROR] Error scanning opportunities: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+2025-07-25 01:06:25,106 - src.trading.strategy - ERROR - [DATA] Traceback: Traceback (most recent call last):
+  File "C:\Users\ADMIN\Desktop\projects\solTrader\src\trading\strategy.py", line 894, in _scan_opportunities
+    new_token = await self.scanner.scan_for_new_tokens()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+
+2025-07-25 01:06:25,277 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:06:25,287 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:06:25,288 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:06:25,289 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:07:24,749 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:07:25,465 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:07:25,465 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:07:25,487 - src.trading.strategy - ERROR - [ERROR] Error scanning opportunities: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+2025-07-25 01:07:25,492 - src.trading.strategy - ERROR - [DATA] Traceback: Traceback (most recent call last):
+  File "C:\Users\ADMIN\Desktop\projects\solTrader\src\trading\strategy.py", line 894, in _scan_opportunities
+    new_token = await self.scanner.scan_for_new_tokens()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+
+2025-07-25 01:08:24,746 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:08:25,834 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:08:25,834 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:08:25,834 - src.trading.strategy - ERROR - [ERROR] Error scanning opportunities: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+2025-07-25 01:08:25,834 - src.trading.strategy - ERROR - [DATA] Traceback: Traceback (most recent call last):
+  File "C:\Users\ADMIN\Desktop\projects\solTrader\src\trading\strategy.py", line 894, in _scan_opportunities
+    new_token = await self.scanner.scan_for_new_tokens()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+
+2025-07-25 01:09:24,750 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:09:26,102 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:09:26,104 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:09:26,117 - src.trading.strategy - ERROR - [ERROR] Error scanning opportunities: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+2025-07-25 01:09:26,122 - src.trading.strategy - ERROR - [DATA] Traceback: Traceback (most recent call last):
+  File "C:\Users\ADMIN\Desktop\projects\solTrader\src\trading\strategy.py", line 894, in _scan_opportunities
+    new_token = await self.scanner.scan_for_new_tokens()
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'EnhancedTokenScanner' object has no attribute 'scan_for_new_tokens'
+
+2025-07-25 01:09:37,669 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:09:37,669 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:09:37,669 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:09:37,669 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:09:37,682 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:09:40,467 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:09:40,467 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:09:40,467 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:09:40,467 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:09:40,467 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:09:40,467 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:09:40,467 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:09:40,467 - src.trading.strategy - ERROR - Error stopping trading: 'EnhancedTokenScanner' object has no attribute 'running'
+2025-07-25 01:09:40,479 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:09:40,482 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:09:40,488 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:09:40,684 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:09:40,684 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:09:40,684 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:09:40,684 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:09:40,697 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:09:40,698 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:09:40,699 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000013A4B24FC20>
+2025-07-25 01:25:46,460 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:25:46,460 - __main__ - INFO - Paper trading: True
+2025-07-25 01:25:46,461 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:25:46,462 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:25:47,112 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:25:47,112 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:25:47,113 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:25:47,113 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:25:47,113 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:25:47,113 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:25:47,113 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:25:47,113 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:25:47,113 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:25:47,114 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:25:47,114 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:25:47,114 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:25:47,114 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:25:47,114 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:25:47,114 - __main__ - INFO - Testing API connections...
+2025-07-25 01:25:47,868 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:25:48,569 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:25:48,571 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:25:48,572 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:25:48,573 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:25:49,443 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:25:49,443 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:25:49,443 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:25:49,443 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:25:49,444 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:25:49,444 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:25:49,942 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:26:49,958 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 01:26:49,960 - src.enhanced_token_scanner - ERROR - Failed to connect to Solana Tracker API
+2025-07-25 01:26:49,961 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:26:49,963 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:26:49,964 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:26:49,966 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:26:49,968 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:26:49,968 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:26:49,970 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:26:49,971 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:26:52,271 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:26:52,272 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:26:52,534 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:26:52,535 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:26:52,547 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:26:52,555 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:26:52,719 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:26:52,729 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:26:52,730 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:26:52,732 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:27:52,290 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:27:53,095 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:27:53,097 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:27:53,111 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:27:53,118 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:28:52,308 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:28:53,776 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:28:53,777 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:28:53,780 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:28:53,783 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:29:52,326 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:29:55,222 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:29:55,224 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:29:55,235 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:29:55,247 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:30:52,330 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:30:55,515 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:30:55,516 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:30:55,519 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:30:55,522 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:31:52,353 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:31:55,877 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:31:55,878 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:31:55,890 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:31:55,901 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:32:52,353 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:32:56,194 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:32:56,195 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:32:56,207 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:32:56,216 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:33:39,133 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:33:39,135 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:33:39,137 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:33:39,138 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:33:39,140 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:33:44,407 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:33:44,407 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:33:44,407 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:33:44,408 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:33:44,408 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:33:44,409 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:33:44,409 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:33:44,410 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 01:33:44,410 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:33:44,410 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:33:44,411 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:33:44,488 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:33:44,488 - __main__ - INFO - [CLEANUP] Cancelling 1 remaining tasks...
+2025-07-25 01:33:44,489 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:33:44,489 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:33:44,489 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:33:44,489 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:33:44,490 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:33:44,490 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:33:44,490 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:33:44,491 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:33:44,491 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:33:44,491 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:33:44,491 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:33:44,492 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000020B3ECC7DA0>
+2025-07-25 01:33:57,101 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:33:57,101 - __main__ - INFO - Paper trading: True
+2025-07-25 01:33:57,102 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:33:57,102 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:33:57,686 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:33:57,687 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:33:57,688 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:33:57,688 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:33:57,688 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:33:57,688 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:33:57,688 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:33:57,688 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:33:57,689 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:33:57,689 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:33:57,689 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:33:57,690 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:33:57,690 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:33:57,690 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:33:57,690 - __main__ - INFO - Testing API connections...
+2025-07-25 01:33:58,048 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:33:58,337 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:33:58,339 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:33:58,340 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:33:58,341 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:33:59,527 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:33:59,527 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:33:59,528 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:33:59,528 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:33:59,528 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:33:59,528 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:34:00,129 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:34:00,135 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 01:34:00,136 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:34:00,136 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:34:00,136 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:34:00,136 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:34:00,137 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:34:00,137 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:34:00,137 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:34:00,137 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:34:00,138 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:34:00,138 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:34:02,538 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:34:02,541 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:34:02,719 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:34:02,723 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:34:02,724 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:34:02,726 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:34:02,809 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:34:02,809 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:34:02,829 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:34:02,882 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:34:02,883 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:34:03,314 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:35:02,553 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:35:04,339 - src.api.solana_tracker - INFO - Retrieved 100 volume tokens
+2025-07-25 01:35:04,341 - src.api.solana_tracker - INFO - Combined 1 unique tokens from all sources
+2025-07-25 01:35:04,348 - src.enhanced_token_scanner - INFO - Scan completed: 0/1 tokens approved (0.0% rate) in 61.52s
+2025-07-25 01:35:04,348 - src.enhanced_token_scanner - INFO - Volume: 0/1 (0.0% effective)
+2025-07-25 01:35:04,353 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:35:04,356 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:35:28,361 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:35:28,361 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:35:28,362 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:35:28,362 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:35:28,363 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:35:31,113 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:35:31,114 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:35:31,114 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:35:31,115 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:35:31,115 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:35:31,116 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:35:31,117 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:35:31,117 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:35:31,118 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:35:31,118 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 01:35:31,119 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:35:31,119 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:35:31,120 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:35:31,162 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:35:31,163 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 01:35:31,163 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:35:31,164 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:35:31,164 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:35:31,165 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:35:31,165 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:35:31,166 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:35:31,166 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:35:31,167 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:35:31,168 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:35:31,168 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:35:31,168 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:38:38,381 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:38:38,383 - __main__ - INFO - Paper trading: True
+2025-07-25 01:38:38,384 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:38:38,384 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:38:38,978 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:38:38,978 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:38:38,978 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:38:38,979 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:38:38,979 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:38:38,979 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:38:38,979 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:38:38,980 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:38:38,980 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:38:38,980 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:38:38,980 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:38:38,980 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:38:38,980 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:38:38,981 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:38:38,981 - __main__ - INFO - Testing API connections...
+2025-07-25 01:38:39,595 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:38:39,976 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:38:39,978 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:38:39,979 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:38:39,981 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:38:40,927 - src.api.solana_tracker - INFO - API Response from tokens/trending: 59 items (Daily: 1/333)
+2025-07-25 01:38:40,931 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:38:40,932 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:38:40,932 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:38:40,933 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:38:40,933 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:38:40,934 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:38:41,398 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:39:41,398 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 01:39:41,399 - src.enhanced_token_scanner - WARNING - API connection failed, retrying in 10 seconds... (attempt 1/3)
+2025-07-25 01:39:52,654 - src.api.solana_tracker - INFO - API Response from tokens/trending: 59 items (Daily: 2/333)
+2025-07-25 01:39:52,658 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:39:52,659 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 01:39:52,659 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 01:39:52,659 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:39:52,659 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:39:52,660 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:39:52,660 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:39:52,660 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:39:52,661 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:39:52,661 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:39:52,661 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:39:52,662 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:39:52,663 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:39:52,663 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 01:39:52,663 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 01:39:55,912 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:39:55,914 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:39:56,212 - src.api.solana_tracker - INFO - API Response from tokens/trending: 59 items (Daily: 3/333)
+2025-07-25 01:39:56,219 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:39:56,220 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:39:56,220 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 01:39:56,221 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 01:39:56,285 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:39:56,285 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:39:56,290 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 01:39:56,290 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 01:39:56,290 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:39:56,291 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:39:56,291 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 01:39:56,292 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 01:39:56,354 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:39:56,361 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:39:56,362 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:39:56,362 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:39:57,590 - src.api.solana_tracker - INFO - API Response from tokens/trending: 59 items (Daily: 4/333)
+2025-07-25 01:39:57,593 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:39:57,593 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:39:57,593 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 01:39:57,594 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 01:39:57,594 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 01:39:57,594 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:39:57,597 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:40:55,935 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:40:57,897 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:40:57,899 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:40:57,909 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 01:40:57,910 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 01:40:57,910 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:40:59,047 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 5/333)
+2025-07-25 01:40:59,053 - src.api.solana_tracker - INFO - Retrieved 58 trending tokens
+2025-07-25 01:40:59,054 - src.api.solana_tracker - INFO - Combined 1 unique tokens from all sources
+2025-07-25 01:40:59,055 - src.enhanced_token_scanner - INFO - Retrieved 1 total tokens from API
+2025-07-25 01:40:59,055 - src.enhanced_token_scanner - INFO - REJECTED:  - Liquidity: 0.0, Momentum: 0.0%, Age: 0min
+2025-07-25 01:40:59,055 - src.enhanced_token_scanner - INFO - Scan completed: 0/1 tokens approved (0.0% rate) in 1.14s
+2025-07-25 01:40:59,056 - src.enhanced_token_scanner - INFO - Trending: 0/1 (0.0% effective)
+2025-07-25 01:40:59,056 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 01:40:59,057 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:40:59,060 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:41:43,223 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:41:43,225 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:41:43,226 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:41:43,228 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:41:43,230 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:41:45,796 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:41:45,796 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:41:45,797 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:41:45,797 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:41:45,798 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:41:45,798 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:41:45,799 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:41:45,799 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:41:45,799 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:41:45,800 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 01:41:45,800 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:41:45,801 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:41:45,801 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:41:45,851 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:41:45,851 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 01:41:45,851 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:41:45,851 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:41:45,851 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:41:45,852 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:41:45,852 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:41:45,852 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:41:45,853 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:41:45,853 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:41:45,853 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:41:45,854 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:41:45,854 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:45:54,452 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:45:54,452 - __main__ - INFO - Paper trading: True
+2025-07-25 01:45:54,454 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:45:54,454 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:45:55,111 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:45:55,111 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:45:55,111 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:45:55,111 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:45:55,112 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:45:55,112 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:45:55,112 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:45:55,112 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:45:55,112 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:45:55,112 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:45:55,113 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:45:55,113 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:45:55,113 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:45:55,113 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:45:55,113 - __main__ - INFO - Testing API connections...
+2025-07-25 01:45:55,754 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:45:56,053 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:45:56,053 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:45:56,053 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:45:56,054 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:45:57,543 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 01:45:57,544 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:45:57,544 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2124.666787968, 'usd': 773334.7814722691}, 'price': {'quote': 6.775619829987807e-05, 'usd': 0.012330927631184188}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67753.51318387527, 'usd': 12330438.967830243}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404354358, 'createdAt': 1747607063000, 'txns': {'buys': 473303, 'sells': 431864, 'total': 905167, 'volume': 140784101, 'volume24h': 1237304}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.2300799219687966}, '5m': {'priceChangePercentage': 0.754598358964742}, '15m': {'priceChangePercentage': -2.8791973575744225}, '30m': {'priceChangePercentage': -3.0115371079297457}, '1h': {'priceChangePercentage': -6.067415289170102}, '2h': {'priceChangePercentage': -3.805630201863182}, '3h': {'priceChangePercentage': -2.3677564055356743}, '4h': {'priceChangePercentage': -1.77912749059166}, '5h': {'priceChangePercentage': 17.92165574532949}, '6h': {'priceChangePercentage': 15.04617099446036}, '12h': {'priceChangePercentage': 21.214732750442565}, '24h': {'priceChangePercentage': 23.802449134243446}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 171, 'sellsCount': 121}
+2025-07-25 01:45:57,547 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:45:57,547 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:45:57,548 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:45:57,548 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:45:57,548 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:45:57,548 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:45:58,247 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 01:45:58,247 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:45:58,248 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2124.666787968, 'usd': 773893.5097477557}, 'price': {'quote': 6.775619829987807e-05, 'usd': 0.012339836629066587}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67753.51318387527, 'usd': 12339347.612657225}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404357684, 'createdAt': 1747607063000, 'txns': {'buys': 473303, 'sells': 431864, 'total': 905167, 'volume': 140784101, 'volume24h': 1237304}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.5414297744884442}, '5m': {'priceChangePercentage': 0.7269332665014231}, '15m': {'priceChangePercentage': -2.837077164851995}, '30m': {'priceChangePercentage': -2.976639610938401}, '1h': {'priceChangePercentage': -6.033617330169728}, '2h': {'priceChangePercentage': -3.762708475765878}, '3h': {'priceChangePercentage': -2.332627269291011}, '4h': {'priceChangePercentage': -1.902324454411384}, '5h': {'priceChangePercentage': 17.938448087446048}, '6h': {'priceChangePercentage': 15.087565849955828}, '12h': {'priceChangePercentage': 21.678708179109208}, '24h': {'priceChangePercentage': 23.846994593232633}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 171, 'sellsCount': 121}
+2025-07-25 01:45:58,250 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:45:58,250 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 01:45:58,250 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 01:45:58,251 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:45:58,251 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:45:58,251 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:45:58,252 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:45:58,252 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:45:58,252 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:45:58,252 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:45:58,253 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:45:58,254 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:45:58,254 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:45:58,254 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 01:45:58,254 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 01:46:00,651 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:46:00,652 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:46:00,828 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:46:00,833 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:46:00,834 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:46:00,836 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:46:00,894 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:46:00,895 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:46:00,910 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 01:46:00,911 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 01:46:00,913 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:46:00,956 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 2/333)
+2025-07-25 01:46:00,957 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:46:00,957 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2124.666787968, 'usd': 773893.5097477557}, 'price': {'quote': 6.775619829987807e-05, 'usd': 0.012339836629066587}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67753.51318387527, 'usd': 12339347.612657225}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404357684, 'createdAt': 1747607063000, 'txns': {'buys': 473303, 'sells': 431864, 'total': 905167, 'volume': 140784101, 'volume24h': 1237304}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.5414297744884442}, '5m': {'priceChangePercentage': 0.7269332665014231}, '15m': {'priceChangePercentage': -2.837077164851995}, '30m': {'priceChangePercentage': -2.976639610938401}, '1h': {'priceChangePercentage': -6.033617330169728}, '2h': {'priceChangePercentage': -3.762708475765878}, '3h': {'priceChangePercentage': -2.332627269291011}, '4h': {'priceChangePercentage': -1.902324454411384}, '5h': {'priceChangePercentage': 17.938448087446048}, '6h': {'priceChangePercentage': 15.087565849955828}, '12h': {'priceChangePercentage': 21.678708179109208}, '24h': {'priceChangePercentage': 23.846994593232633}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 171, 'sellsCount': 121}
+2025-07-25 01:46:00,961 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:46:00,961 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:46:00,962 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 01:46:00,962 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 01:46:01,395 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:47:00,648 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:47:02,112 - src.api.solana_tracker - INFO - API Response from tokens/volume: 100 items (Daily: 4/333)
+2025-07-25 01:47:02,112 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buys', 'sells', 'txns', 'holders']
+2025-07-25 01:47:02,113 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'OFFICIAL TRUMP', 'symbol': 'TRUMP', 'mint': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'uri': 'https://arweave.net/cSCP0h2n1crjeSWE9KF-XtLciJalDNFs7Vf-Sm0NNY0', 'decimals': 6, 'description': '', 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Farweave.net%2FVQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw', 'hasFileMetaData': True, 'strictSocials': {}, 'creation': {'creator': '5e2qRc1DNEXmyxP8qwPwJhRWjef7usLyi7v5xjqLr5G7', 'created_tx': '3RVpxfaDscntzr4abnmjkkN1cDPthzpxG3Pgt6PksmvhzNDFXxCPPxnKByjPJK4vsmXueD3zxuhYq5PpwCuyigLR', 'created_time': 1737122459}}, 'pools': [{'poolId': '9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2', 'liquidity': {'quote': 241674784.693081, 'usd': 349582430.56968963}, 'price': {'quote': 9.966770767653129, 'usd': 9.966770767653129}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9966764150.855555, 'usd': 9966764150.855555}, 'market': 'meteora-dlmm', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404363038, 'createdAt': 1737196771000, 'deployer': 'FbMxP3GVq8TQ36nbYgx4NP9iygMpwAwFWJwW81ioCiSF', 'txns': {'buys': 1220187, 'sells': 1092733, 'total': 2312920, 'volume': 11393832625, 'volume24h': 81365682}}, {'poolId': '71HuFmuYAFEFUna2x2R4HJjrFNQHGuagW3gUMFToL9tk', 'liquidity': {'quote': 2228.969593024, 'usd': 702755.531930489}, 'price': {'quote': 0.05465276638256194, 'usd': 9.94243560933503}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54652730.099366456, 'usd': 9942429008.693222}, 'market': 'meteora-dlmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404384932, 'deployer': '9Y7KcsQ8XvkAdFpTDQpeTQtqMxcVXvFWEi66R7872kr1', 'txns': {'buys': 274540, 'sells': 184318, 'total': 458858, 'volume': 193707673, 'volume24h': 130848}}, {'poolId': '6nD6d8gG17wakW6Wu5URktBZQp3uxp5orgPa576QXigJ', 'liquidity': {'quote': 588995.9185861413, 'usd': 588995.9185861413}, 'price': {'quote': 9.92906725522133, 'usd': 9.92906725522133}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9929060663.454582, 'usd': 9929060663.454582}, 'market': 'orca', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404356285, 'deployer': None, 'txns': {'buys': 220299, 'sells': 161029, 'total': 381328, 'volume': 93389463, 'volume24h': 77312}}, {'poolId': 'GQsPr4RJk9AZkkfWHud7v4MtotcxhaYzZHdsPCg9vNvW', 'liquidity': {'quote': 2550.644902345254, 'usd': 464399.7545163076}, 'price': {'quote': 0.054450158635635515, 'usd': 9.913822296671993}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54450122.48694844, 'usd': 9913815715.026155}, 'market': 'raydium-clmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'deployer': 'AshdxLbGf43Eau3wh3WmYCx41NByS2K3KAKDyeR15Q5Z', 'lastUpdated': 1753404357033}, {'poolId': '4CTUHtiHrPHFT4Zc1qNScrposmM7xfupU7EVDWCR7PZw', 'liquidity': {'quote': 147.520342718, 'usd': 277568.03859245166}, 'price': {'quote': 0.053926872700099875, 'usd': 10.132988458368928}, 'tokenSupply': 999999336.134693, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 53926836.89991997, 'usd': 10132981731.429434}, 'market': 'meteora-dlmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753377347580, 'deployer': 'GpQkufRFxppWwSNGbb9tWGPXMAzxVE8742A6dFymVrzz'}, {'poolId': '6XMrsTeFC8gYmVasKaBuVwU4fyAVPJLHd8jno82JBhS5', 'liquidity': {'quote': 70.593437163, 'usd': 262972.27781139995}, 'price': {'quote': 0.054598222685392495, 'usd': 9.933260906236859}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54598186.4384078, 'usd': 9933254311.686005}, 'market': 'meteora-dlmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404397625, 'deployer': '3BumMudVscCz5dkAWu9icPvumKgkv29oqfkR4TH8E3Wj'}, {'poolId': 'A8nPhpCJqtqHdqUk35Uj9Hy2YsGXFkCZGuNwvkD3k7VC', 'liquidity': {'quote': 9163.958163, 'usd': 228833.10465636992}, 'price': {'quote': 9.959495593406611, 'usd': 9.959495593406611}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9959488981.438921, 'usd': 9959488981.438921}, 'market': 'meteora-dlmm', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753403735345, 'deployer': '8tKLhRyFC3RsQ41APTqKdzr9DdeGqV2RtRgSjVgsY4xb'}, {'poolId': '6KX9iiLFBcwfjq3uMqeeMukaMZt5rQYTsbZZTnxbzsz6', 'liquidity': {'quote': 339.5501903888623, 'usd': 61843.93840074692}, 'price': {'quote': 0.05453456852831, 'usd': 9.93264793317796}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54534532.32358352, 'usd': 9932641339.03389}, 'market': 'orca', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404365910, 'deployer': None}, {'poolId': 'CsVe97sDiaXkVfVjiwyYp4zKZXD7TckaRcLVgqbFuUay', 'liquidity': {'quote': 222.72829164957588, 'usd': 40684.506064984715}, 'price': {'quote': 0.05400979076809252, 'usd': 9.865660279611811}, 'tokenSupply': 999999336.118261, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54009754.9119787, 'usd': 9865653729.980106}, 'market': 'raydium-clmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'deployer': 'FZVdsFTRTWwZEy6XC5GCtHNWdcAwiQtAeJ2NSpH6cQNz', 'lastUpdated': 1753401081251, 'createdAt': 1737166166982}, {'poolId': '4VcH2kQJQMwqyz4zUTrev7dunA3Bd7Lukk1mZRcjmCiH', 'liquidity': {'quote': 22799.946853, 'usd': 39947.81939982223}, 'price': {'quote': 9.945346629577, 'usd': 9.945346629577}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9945340027.002605, 'usd': 9945340027.002605}, 'market': 'meteora-dlmm', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753403722500, 'deployer': '37DNtRjt4K7VcZZUGsdcCv8VPYvbcg9pW2zqWNBBii7W'}], 'events': {'1m': {'priceChangePercentage': 0.500000000000006}, '5m': {'priceChangePercentage': 1.0025000000000097}, '15m': {'priceChangePercentage': -0.4975124378109445}, '30m': {'priceChangePercentage': -0.9925496893641219}, '1h': {'priceChangePercentage': -0.9925496893641219}, '2h': {'priceChangePercentage': -2.4629331640494234}, '3h': {'priceChangePercentage': -2.4629331640494234}, '4h': {'priceChangePercentage': 1.5075124999999985}, '5h': {'priceChangePercentage': 1.5075124999999985}, '6h': {'priceChangePercentage': 1.5075124999999985}, '12h': {'priceChangePercentage': 1.5075124999999985}, '24h': {'priceChangePercentage': None}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buys': 582, 'sells': 345, 'txns': 927, 'holders': 668086}
+2025-07-25 01:47:02,132 - src.api.solana_tracker - INFO - Retrieved 0 volume tokens
+2025-07-25 01:47:02,133 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:47:02,134 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 01:47:02,134 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 01:47:03,975 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 5/333)
+2025-07-25 01:47:03,976 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:47:03,977 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2122.985231678, 'usd': 772036.2792979364}, 'price': {'quote': 6.764882937167602e-05, 'usd': 0.012300450739756063}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67646.14851060537, 'usd': 12299963.284173373}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404421601, 'createdAt': 1747607063000, 'txns': {'buys': 473308, 'sells': 431869, 'total': 905177, 'volume': 140784682, 'volume24h': 1235986}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.3486551699313468}, '5m': {'priceChangePercentage': 0.7318667132045801}, '15m': {'priceChangePercentage': -2.9578022495254217}, '30m': {'priceChangePercentage': -3.1626687928761736}, '1h': {'priceChangePercentage': -6.21378517044679}, '2h': {'priceChangePercentage': -3.1952843945293163}, '3h': {'priceChangePercentage': -2.5198912578629185}, '4h': {'priceChangePercentage': -2.1051906923361328}, '5h': {'priceChangePercentage': 17.453949027518124}, '6h': {'priceChangePercentage': 16.016367851282467}, '12h': {'priceChangePercentage': 21.44540569967502}, '24h': {'priceChangePercentage': 23.357966674276494}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 164, 'sellsCount': 123}
+2025-07-25 01:47:03,982 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:47:03,983 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:47:03,983 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 01:47:03,984 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 01:47:03,984 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 01:47:03,985 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:47:03,989 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:47:21,882 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:47:21,883 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:47:21,885 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:47:21,886 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:47:21,887 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:47:24,394 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:47:24,395 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:47:24,396 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:47:24,396 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:47:24,397 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:47:24,397 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:47:24,398 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:47:24,398 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:47:24,399 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:47:24,399 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 01:47:24,399 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:47:24,400 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:47:24,400 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:47:24,432 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:47:24,433 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 01:47:24,433 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:47:24,434 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:47:24,434 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:47:24,434 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:47:24,435 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:47:24,435 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:47:24,435 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:47:24,436 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:47:24,436 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:47:24,436 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:47:24,437 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:51:14,474 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:51:14,474 - __main__ - INFO - Paper trading: True
+2025-07-25 01:51:14,475 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:51:14,476 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:51:15,088 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:51:15,089 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:51:15,089 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:51:15,089 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:51:15,089 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:51:15,089 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:51:15,090 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:51:15,090 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:51:15,090 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:51:15,091 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:51:15,091 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:51:15,091 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:51:15,091 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:51:15,092 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:51:15,092 - __main__ - INFO - Testing API connections...
+2025-07-25 01:51:15,769 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:51:16,232 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:51:16,233 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:51:16,233 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:51:16,233 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:51:16,882 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 01:51:16,882 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:51:16,884 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2123.004681329, 'usd': 772151.8751742574}, 'price': {'quote': 6.765002736207409e-05, 'usd': 0.012302397621308013}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67647.3464535282, 'usd': 12301910.088572195}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404673339, 'createdAt': 1747607063000, 'txns': {'buys': 473313, 'sells': 431871, 'total': 905184, 'volume': 140785790, 'volume24h': 1235986}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.12660114394133906}, '5m': {'priceChangePercentage': -0.2837012442629148}, '15m': {'priceChangePercentage': -1.6601391870358264}, '30m': {'priceChangePercentage': -3.1820209651739297}, '1h': {'priceChangePercentage': -3.5924173501416843}, '2h': {'priceChangePercentage': -3.2777710553977712}, '3h': {'priceChangePercentage': -3.0161549165645507}, '4h': {'priceChangePercentage': -5.170521305373431}, '5h': {'priceChangePercentage': 16.582733040888545}, '6h': {'priceChangePercentage': 14.544323773504548}, '12h': {'priceChangePercentage': 22.67157178499565}, '24h': {'priceChangePercentage': 22.820340585287173}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 164, 'sellsCount': 122}
+2025-07-25 01:51:16,889 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:51:16,890 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:51:16,890 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:51:16,891 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:51:16,892 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:51:16,892 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:51:17,354 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:52:17,365 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 01:52:17,367 - src.enhanced_token_scanner - WARNING - API connection failed, retrying in 10 seconds... (attempt 1/3)
+2025-07-25 01:52:28,701 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 2/333)
+2025-07-25 01:52:28,702 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:52:28,702 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2123.697374563, 'usd': 772876.1184888387}, 'price': {'quote': 6.769396386026386e-05, 'usd': 0.012317915127669806}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67691.28121055484, 'usd': 12317426.979989441}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404746946, 'createdAt': 1747607063000, 'txns': {'buys': 473318, 'sells': 431873, 'total': 905191, 'volume': 140786405, 'volume24h': 1236229}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.3762547613087413}, '5m': {'priceChangePercentage': -0.035070666470005}, '15m': {'priceChangePercentage': -1.4149405914291593}, '30m': {'priceChangePercentage': -2.5429030495425033}, '1h': {'priceChangePercentage': -3.4376927929628613}, '2h': {'priceChangePercentage': -3.036605829973367}, '3h': {'priceChangePercentage': -1.09285140594855}, '4h': {'priceChangePercentage': -3.3425893152311015}, '5h': {'priceChangePercentage': 16.530550636809608}, '6h': {'priceChangePercentage': 14.887647587337593}, '12h': {'priceChangePercentage': 23.379537661543576}, '24h': {'priceChangePercentage': 23.12657830796122}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 160, 'sellsCount': 122}
+2025-07-25 01:52:28,706 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:52:28,706 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 01:52:28,706 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 01:52:28,706 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:52:28,707 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:52:28,707 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:52:28,707 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:52:28,708 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:52:28,708 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:52:28,708 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:52:28,709 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:52:28,709 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:52:28,709 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:52:28,710 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 01:52:28,710 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 01:52:31,197 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:52:31,197 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:52:31,462 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:52:31,464 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:52:31,474 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 01:52:31,474 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 01:52:31,475 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:52:31,506 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 3/333)
+2025-07-25 01:52:31,506 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:52:31,507 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2123.697374563, 'usd': 772994.6756871277}, 'price': {'quote': 6.769396386026386e-05, 'usd': 0.01231980466400217}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67691.28121055484, 'usd': 12319316.441441212}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404750822, 'createdAt': 1747607063000, 'txns': {'buys': 473318, 'sells': 431873, 'total': 905191, 'volume': 140786405, 'volume24h': 1236229}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.3762547613087413}, '5m': {'priceChangePercentage': -0.035070666470005}, '15m': {'priceChangePercentage': -1.4149405914291593}, '30m': {'priceChangePercentage': -2.5429030495425033}, '1h': {'priceChangePercentage': -3.4376927929628613}, '2h': {'priceChangePercentage': -3.036605829973367}, '3h': {'priceChangePercentage': -1.09285140594855}, '4h': {'priceChangePercentage': -3.3425893152311015}, '5h': {'priceChangePercentage': 16.530550636809608}, '6h': {'priceChangePercentage': 14.887647587337593}, '12h': {'priceChangePercentage': 23.379537661543576}, '24h': {'priceChangePercentage': 23.12657830796122}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 160, 'sellsCount': 122}
+2025-07-25 01:52:31,510 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:52:31,510 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:52:31,511 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 01:52:31,511 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 01:52:31,725 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:52:31,729 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:52:31,731 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:52:31,732 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:52:31,948 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:53:31,196 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:53:32,735 - src.api.solana_tracker - INFO - API Response from tokens/volume: 100 items (Daily: 5/333)
+2025-07-25 01:53:32,736 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buys', 'sells', 'txns', 'holders']
+2025-07-25 01:53:32,736 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'OFFICIAL TRUMP', 'symbol': 'TRUMP', 'mint': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'uri': 'https://arweave.net/cSCP0h2n1crjeSWE9KF-XtLciJalDNFs7Vf-Sm0NNY0', 'decimals': 6, 'description': '', 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Farweave.net%2FVQrPjACwnQRmxdKBTqNwPiyo65x7LAT773t8Kd7YBzw', 'hasFileMetaData': True, 'strictSocials': {}, 'creation': {'creator': '5e2qRc1DNEXmyxP8qwPwJhRWjef7usLyi7v5xjqLr5G7', 'created_tx': '3RVpxfaDscntzr4abnmjkkN1cDPthzpxG3Pgt6PksmvhzNDFXxCPPxnKByjPJK4vsmXueD3zxuhYq5PpwCuyigLR', 'created_time': 1737122459}}, 'pools': [{'poolId': '9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2', 'liquidity': {'quote': 239985177.097912, 'usd': 349035086.7135924}, 'price': {'quote': 9.91718484343595, 'usd': 9.91718484343595}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9917178259.557766, 'usd': 9917178259.557766}, 'market': 'meteora-dlmm', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404783974, 'createdAt': 1737196771000, 'deployer': 'FbMxP3GVq8TQ36nbYgx4NP9iygMpwAwFWJwW81ioCiSF', 'txns': {'buys': 1220208, 'sells': 1092970, 'total': 2313178, 'volume': 11395535546, 'volume24h': 81944413}}, {'poolId': '71HuFmuYAFEFUna2x2R4HJjrFNQHGuagW3gUMFToL9tk', 'liquidity': {'quote': 2226.97026991, 'usd': 702078.6748544704}, 'price': {'quote': 0.05454362458975783, 'usd': 9.921401649112246}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54543588.379020035, 'usd': 9921395062.434584}, 'market': 'meteora-dlmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404783674, 'deployer': '9Y7KcsQ8XvkAdFpTDQpeTQtqMxcVXvFWEi66R7872kr1', 'txns': {'buys': 274544, 'sells': 184320, 'total': 458864, 'volume': 193709213, 'volume24h': 132145}}, {'poolId': '6nD6d8gG17wakW6Wu5URktBZQp3uxp5orgPa576QXigJ', 'liquidity': {'quote': 588584.8815146692, 'usd': 588584.8815146692}, 'price': {'quote': 9.92183533897752, 'usd': 9.92183533897752}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9921828752.01194, 'usd': 9921828752.01194}, 'market': 'orca', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404783686, 'deployer': None, 'txns': {'buys': 220310, 'sells': 161031, 'total': 381341, 'volume': 93389711, 'volume24h': 77312}}, {'poolId': 'GQsPr4RJk9AZkkfWHud7v4MtotcxhaYzZHdsPCg9vNvW', 'liquidity': {'quote': 2555.1215926812515, 'usd': 464772.6984405499}, 'price': {'quote': 0.054552009584726724, 'usd': 9.922926866835452}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54551973.36842225, 'usd': 9922920279.14522}, 'market': 'raydium-clmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'deployer': 'AshdxLbGf43Eau3wh3WmYCx41NByS2K3KAKDyeR15Q5Z', 'lastUpdated': 1753404784134}, {'poolId': '4CTUHtiHrPHFT4Zc1qNScrposmM7xfupU7EVDWCR7PZw', 'liquidity': {'quote': 147.520342718, 'usd': 277568.03859245166}, 'price': {'quote': 0.053926872700099875, 'usd': 10.132988458368928}, 'tokenSupply': 999999336.134693, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 53926836.89991997, 'usd': 10132981731.429434}, 'market': 'meteora-dlmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753377347580, 'deployer': 'GpQkufRFxppWwSNGbb9tWGPXMAzxVE8742A6dFymVrzz'}, {'poolId': '6XMrsTeFC8gYmVasKaBuVwU4fyAVPJLHd8jno82JBhS5', 'liquidity': {'quote': 70.496247685, 'usd': 262330.82093192777}, 'price': {'quote': 0.0544892441969985, 'usd': 9.908063061427097}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54489208.022363074, 'usd': 9908056483.604734}, 'market': 'meteora-dlmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404656413, 'deployer': '3BumMudVscCz5dkAWu9icPvumKgkv29oqfkR4TH8E3Wj'}, {'poolId': 'A8nPhpCJqtqHdqUk35Uj9Hy2YsGXFkCZGuNwvkD3k7VC', 'liquidity': {'quote': 9163.958163, 'usd': 228833.10465636992}, 'price': {'quote': 9.959495593406611, 'usd': 9.959495593406611}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9959488981.438921, 'usd': 9959488981.438921}, 'market': 'meteora-dlmm', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753403735345, 'deployer': '8tKLhRyFC3RsQ41APTqKdzr9DdeGqV2RtRgSjVgsY4xb'}, {'poolId': '6KX9iiLFBcwfjq3uMqeeMukaMZt5rQYTsbZZTnxbzsz6', 'liquidity': {'quote': 339.5501903888623, 'usd': 61843.93840074692}, 'price': {'quote': 0.05453456852831, 'usd': 9.93264793317796}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54534532.32358352, 'usd': 9932641339.03389}, 'market': 'orca', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753404365910, 'deployer': None}, {'poolId': 'CsVe97sDiaXkVfVjiwyYp4zKZXD7TckaRcLVgqbFuUay', 'liquidity': {'quote': 222.72829164957588, 'usd': 40684.506064984715}, 'price': {'quote': 0.05400979076809252, 'usd': 9.865660279611811}, 'tokenSupply': 999999336.118261, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 54009754.9119787, 'usd': 9865653729.980106}, 'market': 'raydium-clmm', 'quoteToken': 'So11111111111111111111111111111111111111112', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'deployer': 'FZVdsFTRTWwZEy6XC5GCtHNWdcAwiQtAeJ2NSpH6cQNz', 'lastUpdated': 1753401081251, 'createdAt': 1737166166982}, {'poolId': '4VcH2kQJQMwqyz4zUTrev7dunA3Bd7Lukk1mZRcjmCiH', 'liquidity': {'quote': 22799.946853, 'usd': 39947.81939982223}, 'price': {'quote': 9.945346629577, 'usd': 9.945346629577}, 'tokenSupply': 999999336.114201, 'lpBurn': 0, 'tokenAddress': '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN', 'marketCap': {'quote': 9945340027.002605, 'usd': 9945340027.002605}, 'market': 'meteora-dlmm', 'quoteToken': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'lastUpdated': 1753403722500, 'deployer': '37DNtRjt4K7VcZZUGsdcCv8VPYvbcg9pW2zqWNBBii7W'}], 'events': {'1m': {'priceChangePercentage': 0}, '5m': {'priceChangePercentage': 0.500000000000006}, '15m': {'priceChangePercentage': 1.0025000000000097}, '30m': {'priceChangePercentage': -0.9925496893641219}, '1h': {'priceChangePercentage': -0.9925496893641219}, '2h': {'priceChangePercentage': -1.9752478298696696}, '3h': {'priceChangePercentage': -2.4629331640494234}, '4h': {'priceChangePercentage': 1.5075124999999985}, '5h': {'priceChangePercentage': 1.5075124999999985}, '6h': {'priceChangePercentage': 1.5075124999999985}, '12h': {'priceChangePercentage': 1.5075124999999985}, '24h': {'priceChangePercentage': None}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buys': 583, 'sells': 373, 'txns': 956, 'holders': 668085}
+2025-07-25 01:53:32,744 - src.enhanced_token_scanner - ERROR - Error in full scan: cannot access local variable 'time' where it is not associated with a value
+2025-07-25 01:53:32,745 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 01:53:32,745 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 01:53:32,748 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 01:53:47,995 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:53:47,997 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:53:47,998 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:53:48,000 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:53:48,001 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:53:50,559 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:53:50,560 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:53:50,560 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:53:50,560 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:53:50,561 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:53:50,561 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:53:50,562 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:53:50,562 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:53:50,562 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:53:50,563 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 01:53:50,563 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:53:50,563 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:53:50,563 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:53:50,611 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:53:50,612 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 01:53:50,612 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:53:50,613 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:53:50,613 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:53:50,614 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:53:50,614 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:53:50,615 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:53:50,615 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:53:50,616 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:53:50,616 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:53:50,616 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:53:50,617 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:56:13,471 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:56:13,472 - __main__ - INFO - Paper trading: True
+2025-07-25 01:56:13,473 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:56:13,473 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:56:14,454 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:56:14,455 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:56:14,455 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:56:14,455 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:56:14,455 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:56:14,456 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:56:14,456 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:56:14,456 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:56:14,456 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:56:14,456 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:56:14,457 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:56:14,457 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:56:14,457 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:56:14,457 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:56:14,458 - __main__ - INFO - Testing API connections...
+2025-07-25 01:56:15,049 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:56:15,380 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:56:15,381 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:56:15,381 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:56:15,381 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:56:16,075 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 01:56:16,076 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:56:16,076 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2126.391367303, 'usd': 774050.4692315066}, 'price': {'quote': 6.786537662030028e-05, 'usd': 0.012352200875454107}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 67862.68717766076, 'usd': 12351711.369060997}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753404973385, 'createdAt': 1747607063000, 'txns': {'buys': 473325, 'sells': 431878, 'total': 905203, 'volume': 140787663, 'volume24h': 1236229}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.011479636426710942}, '5m': {'priceChangePercentage': 0.5121053834743411}, '15m': {'priceChangePercentage': 0.7330689148624849}, '30m': {'priceChangePercentage': -3.02157336893346}, '1h': {'priceChangePercentage': -3.307004020573255}, '2h': {'priceChangePercentage': -2.905374220897991}, '3h': {'priceChangePercentage': -1.5207412790472548}, '4h': {'priceChangePercentage': -4.570016054210232}, '5h': {'priceChangePercentage': 19.20712398285184}, '6h': {'priceChangePercentage': 14.549365742471366}, '12h': {'priceChangePercentage': 23.135737638092646}, '24h': {'priceChangePercentage': 20.775176897482513}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 158, 'sellsCount': 119}
+2025-07-25 01:56:16,081 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:56:16,081 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:56:16,081 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:56:16,082 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:56:16,082 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:56:16,082 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:56:16,606 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:57:16,606 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 01:57:16,606 - src.enhanced_token_scanner - WARNING - API connection failed, retrying in 10 seconds... (attempt 1/3)
+2025-07-25 01:57:25,181 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:57:25,181 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:57:25,181 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:57:25,181 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:57:25,181 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:57:28,001 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 01:57:28,002 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:57:28,003 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:57:28,003 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:57:28,005 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:57:28,005 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:57:28,006 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:57:28,007 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:57:28,007 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:57:28,074 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:57:28,074 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:57:28,075 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:57:28,075 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:57:28,075 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:57:28,076 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:57:28,076 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:57:28,076 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:57:28,077 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:57:28,077 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:57:28,078 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:57:28,078 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:57:28,079 - __main__ - INFO - [STOP] Bot stopped by user
+2025-07-25 01:58:32,027 - __main__ - INFO - Settings loaded successfully
+2025-07-25 01:58:32,033 - __main__ - INFO - Paper trading: True
+2025-07-25 01:58:32,035 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 01:58:32,036 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 01:58:32,910 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:58:32,925 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 01:58:32,925 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 01:58:32,925 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 01:58:32,925 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 01:58:32,926 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 01:58:32,927 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 01:58:32,927 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 01:58:32,927 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 01:58:32,927 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 01:58:32,928 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 01:58:32,928 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 01:58:32,928 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 01:58:32,929 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 01:58:32,929 - __main__ - INFO - Testing API connections...
+2025-07-25 01:58:33,289 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 01:58:33,828 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 01:58:33,830 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 01:58:33,831 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 01:58:33,832 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 01:58:35,180 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 01:58:35,180 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:58:35,181 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2106.410087676, 'usd': 766811.8191931993}, 'price': {'quote': 6.659463233598877e-05, 'usd': 0.012121464730166188}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 66591.9932517799, 'usd': 12120984.36763492}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753405112607, 'createdAt': 1747607063000, 'txns': {'buys': 473330, 'sells': 431880, 'total': 905210, 'volume': 140791398, 'volume24h': 1239780}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.05183450433398928}, '5m': {'priceChangePercentage': -1.678038785701549}, '15m': {'priceChangePercentage': -1.2206732060819476}, '30m': {'priceChangePercentage': -4.4946167077185395}, '1h': {'priceChangePercentage': -4.894761103815768}, '2h': {'priceChangePercentage': -5.026657705598016}, '3h': {'priceChangePercentage': -3.3603101767032353}, '4h': {'priceChangePercentage': -6.4514535616821815}, '5h': {'priceChangePercentage': 16.268713405872276}, '6h': {'priceChangePercentage': 11.84111434882856}, '12h': {'priceChangePercentage': 20.404709446216348}, '24h': {'priceChangePercentage': 18.519125603889282}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 149, 'sellsCount': 117}
+2025-07-25 01:58:35,186 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:58:35,187 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 01:58:35,188 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 01:58:35,188 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 01:58:35,189 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 01:58:35,189 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 01:58:35,798 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 01:58:35,811 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:58:35,812 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2106.410087676, 'usd': 766811.8191931993}, 'price': {'quote': 6.659463233598877e-05, 'usd': 0.012121464730166188}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 66591.9932517799, 'usd': 12120984.36763492}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753405115566, 'createdAt': 1747607063000, 'txns': {'buys': 473330, 'sells': 431880, 'total': 905210, 'volume': 140791398, 'volume24h': 1239780}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.05183450433398928}, '5m': {'priceChangePercentage': -1.5526304007358278}, '15m': {'priceChangePercentage': -1.2206732060819476}, '30m': {'priceChangePercentage': -4.4946167077185395}, '1h': {'priceChangePercentage': -4.894761103815768}, '2h': {'priceChangePercentage': -5.11087434293899}, '3h': {'priceChangePercentage': -3.3603101767032353}, '4h': {'priceChangePercentage': -7.182519428723733}, '5h': {'priceChangePercentage': 16.25321788172031}, '6h': {'priceChangePercentage': 12.098396730436479}, '12h': {'priceChangePercentage': 20.223903420325207}, '24h': {'priceChangePercentage': 18.519125603889282}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 149, 'sellsCount': 117}
+2025-07-25 01:58:35,824 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:58:35,826 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 01:58:35,827 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 01:58:35,829 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 01:58:35,830 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 01:58:35,832 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 01:58:35,833 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 01:58:35,834 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 01:58:35,836 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 01:58:35,837 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 01:58:35,838 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 01:58:35,841 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:58:35,842 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:58:35,844 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 01:58:35,846 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 01:58:38,454 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 01:58:38,457 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 01:58:38,630 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 01:58:38,641 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 01:58:38,641 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 01:58:38,644 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 01:58:38,766 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 01:58:38,767 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 01:58:38,782 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 01:58:38,783 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 01:58:38,785 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 01:58:38,973 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 2/333)
+2025-07-25 01:58:38,983 - src.api.solana_tracker - INFO - Sample API item structure: ['token', 'pools', 'events', 'risk', 'buysCount', 'sellsCount']
+2025-07-25 01:58:38,985 - src.api.solana_tracker - INFO - Sample item: {'token': {'name': 'unstable coin', 'symbol': 'USDUC', 'mint': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'uri': 'https://ipfs.io/ipfs/QmVSQeV9hXpEmamqGRZne83qoNr4KgaKLsgPFu6teDcRPM', 'decimals': 6, 'hasFileMetaData': True, 'createdOn': 'https://pump.fun', 'description': "unstable coin, u buy it before u go to sleep and don't know if'll be millionaire or hobo by the time u wake up", 'image': 'https://image.solanatracker.io/proxy?url=https%3A%2F%2Fipfs.io%2Fipfs%2FQmQw4DQjdWp3G8TuMCykG8SVSwtFwkxvTyxEWNMuAVYU4q', 'showName': True, 'creation': {'creator': '5DDEaV8fD1d5Ygn7P2Naq1WzWJAULa5TX2GBJxicZM9g', 'created_tx': '9R6FC4QDkzQ37QtnVsBoaoh97ETRjwxWYbUv193XCLyWc2RvxNK1moHsHW5vAJLgowdRHiZs8xXQnCDVxhyYKV9', 'created_time': 1747606450}}, 'pools': [{'liquidity': {'quote': 2106.410087676, 'usd': 766811.8191931993}, 'price': {'quote': 6.659463233598877e-05, 'usd': 0.012121464730166188}, 'tokenSupply': 999960370.91705, 'lpBurn': 99, 'tokenAddress': 'CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump', 'marketCap': {'quote': 66591.9932517799, 'usd': 12120984.36763492}, 'decimals': 6, 'security': {'freezeAuthority': None, 'mintAuthority': None}, 'quoteToken': 'So11111111111111111111111111111111111111112', 'market': 'pumpfun-amm', 'lastUpdated': 1753405118536, 'createdAt': 1747607063000, 'txns': {'buys': 473330, 'sells': 431880, 'total': 905210, 'volume': 140791398, 'volume24h': 1239422}, 'deployer': 'CU6dkDTSgTodzfMBSz83dxJHf54Z5498zMg73m4zuSoh', 'poolId': 'BAX9M9a5FVy5cNiewwnuwkVDzhSg9psZnb4fJ9r677tN'}], 'events': {'1m': {'priceChangePercentage': 0.05183450433398928}, '5m': {'priceChangePercentage': -1.5526304007358278}, '15m': {'priceChangePercentage': -1.2206732060819476}, '30m': {'priceChangePercentage': -4.4946167077185395}, '1h': {'priceChangePercentage': -4.894761103815768}, '2h': {'priceChangePercentage': -5.11087434293899}, '3h': {'priceChangePercentage': -3.3603101767032353}, '4h': {'priceChangePercentage': -7.182519428723733}, '5h': {'priceChangePercentage': 16.25321788172031}, '6h': {'priceChangePercentage': 12.098396730436479}, '12h': {'priceChangePercentage': 20.223903420325207}, '24h': {'priceChangePercentage': 18.519125603889282}}, 'risk': {'snipers': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'insiders': {'count': 0, 'totalBalance': 0, 'totalPercentage': 0, 'wallets': []}, 'rugged': False, 'risks': [], 'score': 0, 'jupiterVerified': True}, 'buysCount': 149, 'sellsCount': 117}
+2025-07-25 01:58:38,995 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 01:58:38,997 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 01:58:38,999 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 01:58:39,000 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 01:58:39,293 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 01:59:28,837 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 01:59:28,837 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 01:59:28,837 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:59:28,837 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:59:28,853 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 01:59:28,853 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 01:59:28,853 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:59:28,853 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 01:59:28,860 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 01:59:28,861 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:59:28,863 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 01:59:28,863 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 01:59:28,865 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:59:28,867 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 01:59:28,867 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:59:28,868 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:59:28,869 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:59:28,905 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 01:59:28,905 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 01:59:28,905 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 01:59:28,905 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 01:59:28,913 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 01:59:28,913 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 01:59:28,913 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 02:03:23,255 - __main__ - INFO - Settings loaded successfully
+2025-07-25 02:03:23,255 - __main__ - INFO - Paper trading: True
+2025-07-25 02:03:23,255 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 02:03:23,255 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 02:03:23,876 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 02:03:23,876 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 02:03:23,876 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 02:03:23,876 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 02:03:23,876 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 02:03:23,876 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 02:03:23,876 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 02:03:23,876 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 02:03:23,876 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 02:03:23,876 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 02:03:23,876 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 02:03:23,876 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 02:03:23,876 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 02:03:23,876 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 02:03:23,876 - __main__ - INFO - Testing API connections...
+2025-07-25 02:03:24,504 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 02:03:24,776 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 02:03:24,776 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 02:03:24,777 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 02:03:24,777 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 02:03:25,404 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 02:03:25,404 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:03:25,404 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 02:03:25,404 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 02:03:25,404 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 02:03:25,404 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 02:03:25,404 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 02:03:25,891 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 02:04:25,901 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 02:04:25,901 - src.enhanced_token_scanner - WARNING - API connection failed, retrying in 10 seconds... (attempt 1/3)
+2025-07-25 02:04:37,022 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 2/333)
+2025-07-25 02:04:37,022 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:04:37,022 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 02:04:37,022 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 02:04:37,022 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 02:04:37,022 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 02:04:37,022 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 02:04:37,022 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 02:04:37,022 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 02:04:37,022 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 02:04:37,022 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 02:04:37,022 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 02:04:37,022 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:04:37,022 - src.api.solana_tracker - INFO - No cached trending tokens, skipping request due to rate limiting
+2025-07-25 02:04:37,022 - src.api.solana_tracker - INFO - No cached volume tokens, skipping request due to rate limiting
+2025-07-25 02:04:37,022 - src.api.solana_tracker - INFO - Source results: trending=0, volume=0, memescope=0
+2025-07-25 02:04:37,022 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 02:04:37,022 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 02:04:37,036 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 02:04:39,626 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 02:04:39,626 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 02:04:39,918 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 02:04:39,918 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 02:04:39,918 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 02:04:39,918 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 02:04:39,918 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:04:39,918 - src.api.solana_tracker - INFO - No cached trending tokens, skipping request due to rate limiting
+2025-07-25 02:04:39,918 - src.api.solana_tracker - INFO - No cached volume tokens, skipping request due to rate limiting
+2025-07-25 02:04:39,918 - src.api.solana_tracker - INFO - Source results: trending=0, volume=0, memescope=0
+2025-07-25 02:04:39,918 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 02:04:39,929 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 02:04:39,929 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 02:04:39,934 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 3/333)
+2025-07-25 02:04:39,934 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:04:39,934 - src.api.solana_tracker - INFO - No cached trending tokens, skipping request due to rate limiting
+2025-07-25 02:04:39,934 - src.api.solana_tracker - INFO - No cached volume tokens, skipping request due to rate limiting
+2025-07-25 02:04:39,934 - src.api.solana_tracker - INFO - Source results: trending=0, volume=0, memescope=0
+2025-07-25 02:04:39,934 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 02:04:39,942 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 02:04:39,943 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 02:04:40,441 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 02:04:40,441 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 02:04:40,457 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 02:04:40,457 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 02:04:41,225 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 4/333)
+2025-07-25 02:04:41,225 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:04:41,225 - src.api.solana_tracker - INFO - No cached trending tokens, skipping request due to rate limiting
+2025-07-25 02:04:41,225 - src.api.solana_tracker - INFO - No cached volume tokens, skipping request due to rate limiting
+2025-07-25 02:04:41,225 - src.api.solana_tracker - INFO - Source results: trending=0, volume=0, memescope=0
+2025-07-25 02:04:41,225 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 02:04:41,225 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 02:04:41,225 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 02:04:41,225 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 02:04:41,225 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 02:04:41,241 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 02:05:39,630 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 02:05:41,521 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 02:05:41,521 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 02:05:41,523 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 02:05:41,524 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 02:05:41,524 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:05:42,325 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 5/333)
+2025-07-25 02:05:42,326 - src.enhanced_token_scanner - ERROR - Error in full scan: cannot access local variable 'time' where it is not associated with a value
+2025-07-25 02:05:42,328 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 02:05:42,328 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 02:05:42,335 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 02:06:39,653 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 02:06:42,595 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 02:06:42,595 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 02:06:42,610 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 02:06:42,610 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 02:06:42,610 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:06:43,667 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 6/333)
+2025-07-25 02:06:43,667 - src.enhanced_token_scanner - ERROR - Error in full scan: cannot access local variable 'time' where it is not associated with a value
+2025-07-25 02:06:43,667 - src.enhanced_token_scanner - ERROR - Fresh scan also returned 0 tokens
+2025-07-25 02:06:43,667 - src.trading.strategy - INFO - [DATA] Scanner returned 0 tokens
+2025-07-25 02:06:43,667 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 02:07:28,181 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 02:07:28,181 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 02:07:28,181 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 02:07:28,181 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 02:07:28,182 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 02:07:30,542 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 02:07:30,542 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 02:07:30,542 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 02:07:30,542 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 02:07:30,542 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 02:07:30,542 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 02:07:30,542 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 02:07:30,542 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 02:07:30,542 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 02:07:30,542 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 02:07:30,542 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 02:07:30,542 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 02:07:30,542 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 02:07:30,592 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 02:07:30,592 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 02:07:30,592 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 02:07:30,592 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 02:09:15,499 - __main__ - INFO - Settings loaded successfully
+2025-07-25 02:09:15,499 - __main__ - INFO - Paper trading: True
+2025-07-25 02:09:15,499 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 02:09:15,499 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 02:09:16,069 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 02:09:16,069 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 02:09:16,069 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 02:09:16,069 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 02:09:16,069 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 02:09:16,069 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 02:09:16,069 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 02:09:16,069 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 02:09:16,069 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 02:09:16,069 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 02:09:16,069 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 02:09:16,069 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 02:09:16,069 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 02:09:16,069 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 02:09:16,069 - __main__ - INFO - Testing API connections...
+2025-07-25 02:09:16,749 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 02:09:17,043 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 02:09:17,043 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 02:09:17,043 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 02:09:17,043 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 02:09:17,748 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 1/333)
+2025-07-25 02:09:17,748 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:09:17,748 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 02:09:17,748 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 02:09:17,764 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 02:09:17,764 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 02:09:17,764 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 02:09:18,250 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 02:10:18,273 - src.api.solana_tracker - ERROR - Solana Tracker API connection failed - check your API key
+2025-07-25 02:10:18,273 - src.enhanced_token_scanner - WARNING - API connection failed, retrying in 10 seconds... (attempt 1/3)
+2025-07-25 02:10:28,882 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 2/333)
+2025-07-25 02:10:28,882 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:10:28,882 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 02:10:28,882 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 02:10:28,898 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 02:10:28,898 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 02:10:28,898 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 02:10:28,898 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 02:10:28,898 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 02:10:28,898 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 02:10:28,898 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 02:10:28,898 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 02:10:28,898 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:10:28,898 - src.api.solana_tracker - INFO - No cached trending tokens, skipping request due to rate limiting
+2025-07-25 02:10:28,898 - src.api.solana_tracker - INFO - No cached volume tokens, skipping request due to rate limiting
+2025-07-25 02:10:28,898 - src.api.solana_tracker - INFO - Source results: trending=0, volume=0, memescope=0
+2025-07-25 02:10:28,903 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 02:10:28,903 - src.enhanced_token_scanner - INFO - Retrieved 0 total tokens from API
+2025-07-25 02:10:28,903 - src.enhanced_token_scanner - WARNING - No tokens retrieved from API - checking connection
+2025-07-25 02:10:32,091 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 02:10:32,091 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 02:10:32,333 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 02:10:32,333 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 02:10:32,333 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 02:10:32,333 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 02:10:32,333 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:10:32,502 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 02:10:32,502 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 02:10:32,502 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 02:10:32,502 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 02:10:32,823 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 02:10:32,938 - src.api.solana_tracker - INFO - API Response from tokens/trending: 58 items (Daily: 4/333)
+2025-07-25 02:10:32,938 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:10:32,938 - src.api.solana_tracker - INFO - No cached trending tokens, skipping request due to rate limiting
+2025-07-25 02:10:32,938 - src.api.solana_tracker - INFO - No cached volume tokens, skipping request due to rate limiting
+2025-07-25 02:10:32,938 - src.api.solana_tracker - INFO - Source results: trending=0, volume=0, memescope=0
+2025-07-25 02:10:32,938 - src.api.solana_tracker - INFO - Combined 0 unique tokens from all sources
+2025-07-25 02:10:32,938 - src.enhanced_token_scanner - INFO - Retry successful: 0 tokens
+2025-07-25 02:10:32,953 - src.enhanced_token_scanner - ERROR - Still no tokens after retry
+2025-07-25 02:10:44,435 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 02:10:44,436 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 02:10:44,436 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 02:10:44,437 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 02:10:44,438 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 02:10:44,438 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 02:10:44,438 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 02:10:44,439 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 02:10:44,440 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 02:10:44,440 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 02:10:44,440 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 02:10:44,441 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 02:10:44,441 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 02:10:44,442 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 02:10:44,442 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 02:10:44,443 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 02:10:44,443 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 02:10:44,479 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 02:10:44,479 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 02:10:44,479 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 02:10:44,479 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 02:14:03,539 - __main__ - INFO - Settings loaded successfully
+2025-07-25 02:14:03,539 - __main__ - INFO - Paper trading: True
+2025-07-25 02:14:03,539 - __main__ - INFO - [INIT] Initializing SolTrader APE Bot...
+2025-07-25 02:14:03,539 - src.api.alchemy - INFO - Initializing Alchemy client with URL: https://solana-mainnet.g.alchemy.com/v2/Y0oIiCzHLttRIv9YRleVRtXbHK9z5LW8
+2025-07-25 02:14:04,063 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 02:14:04,064 - src.api.solana_tracker - INFO - SolanaTracker client initialized with API key (5d7d53d9...6e14), daily limit: 333
+2025-07-25 02:14:04,064 - src.enhanced_token_scanner - INFO - Enhanced Token Scanner initialized for 40-60% approval rate
+2025-07-25 02:14:04,064 - src.enhanced_token_scanner - INFO - Min liquidity: 100.0 SOL
+2025-07-25 02:14:04,064 - src.enhanced_token_scanner - INFO - Min momentum: 5.0%
+2025-07-25 02:14:04,064 - src.enhanced_token_scanner - INFO - Max age: 24 hours
+2025-07-25 02:14:04,064 - src.enhanced_token_scanner - INFO - High momentum bypass: 500.0%
+2025-07-25 02:14:04,064 - src.enhanced_token_scanner - INFO - Medium momentum bypass: 100.0%
+2025-07-25 02:14:04,064 - src.analytics.performance_analytics - INFO - Performance Analytics system initialized
+2025-07-25 02:14:04,064 - src.notifications.email_system - INFO - Email notification system initialized
+2025-07-25 02:14:04,064 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard initialized
+2025-07-25 02:14:04,064 - __main__ - INFO - [OK] Bot components initialized
+2025-07-25 02:14:04,064 - __main__ - INFO - [START] Starting SolTrader APE Bot...
+2025-07-25 02:14:04,064 - __main__ - INFO - [SETUP] Starting bot initialization...
+2025-07-25 02:14:04,064 - __main__ - INFO - Testing API connections...
+2025-07-25 02:14:04,697 - __main__ - INFO - [OK] Alchemy connection successful
+2025-07-25 02:14:05,007 - src.api.jupiter - INFO - [OK] Jupiter API connection successful
+2025-07-25 02:14:05,009 - __main__ - INFO - [OK] Jupiter connection successful
+2025-07-25 02:14:05,009 - __main__ - INFO - [WALLET] Paper trading wallet validated
+2025-07-25 02:14:05,009 - __main__ - INFO - [OK] Wallet connected
+2025-07-25 02:14:10,770 - src.api.solana_tracker - INFO - API Response from tokens/trending: 57 items (Daily: 1/333)
+2025-07-25 02:14:10,770 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:14:10,770 - __main__ - INFO - [OK] Solana Tracker API connection successful
+2025-07-25 02:14:10,785 - __main__ - INFO - Starting enhanced systems...
+2025-07-25 02:14:10,785 - src.notifications.email_system - INFO - Email notification system started
+2025-07-25 02:14:10,785 - __main__ - INFO - [OK] Email notification system started
+2025-07-25 02:14:10,785 - src.enhanced_token_scanner - INFO - Starting enhanced token scanner...
+2025-07-25 02:14:11,429 - src.api.solana_tracker - INFO - API Response from tokens/trending: 57 items (Daily: 1/333)
+2025-07-25 02:14:11,429 - src.api.solana_tracker - INFO - Solana Tracker API connection successful
+2025-07-25 02:14:11,429 - src.enhanced_token_scanner - INFO - Solana Tracker API connection successful
+2025-07-25 02:14:11,429 - src.enhanced_token_scanner - INFO - Enhanced token scanner started successfully
+2025-07-25 02:14:11,429 - __main__ - INFO - [OK] Enhanced token scanner started
+2025-07-25 02:14:11,429 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard started
+2025-07-25 02:14:11,444 - __main__ - INFO - [OK] Enhanced dashboard started
+2025-07-25 02:14:11,444 - __main__ - INFO - [MODE] Bot initialized in Paper trading mode
+2025-07-25 02:14:11,444 - __main__ - INFO - [BALANCE] Initial balance: 100.0 SOL (paper)
+2025-07-25 02:14:11,444 - __main__ - INFO - [ENHANCED] All enhanced features activated successfully
+2025-07-25 02:14:11,444 - __main__ - INFO - [READY] Bot startup complete - starting trading strategy...
+2025-07-25 02:14:11,447 - src.trading.strategy - WARNING - [SCANNER] No scanner available for token discovery
+2025-07-25 02:14:11,448 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:14:11,449 - src.api.solana_tracker - INFO - Rate limited but allowing initial request for token discovery
+2025-07-25 02:14:13,719 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Started
+2025-07-25 02:14:13,719 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 02:14:13,895 - src.trading.market_analyzer - WARNING - Insufficient volume data for So11111111111111111111111111111111111111112: 0 points
+2025-07-25 02:14:13,895 - src.trading.alert - INFO - market_update: Market regime: volatile
+2025-07-25 02:14:13,895 - src.trading.alert - INFO - paper_trading_start: Paper trading started
+2025-07-25 02:14:13,895 - __main__ - INFO - [LOOP] Entering main event loop...
+2025-07-25 02:14:13,970 - src.trading.alert - INFO - regime_change: Market regime changed to uncertain
+2025-07-25 02:14:13,970 - src.trading.strategy - INFO - [SCAN] Starting opportunity scan...
+2025-07-25 02:14:13,970 - src.enhanced_token_scanner - INFO - Scan result: 0 approved tokens available
+2025-07-25 02:14:13,970 - src.enhanced_token_scanner - WARNING - No approved tokens found - performing fresh scan
+2025-07-25 02:14:13,982 - src.enhanced_token_scanner - INFO - Starting full token scan...
+2025-07-25 02:14:14,017 - src.api.solana_tracker - INFO - API Response from tokens/trending: 57 items (Daily: 2/333)
+2025-07-25 02:14:14,017 - src.api.solana_tracker - INFO - Retrieved 57 trending tokens
+2025-07-25 02:14:14,017 - src.api.solana_tracker - INFO - Rate limited but allowing initial request for token discovery
+2025-07-25 02:14:14,445 - src.api.solana_tracker - WARNING - Rate limit hit, backing off...
+2025-07-25 02:14:15,020 - src.api.solana_tracker - INFO - Source results: trending=57, volume=0, memescope=0
+2025-07-25 02:14:15,020 - src.api.solana_tracker - INFO - Combined 57 unique tokens from all sources
+2025-07-25 02:14:15,020 - src.enhanced_token_scanner - INFO - Retrieved 57 total tokens from API
+2025-07-25 02:14:15,020 - src.enhanced_token_scanner - INFO - REJECTED: USDUC - Liquidity: 757308.5541558343, Momentum: 17.279843169718916%, Age: 96660min
+2025-07-25 02:14:15,020 - src.enhanced_token_scanner - INFO - REJECTED: MORI - Liquidity: 2482968.145445853, Momentum: 14.528740757893829%, Age: 42376min
+2025-07-25 02:14:15,020 - src.enhanced_token_scanner - INFO - REJECTED: ASSDAQ - Liquidity: 361892.1431122149, Momentum: 7.271298849952017%, Age: 103544min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: retard - Liquidity: 118099.23771591453, Momentum: 2.0256922274618527%, Age: 104048min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: WETH - Liquidity: 60925.0139080517, Momentum: 0.4677328744784536%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: TRUMP - Liquidity: 348496583.9032063, Momentum: 0.0%, Age: 271393min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: JLP - Liquidity: 57519.57435545758, Momentum: 0.0%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: $COLLAT - Liquidity: 1341402.1662690076, Momentum: -1.0918425155569256%, Age: 252296min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: KMNO - Liquidity: 2830277.000270696, Momentum: -1.213473412386997%, Age: 685718min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: cbBTC - Liquidity: 3473803.3625711547, Momentum: -1.2199504873188192%, Age: 416660min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: WBTC - Liquidity: 6638963.529700175, Momentum: -1.29449705032017%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: PYTHIA - Liquidity: 9912619.897976447, Momentum: -3.717188017066215%, Age: 303073min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: JitoSOL - Liquidity: 38265680.15519455, Momentum: -4.517906175709275%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: mSOL - Liquidity: 613237.464324686, Momentum: -4.536362137527764%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: TROLL - Liquidity: 1347182.0539792934, Momentum: -4.733446352694476%, Age: 721760min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: hSOL - Liquidity: 18916.278016290446, Momentum: -4.746459439322927%, Age: 668716min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: MOODENG - Liquidity: 6763612.924955616, Momentum: -4.949302683840012%, Age: 456948min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: GOHOME - Liquidity: 1129846.8988920662, Momentum: -4.9516726538403315%, Age: 265297min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: LAYER - Liquidity: 2187364.3675146415, Momentum: -5.027041025368163%, Age: 282685min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: Bonk - Liquidity: 72314.02595152977, Momentum: -5.217600140298961%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: $michi - Liquidity: 3173245.813551819, Momentum: -5.825739524435096%, Age: 680973min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: HNT - Liquidity: 290909.7203193515, Momentum: -6.038178255408114%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: USELESS - Liquidity: 1368981.8041851665, Momentum: -6.419644750405496%, Age: 108653min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: PYTH - Liquidity: 75024.47199444979, Momentum: -7.063032465257309%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: IPOY - Liquidity: 400408.8263433433, Momentum: -7.138147466783389%, Age: 168117min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: GOAT - Liquidity: 4919926.0569107095, Momentum: -7.199886142370823%, Age: 413525min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: Hosico - Liquidity: 1846116.3588823266, Momentum: -7.85495513611013%, Age: 129890min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: GOR - Liquidity: 133861.78005789552, Momentum: -7.947047243923717%, Age: 51985min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: FWOG - Liquidity: 5207232.878448391, Momentum: -8.196078446186181%, Age: 518392min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: MEW - Liquidity: 621333.5032156486, Momentum: -8.21515680467116%, Age: 699598min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: BURN - Liquidity: 19215.856306216934, Momentum: -8.323526577645694%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: GIGA - Liquidity: 5264946.527571013, Momentum: -8.409220707845469%, Age: 816719min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: wPOND - Liquidity: 180230.92122537014, Momentum: -8.42049877876442%, Age: 434753min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: JUP - Liquidity: 143202.93953916102, Momentum: -8.64769037081575%, Age: 787219min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: POPCAT - Liquidity: 11922105.04515133, Momentum: -9.173669978726943%, Age: 849871min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: SPX - Liquidity: 4852966.861824926, Momentum: -9.296418145874068%, Age: 0min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: LAUNCHCOIN - Liquidity: 2051383.7007951653, Momentum: -9.363913540321365%, Age: 262135min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: Verse - Liquidity: 2005575.8847645833, Momentum: -10.262306033373479%, Age: 65210min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: Dege - Liquidity: 15599.236566423278, Momentum: -11.04160959835488%, Age: 43449min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: $WIF - Liquidity: 822939.0076650454, Momentum: -11.88769850008068%, Age: 881631min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: PENGU - Liquidity: 644473.5431466592, Momentum: -13.139808061792044%, Age: 341400min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: LuckyCoin - Liquidity: 252380.2356262712, Momentum: -13.331175557616943%, Age: 35733min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: LABUBU - Liquidity: 1546163.72664986, Momentum: -13.378267462542295%, Age: 424448min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: Fartcoin  - Liquidity: 559721.5767712382, Momentum: -13.67633797307984%, Age: 402909min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: KORI - Liquidity: 1246934.8462642718, Momentum: -14.515524773452995%, Age: 104402min
+2025-07-25 02:14:15,034 - src.enhanced_token_scanner - INFO - REJECTED: moonpig - Liquidity: 662227.833663515, Momentum: -15.434185290227898%, Age: 121647min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: House - Liquidity: 1325866.56838931, Momentum: -15.73453400692672%, Age: 176189min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: IKUN - Liquidity: 866992.8582294029, Momentum: -17.671883717017227%, Age: 106253min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: MASK - Liquidity: 526324.7737133083, Momentum: -19.29510758551359%, Age: 81289min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: CryBB - Liquidity: 445401.2542912988, Momentum: -20.27539502395878%, Age: 65252min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: BaoBao - Liquidity: 232239.66292716557, Momentum: -24.69840694274217%, Age: 105085min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: Valentine - Liquidity: 482113.7838411051, Momentum: -24.768162567243035%, Age: 12462min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: CHILLHOUSE - Liquidity: 902244.2329346037, Momentum: -25.04147324901465%, Age: 129803min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: BoatKid - Liquidity: 312652.401995035, Momentum: -39.85473986378166%, Age: 38330min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: rudi - Liquidity: 422583.84075374424, Momentum: -40.638870436670494%, Age: 14774min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - REJECTED: Ani - Liquidity: 1253086.1047607218, Momentum: -44.516646526107614%, Age: 15281min
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - Scan completed: 0/57 tokens approved (0.0% rate) in 3.60s
+2025-07-25 02:14:15,049 - src.enhanced_token_scanner - INFO - Trending: 0/57 (0.0% effective)
+2025-07-25 02:15:13,719 - src.trading.alert - INFO - threshold_breach: portfolio_value threshold breached
+2025-07-25 02:15:15,266 - src.api.solana_tracker - INFO - API Response from tokens/volume: 100 items (Daily: 4/333)
+2025-07-25 02:15:15,282 - src.api.solana_tracker - INFO - Retrieved 100 volume tokens
+2025-07-25 02:15:15,283 - src.api.solana_tracker - INFO - Source results: trending=0, volume=100, memescope=0
+2025-07-25 02:15:15,284 - src.api.solana_tracker - INFO - Combined 100 unique tokens from all sources
+2025-07-25 02:15:15,284 - src.enhanced_token_scanner - INFO - Retrieved 100 total tokens from API
+2025-07-25 02:15:15,284 - src.enhanced_token_scanner - INFO - REJECTED: TRUMP - Liquidity: 348496583.9032063, Momentum: 0.0%, Age: 271394min
+2025-07-25 02:15:15,285 - src.enhanced_token_scanner - INFO - REJECTED: CLOUD - Liquidity: 342251726.90288943, Momentum: 0.0%, Age: 542045min
+2025-07-25 02:15:15,285 - src.enhanced_token_scanner - INFO - REJECTED: Fartcoin - Liquidity: 24946299.844923332, Momentum: -14.060670883127827%, Age: 402910min
+2025-07-25 02:15:15,286 - src.enhanced_token_scanner - INFO - APPROVED: PORK - Score: 102.5 - ['Explosive momentum: +6961.8%', 'Volume: $2602994']
+2025-07-25 02:15:15,286 - src.enhanced_token_scanner - INFO - REJECTED: VINE - Liquidity: 4503257.93507679, Momentum: 47.24999315281862%, Age: 263578min
+2025-07-25 02:15:15,286 - src.enhanced_token_scanner - INFO - APPROVED: Mango - Score: 123.3 - ['Strong momentum: +198.2%', 'Liquidity: 637060 SOL', 'Momentum: +198.2%', 'Age: 729 minutes', 'Volume: $13212330']
+2025-07-25 02:15:15,287 - src.enhanced_token_scanner - INFO - REJECTED: Ani - Liquidity: 1310829.637056614, Momentum: -45.792177384431355%, Age: 15282min
+2025-07-25 02:15:15,287 - src.enhanced_token_scanner - INFO - REJECTED: cbBTC - Liquidity: 12235558.66542589, Momentum: -0.8802362215572221%, Age: 416661min
+2025-07-25 02:15:15,287 - src.enhanced_token_scanner - INFO - REJECTED: WBTC - Liquidity: 6638678.205846643, Momentum: -1.266982361455452%, Age: 0min
+2025-07-25 02:15:15,288 - src.enhanced_token_scanner - INFO - REJECTED: CatGPT - Liquidity: 360464.0296814884, Momentum: -4.982104700866666%, Age: 793min
+2025-07-25 02:15:15,288 - src.enhanced_token_scanner - INFO - APPROVED: SNFTR - Score: 123.4 - ['Strong momentum: +299.9%', 'Liquidity: 810989 SOL', 'Momentum: +299.9%', 'Age: 716 minutes', 'Volume: $11517384']
+2025-07-25 02:15:15,288 - src.enhanced_token_scanner - INFO - REJECTED: Bonk - Liquidity: 3665913.2590005165, Momentum: -5.482794476945567%, Age: 0min
+2025-07-25 02:15:15,288 - src.enhanced_token_scanner - INFO - REJECTED: PUMP - Liquidity: 13909603.627768, Momentum: -20.567586048001658%, Age: 0min
+2025-07-25 02:15:15,289 - src.enhanced_token_scanner - INFO - REJECTED: GP - Liquidity: 2986510.390995605, Momentum: 0.0%, Age: 0min
+2025-07-25 02:15:15,289 - src.enhanced_token_scanner - INFO - REJECTED: memecoin - Liquidity: 1110531.8072761379, Momentum: 47.30586411347607%, Age: 122846min
+2025-07-25 02:15:15,289 - src.enhanced_token_scanner - INFO - REJECTED: mSOL - Liquidity: 13849026.034386046, Momentum: -4.581978433574835%, Age: 0min
+2025-07-25 02:15:15,289 - src.enhanced_token_scanner - INFO - REJECTED: MemeRadar - Liquidity: 532706.7887321596, Momentum: 13.078970535430276%, Age: 2015min
+2025-07-25 02:15:15,290 - src.enhanced_token_scanner - INFO - REJECTED: LAUNCHCOIN - Liquidity: 2056419.6150746108, Momentum: -9.326248344811672%, Age: 262137min
+2025-07-25 02:15:15,290 - src.enhanced_token_scanner - INFO - APPROVED: PresElect - Score: 62.2 - ['Liquidity: 505197 SOL', 'Momentum: +21.3%', 'Age: 29 minutes', 'Volume: $794171']
+2025-07-25 02:15:15,290 - src.enhanced_token_scanner - INFO - APPROVED: HULK - Score: 102.5 - ['Explosive momentum: +2090.3%', 'Volume: $8848394']
+2025-07-25 02:15:15,296 - src.enhanced_token_scanner - INFO - REJECTED: updog - Liquidity: 23688.871472298193, Momentum: -99.75563097306774%, Age: 72min
+2025-07-25 02:15:15,296 - src.enhanced_token_scanner - INFO - APPROVED: IMF - Score: 79.1 - ['Liquidity: 862154 SOL', 'Momentum: +84.5%', 'Age: 0 minutes', 'Volume: $11086715']
+2025-07-25 02:15:15,297 - src.enhanced_token_scanner - INFO - REJECTED: Roballtaxi - Liquidity: 211642.5861032855, Momentum: -76.52736770380922%, Age: 1101min
+2025-07-25 02:15:15,297 - src.enhanced_token_scanner - INFO - APPROVED: Hulk - Score: 129.6 - ['Strong momentum: +149.0%', 'Liquidity: 237952 SOL', 'Momentum: +149.0%', 'Age: 42 minutes', 'Volume: $9316884']
+2025-07-25 02:15:15,297 - src.enhanced_token_scanner - INFO - REJECTED: JupSOL - Liquidity: 1376284.009266567, Momentum: -4.545943931786943%, Age: 700787min
+2025-07-25 02:15:15,298 - src.enhanced_token_scanner - INFO - REJECTED: GROGE - Liquidity: 414003.2929149334, Momentum: -52.49931726362838%, Age: 1973min
+2025-07-25 02:15:15,298 - src.enhanced_token_scanner - INFO - APPROVED: HULK - Score: 129.2 - ['Strong momentum: +339.2%', 'Liquidity: 261614 SOL', 'Momentum: +339.2%', 'Age: 85 minutes', 'Volume: $18832840']
+2025-07-25 02:15:15,298 - src.enhanced_token_scanner - INFO - APPROVED: HULK - Score: 129.9 - ['Strong momentum: +320.7%', 'Liquidity: 180584 SOL', 'Momentum: +320.7%', 'Age: 7 minutes', 'Volume: $1334919']
+2025-07-25 02:15:15,299 - src.enhanced_token_scanner - INFO - APPROVED: HULK - Score: 129.8 - ['Strong momentum: +238.9%', 'Liquidity: 183578 SOL', 'Momentum: +238.9%', 'Age: 22 minutes', 'Volume: $3452213']
+2025-07-25 02:15:15,299 - src.enhanced_token_scanner - INFO - APPROVED: RIPHulk - Score: 129.8 - ['Strong momentum: +364.7%', 'Liquidity: 224059 SOL', 'Momentum: +364.7%', 'Age: 17 minutes', 'Volume: $3994968']
+2025-07-25 02:15:15,299 - src.enhanced_token_scanner - INFO - REJECTED: JitoSOL - Liquidity: 38276225.59902505, Momentum: -4.629626685433068%, Age: 0min
+2025-07-25 02:15:15,300 - src.enhanced_token_scanner - INFO - REJECTED: USELESS - Liquidity: 4697602.016327081, Momentum: -6.380756019503495%, Age: 108654min
+2025-07-25 02:15:15,300 - src.enhanced_token_scanner - INFO - APPROVED: lmeow - Score: 102.5 - ['Explosive momentum: +3249.4%', 'Volume: $4945787']
+2025-07-25 02:15:15,300 - src.enhanced_token_scanner - INFO - APPROVED: sse500 - Score: 129.7 - ['Strong momentum: +347.0%', 'Liquidity: 218132 SOL', 'Momentum: +347.0%', 'Age: 31 minutes', 'Volume: $5756479']
+2025-07-25 02:15:15,301 - src.enhanced_token_scanner - INFO - REJECTED: JUP - Liquidity: 4458396.147653809, Momentum: -8.807941482825573%, Age: 787220min
+2025-07-25 02:15:15,301 - src.enhanced_token_scanner - INFO - REJECTED: MOMO - Liquidity: 848898.5459747433, Momentum: 5.865454099510181%, Age: 24813min
+2025-07-25 02:15:15,301 - src.enhanced_token_scanner - INFO - REJECTED: syrupUSDC - Liquidity: 27914900.64374223, Momentum: 0.018569805014372345%, Age: 106807min
+2025-07-25 02:15:15,302 - src.enhanced_token_scanner - INFO - REJECTED: JLP - Liquidity: 4206041.445896439, Momentum: -1.5456963815161615%, Age: 0min
+2025-07-25 02:15:15,302 - src.enhanced_token_scanner - INFO - APPROVED: EBZT - Score: 102.5 - ['Explosive momentum: +849.7%', 'Volume: $5799342']
+2025-07-25 02:15:15,302 - src.enhanced_token_scanner - INFO - REJECTED: USDS - Liquidity: 43004380.47376162, Momentum: -0.014356012653307364%, Age: 386083min
+2025-07-25 02:15:15,302 - src.enhanced_token_scanner - INFO - APPROVED: HULK HOGAN - Score: 129.8 - ['Strong momentum: +235.7%', 'Liquidity: 217632 SOL', 'Momentum: +235.7%', 'Age: 21 minutes', 'Volume: $4641576']
+2025-07-25 02:15:15,303 - src.enhanced_token_scanner - INFO - APPROVED: VINE - Score: 102.5 - ['Explosive momentum: +1408.9%', 'Volume: $22850263']
+2025-07-25 02:15:15,303 - src.enhanced_token_scanner - INFO - APPROVED: GOONSHOT - Score: 129.9 - ['Strong momentum: +156.4%', 'Liquidity: 182712 SOL', 'Momentum: +156.4%', 'Age: 9 minutes', 'Volume: $2142304']
+2025-07-25 02:15:15,303 - src.enhanced_token_scanner - INFO - APPROVED: HULK - Score: 129.9 - ['Strong momentum: +327.3%', 'Liquidity: 154708 SOL', 'Momentum: +327.3%', 'Age: 8 minutes', 'Volume: $1359624']
+2025-07-25 02:15:15,304 - src.enhanced_token_scanner - INFO - REJECTED: PENGU - Liquidity: 9609634.732810793, Momentum: -14.519580897027417%, Age: 341401min
+2025-07-25 02:15:15,304 - src.enhanced_token_scanner - INFO - APPROVED: Luca - Score: 129.9 - ['Strong momentum: +233.8%', 'Liquidity: 133761 SOL', 'Momentum: +233.8%', 'Age: 6 minutes', 'Volume: $1248062']
+2025-07-25 02:15:15,304 - src.enhanced_token_scanner - INFO - APPROVED: TrenchAges - Score: 129.7 - ['Strong momentum: +246.7%', 'Liquidity: 233036 SOL', 'Momentum: +246.7%', 'Age: 35 minutes', 'Volume: $7111633']
+2025-07-25 02:15:15,305 - src.enhanced_token_scanner - INFO - REJECTED: WETH - Liquidity: 3200849.3417967595, Momentum: 0.290618130223317%, Age: 0min
+2025-07-25 02:15:15,305 - src.enhanced_token_scanner - INFO - APPROVED: TRUMPH - Score: 102.5 - ['Explosive momentum: +597.2%', 'Volume: $6482658']
+2025-07-25 02:15:15,311 - src.enhanced_token_scanner - INFO - REJECTED: $WIF - Liquidity: 15758000.61004258, Momentum: -11.809772626682223%, Age: 881632min
+2025-07-25 02:15:15,311 - src.enhanced_token_scanner - INFO - APPROVED: MEN - Score: 102.5 - ['Explosive momentum: +554.5%', 'Volume: $2566448']
+2025-07-25 02:15:15,312 - src.enhanced_token_scanner - INFO - REJECTED: DJI6930 - Liquidity: 985733.9658416505, Momentum: -27.044460812152398%, Age: 69784min
+2025-07-25 02:15:15,312 - src.enhanced_token_scanner - INFO - REJECTED: MOBY - Liquidity: 1810686.034919124, Momentum: 2.3186885234346057%, Age: 276912min
+2025-07-25 02:15:15,312 - src.enhanced_token_scanner - INFO - REJECTED: DÉBORAH - Liquidity: 7931.785817680724, Momentum: -97.44361282591717%, Age: 43min
+2025-07-25 02:15:15,312 - src.enhanced_token_scanner - INFO - REJECTED: SPX - Liquidity: 4856209.270016765, Momentum: -11.445445239808253%, Age: 0min
+2025-07-25 02:15:15,312 - src.enhanced_token_scanner - INFO - REJECTED: PYTHIA - Liquidity: 9913953.836150944, Momentum: -3.677176239426496%, Age: 303074min
+2025-07-25 02:15:15,313 - src.enhanced_token_scanner - INFO - REJECTED: ALCH - Liquidity: 5811022.795270495, Momentum: -2.3139126666194176%, Age: 344601min
+2025-07-25 02:15:15,313 - src.enhanced_token_scanner - INFO - REJECTED: TIM - Liquidity: 81978.07916009569, Momentum: 223.2972702189055%, Age: 184797min
+2025-07-25 02:15:15,313 - src.enhanced_token_scanner - INFO - REJECTED: EURC - Liquidity: 966045.5234258055, Momentum: -0.1904355703828175%, Age: 880242min
+2025-07-25 02:15:15,313 - src.enhanced_token_scanner - INFO - REJECTED: TIM - Liquidity: 25187.458216587158, Momentum: -47.185713157618494%, Age: 21642min
+2025-07-25 02:15:15,314 - src.enhanced_token_scanner - INFO - REJECTED: JOHN - Liquidity: 46259.37489428827, Momentum: 55.52962759798966%, Age: 22777min
+2025-07-25 02:15:15,315 - src.enhanced_token_scanner - INFO - REJECTED: AOL - Liquidity: 199877.37927858293, Momentum: -35.997000351955265%, Age: 11499min
+2025-07-25 02:15:15,315 - src.enhanced_token_scanner - INFO - REJECTED: GIGA - Liquidity: 5265636.608035819, Momentum: -10.906963739402094%, Age: 816720min
+2025-07-25 02:15:15,315 - src.enhanced_token_scanner - INFO - REJECTED: ALTLESS - Liquidity: 8595.377599816355, Momentum: -92.11390506335107%, Age: 29min
+2025-07-25 02:15:15,315 - src.enhanced_token_scanner - INFO - APPROVED: sse500 - Score: 126.0 - ['Strong momentum: +445.6%', 'Liquidity: 92772 SOL', 'Momentum: +445.6%', 'Age: 440 minutes', 'Volume: $4073166']
+2025-07-25 02:15:15,316 - src.enhanced_token_scanner - INFO - REJECTED: MEW - Liquidity: 31951498.23250488, Momentum: -8.580192513399712%, Age: 699599min
+2025-07-25 02:15:15,316 - src.enhanced_token_scanner - INFO - REJECTED: KORI - Liquidity: 1251411.421952879, Momentum: -13.929222126975048%, Age: 104403min
+2025-07-25 02:15:15,316 - src.enhanced_token_scanner - INFO - APPROVED: PO - Score: 121.6 - ['Strong momentum: +498.7%', 'Liquidity: 89951 SOL', 'Momentum: +498.7%', 'Age: 913 minutes', 'Volume: $8054035']
+2025-07-25 02:15:15,317 - src.enhanced_token_scanner - INFO - REJECTED: BOME - Liquidity: 28520491.47369773, Momentum: -6.5461536495125605%, Age: 721379min
+2025-07-25 02:15:15,317 - src.enhanced_token_scanner - INFO - APPROVED: Luca - Score: 140.9 - ['Strong momentum: +161.3%', 'Liquidity: 91730 SOL', 'Momentum: +161.3%', 'Age: 6 minutes', 'Volume: $1008381', 'Market cap: $71307']
+2025-07-25 02:15:15,318 - src.enhanced_token_scanner - INFO - REJECTED: HUSTLE - Liquidity: 600861.6668026022, Momentum: 211.9314845574071%, Age: 33659min
+2025-07-25 02:15:15,318 - src.enhanced_token_scanner - INFO - APPROVED: HH - Score: 129.8 - ['Strong momentum: +167.9%', 'Liquidity: 201274 SOL', 'Momentum: +167.9%', 'Age: 24 minutes', 'Volume: $5301119']
+2025-07-25 02:15:15,318 - src.enhanced_token_scanner - INFO - APPROVED: HULK HOGAN - Score: 88.6 - ['Liquidity: 153001 SOL', 'Momentum: +87.8%', 'Age: 21 minutes', 'Volume: $772076']
+2025-07-25 02:15:15,319 - src.enhanced_token_scanner - INFO - REJECTED: NOBODY - Liquidity: 2584541.6426414666, Momentum: -20.69997385130341%, Age: 131663min
+2025-07-25 02:15:15,319 - src.enhanced_token_scanner - INFO - REJECTED: ALP - Liquidity: 481961.36623571196, Momentum: 0.0%, Age: 447431min
+2025-07-25 02:15:15,319 - src.enhanced_token_scanner - INFO - REJECTED: DEBT - Liquidity: 226371.97671101394, Momentum: 43.48281297007884%, Age: 1483min
+2025-07-25 02:15:15,319 - src.enhanced_token_scanner - INFO - APPROVED: Google - Score: 127.6 - ['Strong momentum: +258.5%', 'Liquidity: 137131 SOL', 'Momentum: +258.5%', 'Age: 261 minutes', 'Volume: $11527251']
+2025-07-25 02:15:15,320 - src.enhanced_token_scanner - INFO - APPROVED: AI - Score: 102.5 - ['Explosive momentum: +706.8%', 'Volume: $2135429']
+2025-07-25 02:15:15,320 - src.enhanced_token_scanner - INFO - REJECTED: TrenchAges - Liquidity: 35202.588628858015, Momentum: -8.244244849476354%, Age: 134min
+2025-07-25 02:15:15,320 - src.enhanced_token_scanner - INFO - REJECTED: FDUSD - Liquidity: 1958815.3491741535, Momentum: -0.00909288236603675%, Age: 347760min
+2025-07-25 02:15:15,320 - src.enhanced_token_scanner - INFO - REJECTED: bbSOL - Liquidity: 82664.69786857995, Momentum: -4.6124568490372235%, Age: 486551min
+2025-07-25 02:15:15,321 - src.enhanced_token_scanner - INFO - REJECTED: DBR - Liquidity: 6477815.893478, Momentum: 25.780283239378516%, Age: 526162min
+2025-07-25 02:15:15,321 - src.enhanced_token_scanner - INFO - APPROVED: EBZT - Score: 130.0 - ['Strong momentum: +156.4%', 'Liquidity: 54360 SOL', 'Momentum: +156.4%', 'Age: 5 minutes', 'Volume: $336168']
+2025-07-25 02:15:15,321 - src.enhanced_token_scanner - INFO - REJECTED: INF - Liquidity: 5718263.788300101, Momentum: -4.51511733978107%, Age: 0min
+2025-07-25 02:15:15,322 - src.enhanced_token_scanner - INFO - REJECTED: SONIC - Liquidity: 1232449.4633485992, Momentum: -2.730395807305826%, Age: 343199min
+2025-07-25 02:15:15,322 - src.enhanced_token_scanner - INFO - REJECTED: Valentine - Liquidity: 568355.81599128, Momentum: -25.001203498171648%, Age: 12463min
+2025-07-25 02:15:15,322 - src.enhanced_token_scanner - INFO - APPROVED: NVIDIA AI - Score: 66.7 - ['Liquidity: 101965 SOL', 'Momentum: +35.5%', 'Age: 218 minutes', 'Volume: $9456882']
+2025-07-25 02:15:15,322 - src.enhanced_token_scanner - INFO - REJECTED: 1alon - Liquidity: 11026.671887696704, Momentum: -70.2293221875248%, Age: 56min
+2025-07-25 02:15:15,323 - src.enhanced_token_scanner - INFO - APPROVED: SUPERGROK - Score: 99.0 - ['Liquidity: 148004 SOL', 'Momentum: +84.6%', 'Age: 12 minutes', 'Volume: $402393', 'Market cap: $99383']
+2025-07-25 02:15:15,323 - src.enhanced_token_scanner - INFO - APPROVED: $SAPHIRE - Score: 87.7 - ['Liquidity: 150874 SOL', 'Momentum: +83.2%', 'Age: 11 minutes', 'Volume: $381198']
+2025-07-25 02:15:15,323 - src.enhanced_token_scanner - INFO - REJECTED: ORGO - Liquidity: 319340.9382034192, Momentum: 67.9345063109764%, Age: 4778min
+2025-07-25 02:15:15,323 - src.enhanced_token_scanner - INFO - REJECTED: DP - Liquidity: 29861.06861707359, Momentum: 282.1698592113945%, Age: 479289min
+2025-07-25 02:15:15,324 - src.enhanced_token_scanner - INFO - APPROVED: PORK - Score: 102.5 - ['Explosive momentum: +15135.6%', 'Volume: $313868']
+2025-07-25 02:15:15,324 - src.enhanced_token_scanner - INFO - APPROVED: BONK6900 - Score: 99.5 - ['Liquidity: 124325 SOL', 'Momentum: +87.0%', 'Age: 11 minutes', 'Volume: $379108', 'Market cap: $84074']
+2025-07-25 02:15:15,329 - src.enhanced_token_scanner - INFO - APPROVED: VALHALLA - Score: 72.5 - ['Liquidity: 44481 SOL', 'Momentum: +76.6%', 'Age: 1106 minutes', 'Volume: $1864612']
+2025-07-25 02:15:15,329 - src.enhanced_token_scanner - INFO - REJECTED: Unknown - Liquidity: 2595502.4718785123, Momentum: -4.671831665735294%, Age: 0min
+2025-07-25 02:15:15,330 - src.enhanced_token_scanner - INFO - REJECTED: PENGUFAM - Liquidity: 65731.16920929553, Momentum: -96.82155228150411%, Age: 676min
+2025-07-25 02:15:15,330 - src.enhanced_token_scanner - INFO - Scan completed: 37/100 tokens approved (37.0% rate) in 61.35s
+2025-07-25 02:15:15,330 - src.enhanced_token_scanner - INFO - Trending: 0/57 (0.0% effective)
+2025-07-25 02:15:15,331 - src.enhanced_token_scanner - INFO - Volume: 37/100 (37.8% effective)
+2025-07-25 02:15:15,331 - src.enhanced_token_scanner - INFO - Fresh scan found 37 tokens
+2025-07-25 02:15:15,331 - src.enhanced_token_scanner - INFO - Selected token: PORK (score: 102.5, source: volume)
+2025-07-25 02:15:15,332 - src.trading.strategy - INFO - [DATA] Scanner returned 1 tokens
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO - [TARGET] Processing dict token: CVGBG44d...
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO - [FILTER] FAIL - Token CVGBG44d... REJECTED: volume, price_range, market_cap_range
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO -   Volume: 0.00 SOL (need: 50.00)
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO -   Liquidity: 500000.00 SOL (need: 300.00)
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO -   Price: 0.000000 SOL, Market Cap: 2627679 SOL
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO - [ERROR] Token CVGBG44d... failed basic validation
+2025-07-25 02:15:15,335 - src.trading.strategy - INFO - [OK] Opportunity scan completed
+2025-07-25 02:15:24,285 - __main__ - INFO - [STOP] Bot shutdown requested
+2025-07-25 02:15:24,285 - __main__ - INFO - [SHUTDOWN] Starting shutdown sequence...
+2025-07-25 02:15:24,285 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 02:15:24,285 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 02:15:24,285 - src.dashboard.enhanced_dashboard - INFO - Stopping Enhanced Dashboard...
+2025-07-25 02:15:26,540 - src.notifications.email_system - INFO - Email sent successfully: SolTrader Bot Shutdown
+2025-07-25 02:15:26,540 - src.dashboard.enhanced_dashboard - INFO - Enhanced Dashboard stopped
+2025-07-25 02:15:26,540 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 02:15:26,540 - src.enhanced_token_scanner - INFO - Stopping enhanced token scanner...
+2025-07-25 02:15:26,540 - src.enhanced_token_scanner - INFO - Enhanced token scanner stopped
+2025-07-25 02:15:26,540 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 02:15:26,556 - src.notifications.email_system - INFO - Stopping email notification system...
+2025-07-25 02:15:26,558 - src.notifications.email_system - INFO - Email notification system stopped
+2025-07-25 02:15:26,559 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 02:15:26,559 - src.trading.alert - INFO - paper_trading_stop: Paper trading stopped
+2025-07-25 02:15:26,559 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 02:15:26,560 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 02:15:26,560 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 02:15:26,595 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 02:15:26,595 - __main__ - INFO - [CLEANUP] Cancelling 2 remaining tasks...
+2025-07-25 02:15:26,596 - __main__ - INFO - [OK] Shutdown complete
+2025-07-25 02:15:26,597 - __main__ - INFO - [CLEANUP] Starting shutdown...
+2025-07-25 02:15:26,597 - __main__ - INFO - Stopping enhanced systems...
+2025-07-25 02:15:26,597 - __main__ - INFO - [OK] Enhanced dashboard stopped
+2025-07-25 02:15:26,598 - __main__ - INFO - [OK] Enhanced scanner stopped
+2025-07-25 02:15:26,598 - __main__ - INFO - [OK] Email system stopped
+2025-07-25 02:15:26,598 - __main__ - INFO - [OK] Trading strategy stopped
+2025-07-25 02:15:26,599 - __main__ - INFO - [OK] Solana Tracker client closed
+2025-07-25 02:15:26,599 - __main__ - INFO - [OK] Jupiter client closed
+2025-07-25 02:15:26,599 - __main__ - INFO - [OK] Alchemy client closed
+2025-07-25 02:15:26,599 - __main__ - INFO - [OK] Shutdown complete

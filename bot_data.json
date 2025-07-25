@@ -142,293 +142,8 @@
     "unrealized_pnl": 0,
     "open_positions": 0
   },
-  "last_update": "2025-07-20T09:40:11.327592",
+  "last_update": "2025-07-25T02:15:15.333076",
   "activity": [
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-19T16:58:56.663979"
-      },
-      "timestamp": "2025-07-19T16:58:56.664986"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-19T16:59:16.533311"
-      },
-      "timestamp": "2025-07-19T16:59:16.534414"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-19T17:00:17.426126"
-      },
-      "timestamp": "2025-07-19T17:00:17.426126"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-19T17:00:28.878274"
-      },
-      "timestamp": "2025-07-19T17:00:28.878899"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-19T17:01:29.351435"
-      },
-      "timestamp": "2025-07-19T17:01:29.352480"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-19T17:01:40.907079"
-      },
-      "timestamp": "2025-07-19T17:01:40.908500"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-19T17:02:42.063675"
-      },
-      "timestamp": "2025-07-19T17:02:42.064687"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-19T17:02:53.966586"
-      },
-      "timestamp": "2025-07-19T17:02:53.967803"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-19T17:03:54.881491"
-      },
-      "timestamp": "2025-07-19T17:03:54.884556"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-19T17:04:07.906983"
-      },
-      "timestamp": "2025-07-19T17:04:07.907981"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:13:20.047687"
-      },
-      "timestamp": "2025-07-20T08:13:20.048908"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T08:13:32.778772"
-      },
-      "timestamp": "2025-07-20T08:13:32.780171"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:14:33.094182"
-      },
-      "timestamp": "2025-07-20T08:14:33.095219"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T08:14:44.997196"
-      },
-      "timestamp": "2025-07-20T08:14:44.998553"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:15:45.744783"
-      },
-      "timestamp": "2025-07-20T08:15:45.744783"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T08:16:00.157901"
-      },
-      "timestamp": "2025-07-20T08:16:00.159524"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:17:00.524771"
-      },
-      "timestamp": "2025-07-20T08:17:00.526909"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T08:17:12.236479"
-      },
-      "timestamp": "2025-07-20T08:17:12.237468"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:18:13.777908"
-      },
-      "timestamp": "2025-07-20T08:18:13.781931"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T08:18:25.085101"
-      },
-      "timestamp": "2025-07-20T08:18:25.086537"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:20:55.430366"
-      },
-      "timestamp": "2025-07-20T08:20:55.432422"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T08:21:07.671902"
-      },
-      "timestamp": "2025-07-20T08:21:07.673641"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:22:08.037900"
-      },
-      "timestamp": "2025-07-20T08:22:08.038944"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T08:22:17.973566"
-      },
-      "timestamp": "2025-07-20T08:22:17.974567"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:30:48.965552"
-      },
-      "timestamp": "2025-07-20T08:30:48.966556"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T08:31:01.612655"
-      },
-      "timestamp": "2025-07-20T08:31:01.614968"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:32:02.150575"
-      },
-      "timestamp": "2025-07-20T08:32:02.151583"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T08:32:14.597593"
-      },
-      "timestamp": "2025-07-20T08:32:14.599656"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:39:22.429386"
-      },
-      "timestamp": "2025-07-20T08:39:22.430427"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T08:39:36.048366"
-      },
-      "timestamp": "2025-07-20T08:39:36.048366"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T08:54:55.682485"
-      },
-      "timestamp": "2025-07-20T08:54:55.684543"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T08:55:07.162065"
-      },
-      "timestamp": "2025-07-20T08:55:07.163066"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T09:02:13.847504"
-      },
-      "timestamp": "2025-07-20T09:02:13.849575"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T09:02:27.274086"
-      },
-      "timestamp": "2025-07-20T09:02:27.274086"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T09:03:27.823546"
-      },
-      "timestamp": "2025-07-20T09:03:27.824619"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 0,
-        "timestamp": "2025-07-20T09:03:38.811554"
-      },
-      "timestamp": "2025-07-20T09:03:38.812567"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-07-20T09:11:55.576924"
-      },
-      "timestamp": "2025-07-20T09:11:55.576924"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-07-20T09:12:08.090478"
-      },
-      "timestamp": "2025-07-20T09:12:08.090562"
-    },
     {
       "type": "scan_started",
       "data": {
@@ -528,6 +243,288 @@
         "timestamp": "2025-07-20T09:40:11.326595"
       },
       "timestamp": "2025-07-20T09:40:11.327592"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:06:25.038795"
+      },
+      "timestamp": "2025-07-25T01:06:25.038795"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:07:25.465910"
+      },
+      "timestamp": "2025-07-25T01:07:25.465910"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:08:25.834201"
+      },
+      "timestamp": "2025-07-25T01:08:25.834201"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:09:26.105217"
+      },
+      "timestamp": "2025-07-25T01:09:26.105954"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:26:52.536993"
+      },
+      "timestamp": "2025-07-25T01:26:52.537995"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:26:52.548527"
+      },
+      "timestamp": "2025-07-25T01:26:52.550519"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:27:53.098563"
+      },
+      "timestamp": "2025-07-25T01:27:53.100556"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:27:53.112487"
+      },
+      "timestamp": "2025-07-25T01:27:53.113488"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:28:53.777941"
+      },
+      "timestamp": "2025-07-25T01:28:53.778936"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:28:53.780961"
+      },
+      "timestamp": "2025-07-25T01:28:53.781936"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:29:55.225982"
+      },
+      "timestamp": "2025-07-25T01:29:55.227805"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:29:55.237809"
+      },
+      "timestamp": "2025-07-25T01:29:55.239810"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:30:55.516307"
+      },
+      "timestamp": "2025-07-25T01:30:55.516841"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:30:55.519538"
+      },
+      "timestamp": "2025-07-25T01:30:55.519563"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:31:55.879373"
+      },
+      "timestamp": "2025-07-25T01:31:55.881351"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:31:55.892557"
+      },
+      "timestamp": "2025-07-25T01:31:55.893633"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:32:56.197146"
+      },
+      "timestamp": "2025-07-25T01:32:56.198219"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:32:56.208302"
+      },
+      "timestamp": "2025-07-25T01:32:56.210349"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:34:02.810871"
+      },
+      "timestamp": "2025-07-25T01:34:02.810871"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:35:04.353880"
+      },
+      "timestamp": "2025-07-25T01:35:04.354881"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:39:56.286213"
+      },
+      "timestamp": "2025-07-25T01:39:56.287211"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:39:57.594928"
+      },
+      "timestamp": "2025-07-25T01:39:57.595951"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:40:57.900766"
+      },
+      "timestamp": "2025-07-25T01:40:57.902101"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:40:59.057328"
+      },
+      "timestamp": "2025-07-25T01:40:59.058340"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:46:00.897215"
+      },
+      "timestamp": "2025-07-25T01:46:00.899219"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:47:03.985913"
+      },
+      "timestamp": "2025-07-25T01:47:03.986913"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:52:31.465568"
+      },
+      "timestamp": "2025-07-25T01:52:31.466581"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T01:53:32.745114"
+      },
+      "timestamp": "2025-07-25T01:53:32.746114"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T01:58:38.769737"
+      },
+      "timestamp": "2025-07-25T01:58:38.772363"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T02:04:39.918825"
+      },
+      "timestamp": "2025-07-25T02:04:39.918825"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T02:04:41.225695"
+      },
+      "timestamp": "2025-07-25T02:04:41.241321"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T02:05:41.521739"
+      },
+      "timestamp": "2025-07-25T02:05:41.522750"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T02:05:42.329392"
+      },
+      "timestamp": "2025-07-25T02:05:42.330539"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T02:06:42.595311"
+      },
+      "timestamp": "2025-07-25T02:06:42.595311"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 0,
+        "timestamp": "2025-07-25T02:06:43.667035"
+      },
+      "timestamp": "2025-07-25T02:06:43.667035"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T02:10:32.333151"
+      },
+      "timestamp": "2025-07-25T02:10:32.333151"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-07-25T02:14:13.970005"
+      },
+      "timestamp": "2025-07-25T02:14:13.970005"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-07-25T02:15:15.332193"
+      },
+      "timestamp": "2025-07-25T02:15:15.333076"
     }
   ]
 }

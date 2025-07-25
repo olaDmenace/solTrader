@@ -13,11 +13,11 @@ class Settings:
     ALCHEMY_RPC_URL: str
     WALLET_ADDRESS: str
 
-    # Paper Trading settings
+    # Paper Trading settings - OPTIMIZED
     position_manager: Any = None
     PAPER_TRADING: bool = True
-    INITIAL_PAPER_BALANCE: float = 100.0  # Test with small amount
-    MAX_POSITION_SIZE: float = 5.0  # Smaller positions for more opportunities
+    INITIAL_PAPER_BALANCE: float = 100.0
+    MAX_POSITION_SIZE: float = 0.35  # Optimized for better risk management
     MAX_SLIPPAGE: float = 0.30  # Higher slippage tolerance for meme tokens
     MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
     
@@ -29,9 +29,10 @@ class Settings:
     MAX_TRADE_SIZE: float = 2.0  # Smaller trades for more opportunities
     SLIPPAGE_TOLERANCE: float = 0.25  # Higher tolerance for meme tokens
 
-    # Position Management
+    # Position Management - OPTIMIZED
     MAX_POSITIONS: int = 3  # Maximum number of open positions
-    MIN_TRADE_SIZE: float = 0.1  # Minimum trade size
+    MAX_SIMULTANEOUS_POSITIONS: int = 3  # Aligned with MAX_POSITIONS
+    MIN_TRADE_SIZE: float = 0.1  # Minimum trade size  
     INITIAL_CAPITAL: float = 100.0  # Starting capital
     PORTFOLIO_VALUE: float = 100.0  # Current portfolio value
     MIN_PORTFOLIO_VALUE: float = 10.0  # Minimum portfolio value threshold
@@ -41,11 +42,16 @@ class Settings:
     POSITION_MONITOR_INTERVAL: float = 3.0  # Very fast position monitoring
     STALE_THRESHOLD: int = 300  # Consider data stale after 5 minutes
 
-    # Scanner settings (aggressive for new token detection)
+    # Scanner settings - OPTIMIZED FOR 40-60% APPROVAL RATE
     SCAN_INTERVAL: int = 5  # Very fast scanning for new tokens
-    MIN_LIQUIDITY: float = 500.0  # Lower threshold for new tokens
+    MIN_LIQUIDITY: float = 100.0  # FURTHER REDUCED from 250 to 100 SOL for higher approval
     MIN_VOLUME_24H: float = 50.0  # Lower volume requirement for new launches
     VOLUME_THRESHOLD: float = 50.0  # Lower volume threshold
+    MIN_VOLUME_GROWTH: float = 0.0  # REMOVED volume growth requirement
+    MIN_MOMENTUM_PERCENTAGE: float = 5.0  # REDUCED from 10% to 5% for more opportunities
+    MAX_TOKEN_AGE_HOURS: float = 24.0  # EXTENDED from 12 to 24 hours for more tokens
+    HIGH_MOMENTUM_BYPASS: float = 500.0  # LOWERED from 1000% to 500% for more bypasses  
+    MEDIUM_MOMENTUM_BYPASS: float = 100.0  # NEW: Medium momentum bypass at 100%
     MAX_PRICE_IMPACT: float = 2.0  # Higher impact tolerance for new tokens
     
     # New token sniping settings - Solana specific
@@ -125,17 +131,24 @@ class Settings:
     PRIORITY_FEE_MULTIPLIER: float = 2.0  # Higher priority for fast execution
     MAX_GAS_PRICE: int = 200  # Higher gas limit for speed
     
-    # Birdeye Trending API Configuration
-    BIRDEYE_API_KEY: Optional[str] = None  # Optional API key for higher rate limits
-    ENABLE_TRENDING_FILTER: bool = True    # Enable trending-based filtering
-    MAX_TRENDING_RANK: int = 50            # Maximum allowed trending rank
-    MIN_PRICE_CHANGE_24H: float = 10.0     # Minimum 24h price change % for trending
-    MIN_VOLUME_CHANGE_24H: float = 5.0     # Minimum 24h volume change % for trending
-    MIN_TRENDING_SCORE: float = 60.0       # Minimum trending composite score (0-100)
-    TRENDING_SIGNAL_BOOST: float = 0.5     # Signal boost factor for trending tokens
-    TRENDING_FALLBACK_MODE: str = "permissive"  # "permissive" or "strict" when API fails
-    TRENDING_CACHE_DURATION: int = 300     # Cache duration in seconds (5 minutes)
-    TRENDING_REQUEST_INTERVAL: float = 2.0 # Minimum seconds between API requests
+    # Solana Tracker API Configuration - REPLACES BIRDEYE
+    SOLANA_TRACKER_KEY: Optional[str] = None  # API key for Solana Tracker
+    SOLANA_TRACKER_BASE_URL: str = "https://data.solanatracker.io"
+    DAILY_REQUEST_LIMIT: int = 333  # Free tier: 10k/month ÷ 30 days
+    TRENDING_INTERVAL: int = 780     # 13 minutes (4.6 req/hour)
+    VOLUME_INTERVAL: int = 900       # 15 minutes (4 req/hour)
+    MEMESCOPE_INTERVAL: int = 1080   # 18 minutes (3.3 req/hour)
+    
+    # Email Notification Configuration
+    EMAIL_ENABLED: bool = True
+    EMAIL_SMTP_SERVER: str = "smtp.gmail.com"
+    EMAIL_PORT: int = 587
+    EMAIL_USER: Optional[str] = None
+    EMAIL_PASSWORD: Optional[str] = None
+    EMAIL_TO: Optional[str] = None
+    DAILY_REPORT_TIME: str = "20:00"  # 8 PM daily report
+    CRITICAL_ALERTS: bool = True
+    PERFORMANCE_ALERTS: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary"""
@@ -228,7 +241,10 @@ def load_settings() -> Settings:
         DISCORD_WEBHOOK_URL=os.getenv('DISCORD_WEBHOOK_URL'),
         TELEGRAM_BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN'),
         TELEGRAM_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID'),
-        BIRDEYE_API_KEY=os.getenv('BIRDEYE_API_KEY'),
+        SOLANA_TRACKER_KEY=os.getenv('SOLANA_TRACKER_KEY'),
+        EMAIL_USER=os.getenv('EMAIL_USER'),
+        EMAIL_PASSWORD=os.getenv('EMAIL_PASSWORD'),
+        EMAIL_TO=os.getenv('EMAIL_TO'),
     )
 
     # Add new environment mappings for grid and DCA settings
@@ -299,17 +315,31 @@ def load_settings() -> Settings:
         'PRIORITY_FEE_MULTIPLIER': ('PRIORITY_FEE_MULTIPLIER', float),
         'MAX_GAS_PRICE': ('MAX_GAS_PRICE', int),
         
-        # Birdeye trending settings
-        'BIRDEYE_API_KEY': ('BIRDEYE_API_KEY', str),
-        'ENABLE_TRENDING_FILTER': ('ENABLE_TRENDING_FILTER', lambda x: x.lower() == 'true'),
-        'MAX_TRENDING_RANK': ('MAX_TRENDING_RANK', int),
-        'MIN_PRICE_CHANGE_24H': ('MIN_PRICE_CHANGE_24H', float),
-        'MIN_VOLUME_CHANGE_24H': ('MIN_VOLUME_CHANGE_24H', float),
-        'MIN_TRENDING_SCORE': ('MIN_TRENDING_SCORE', float),
-        'TRENDING_SIGNAL_BOOST': ('TRENDING_SIGNAL_BOOST', float),
-        'TRENDING_FALLBACK_MODE': ('TRENDING_FALLBACK_MODE', str),
-        'TRENDING_CACHE_DURATION': ('TRENDING_CACHE_DURATION', int),
-        'TRENDING_REQUEST_INTERVAL': ('TRENDING_REQUEST_INTERVAL', float),
+        # Optimized filter settings
+        'MIN_VOLUME_GROWTH': ('MIN_VOLUME_GROWTH', float),
+        'MIN_MOMENTUM_PERCENTAGE': ('MIN_MOMENTUM_PERCENTAGE', float),
+        'MAX_TOKEN_AGE_HOURS': ('MAX_TOKEN_AGE_HOURS', float),
+        'HIGH_MOMENTUM_BYPASS': ('HIGH_MOMENTUM_BYPASS', float),
+        'MEDIUM_MOMENTUM_BYPASS': ('MEDIUM_MOMENTUM_BYPASS', float),
+        
+        # Solana Tracker API settings
+        'SOLANA_TRACKER_KEY': ('SOLANA_TRACKER_KEY', str),
+        'SOLANA_TRACKER_BASE_URL': ('SOLANA_TRACKER_BASE_URL', str),
+        'DAILY_REQUEST_LIMIT': ('DAILY_REQUEST_LIMIT', int),
+        'TRENDING_INTERVAL': ('TRENDING_INTERVAL', int),
+        'VOLUME_INTERVAL': ('VOLUME_INTERVAL', int),
+        'MEMESCOPE_INTERVAL': ('MEMESCOPE_INTERVAL', int),
+        
+        # Email notification settings
+        'EMAIL_ENABLED': ('EMAIL_ENABLED', lambda x: x.lower() == 'true'),
+        'EMAIL_SMTP_SERVER': ('EMAIL_SMTP_SERVER', str),
+        'EMAIL_PORT': ('EMAIL_PORT', int),
+        'EMAIL_USER': ('EMAIL_USER', str),
+        'EMAIL_PASSWORD': ('EMAIL_PASSWORD', str),
+        'EMAIL_TO': ('EMAIL_TO', str),
+        'DAILY_REPORT_TIME': ('DAILY_REPORT_TIME', str),
+        'CRITICAL_ALERTS': ('CRITICAL_ALERTS', lambda x: x.lower() == 'true'),
+        'PERFORMANCE_ALERTS': ('PERFORMANCE_ALERTS', lambda x: x.lower() == 'true'),
     }
 
     for attr, (env_var, type_func) in env_mappings.items():

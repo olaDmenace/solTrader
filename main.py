@@ -2,13 +2,19 @@ import asyncio
 import logging
 import aiohttp
 import os
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 from src.config.settings import Settings, load_settings
 from src.api.alchemy import AlchemyClient
 from src.api.jupiter import JupiterClient
-from src.practical_solana_scanner import PracticalSolanaScanner
+from src.api.solana_tracker import SolanaTrackerClient
+from src.enhanced_token_scanner import EnhancedTokenScanner
 from src.phantom_wallet import PhantomWallet
 from src.trading.strategy import TradingStrategy, TradingMode
+from src.analytics.performance_analytics import PerformanceAnalytics
+from src.notifications.email_system import EmailNotificationSystem
+from src.dashboard.enhanced_dashboard import EnhancedDashboard
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -59,15 +65,26 @@ class TradingBot:
         self.alchemy = AlchemyClient(self.settings.ALCHEMY_RPC_URL)
         self.jupiter = JupiterClient()
         self.wallet = PhantomWallet(self.alchemy)
-        self.scanner = PracticalSolanaScanner(self.jupiter, self.alchemy, self.settings)
+        
+        # Initialize enhanced components
+        self.solana_tracker = SolanaTrackerClient()
+        self.enhanced_scanner = EnhancedTokenScanner(self.settings)
+        self.analytics = PerformanceAnalytics(self.settings)
+        self.email_system = EmailNotificationSystem(self.settings)
+        self.dashboard = EnhancedDashboard(
+            self.settings, 
+            self.analytics, 
+            self.email_system, 
+            self.solana_tracker
+        )
 
-        # Initialize trading strategy
+        # Initialize trading strategy with enhanced scanner
         mode = TradingMode.PAPER if self.settings.PAPER_TRADING else TradingMode.LIVE
         self.strategy = TradingStrategy(
             jupiter_client=self.jupiter,
             wallet=self.wallet,
             settings=self.settings,
-            scanner=self.scanner,
+            scanner=self.enhanced_scanner,  # Use enhanced scanner
             mode=mode
         )
 
@@ -96,15 +113,51 @@ class TradingBot:
                 return False
             logger.info("[OK] Wallet connected")
 
+            # Test Solana Tracker API
+            if not await self.solana_tracker.test_connection():
+                logger.error("[ERROR] Solana Tracker API connection failed")
+                return False
+            logger.info("[OK] Solana Tracker API connection successful")
+
+            # Start enhanced components
+            logger.info("Starting enhanced systems...")
+            
+            # Start email system
+            await self.email_system.start()
+            logger.info("[OK] Email notification system started")
+            
+            # Start enhanced scanner
+            await self.enhanced_scanner.start()
+            logger.info("[OK] Enhanced token scanner started")
+            
+            # Start dashboard
+            await self.dashboard.start()
+            logger.info("[OK] Enhanced dashboard started")
+
             # Mode announcement
             mode = "Paper" if self.settings.PAPER_TRADING else "Live"
+
+            # Send startup notification
+            await self.email_system.send_critical_alert(
+                "SolTrader Bot Started",
+                f"Bot successfully started in {mode} mode with enhanced features:\n\n"
+                f"- Solana Tracker API integrated\n"
+                f"- Optimized filters (100 SOL liquidity, 5% momentum)\n"
+                f"- High momentum bypass (>500% gains)\n"
+                f"- Medium momentum bypass (>100% gains)\n"
+                f"- Email notifications active\n"
+                f"- Analytics dashboard running\n"
+                f"- Performance tracking enabled\n\n"
+                f"Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL"
+            )
             logger.info(f"[MODE] Bot initialized in {mode} trading mode")
             logger.info(f"[BALANCE] Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
+            logger.info("[ENHANCED] All enhanced features activated successfully")
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Startup failed: {str(e)}")
+            logger.error(f"[ERROR] Startup failed: {str(e)}")
             return False
 
     async def connect_wallet(self) -> bool:
@@ -123,6 +176,53 @@ class TradingBot:
         except Exception as e:
             logger.error(f"Wallet connection error: {e}")
             return False
+
+    async def _perform_health_checks(self):
+        """Perform enhanced health checks"""
+        try:
+            # Check API rate limits
+            usage_stats = self.solana_tracker.get_usage_stats()
+            if usage_stats['usage_percentage'] > 90:
+                await self.email_system.send_performance_alert(
+                    "api_limit",
+                    f"API usage at {usage_stats['usage_percentage']:.1f}%. Approaching daily limit.",
+                    usage_stats
+                )
+            
+            # Check system performance
+            real_time_metrics = self.analytics.get_real_time_metrics()
+            if real_time_metrics['current_drawdown'] > 20:  # 20% drawdown threshold
+                await self.email_system.send_performance_alert(
+                    "risk_breach",
+                    f"Portfolio drawdown at {real_time_metrics['current_drawdown']:.1f}%. Risk limits breached.",
+                    real_time_metrics
+                )
+            
+        except Exception as e:
+            logger.error(f"Error in health checks: {e}")
+
+    async def _check_daily_report(self):
+        """Check if daily report should be sent"""
+        try:
+            now = datetime.now()
+            report_time = self.settings.DAILY_REPORT_TIME.split(':')
+            report_hour = int(report_time[0])
+            report_minute = int(report_time[1]) if len(report_time) > 1 else 0
+            
+            # Check if it's time for daily report (within 1-minute window)
+            if (now.hour == report_hour and 
+                report_minute <= now.minute <= report_minute + 1):
+                
+                daily_stats = self.analytics.get_daily_breakdown()
+                await self.email_system.send_daily_report(daily_stats)
+                
+                # Reset daily stats at midnight
+                if now.hour == 0 and now.minute <= 1:
+                    self.analytics.reset_daily_stats()
+                    self.enhanced_scanner.reset_daily_stats()
+                    
+        except Exception as e:
+            logger.error(f"Error checking daily report: {e}")
 
     async def run(self) -> None:
         """Main bot execution loop"""
@@ -146,10 +246,20 @@ class TradingBot:
                 try:
                     await asyncio.sleep(60)  # Check every minute
                     
+                    # Enhanced health checks
+                    await self._perform_health_checks()
+                    
+                    # Send daily report if needed
+                    await self._check_daily_report()
+                    
                     # Basic health check
                     if not self.strategy.is_trading:
                         logger.warning("[WARN] Strategy is not trading - checking status...")
-                        # Could add restart logic here if needed
+                        await self.email_system.send_performance_alert(
+                            "system_health",
+                            "Trading strategy is not active. Investigating...",
+                            {"timestamp": str(datetime.now()), "issue": "strategy_inactive"}
+                        )
                     
                 except asyncio.CancelledError:
                     logger.info("[STOP] Bot shutdown requested")
@@ -170,12 +280,37 @@ class TradingBot:
         """Graceful shutdown"""
         logger.info("[CLEANUP] Starting shutdown...")
         try:
-            # Stop strategy first
+            # Send shutdown notification
+            await self.email_system.send_critical_alert(
+                "SolTrader Bot Shutdown",
+                "Bot is shutting down. Final statistics will be sent in daily report."
+            )
+
+            # Stop enhanced components first
+            logger.info("Stopping enhanced systems...")
+            
+            if self.dashboard:
+                await self.dashboard.stop()
+                logger.info("[OK] Enhanced dashboard stopped")
+            
+            if self.enhanced_scanner:
+                await self.enhanced_scanner.stop()
+                logger.info("[OK] Enhanced scanner stopped")
+            
+            if self.email_system:
+                await self.email_system.stop()
+                logger.info("[OK] Email system stopped")
+
+            # Stop strategy
             if hasattr(self.strategy, 'stop_trading'):
                 await self.strategy.stop_trading()
                 logger.info("[OK] Trading strategy stopped")
             
-            # Close connections
+            # Close API connections
+            if self.solana_tracker:
+                await self.solana_tracker.close()
+                logger.info("[OK] Solana Tracker client closed")
+
             if self.jupiter:
                 await self.jupiter.close()
                 logger.info("[OK] Jupiter client closed")
@@ -211,7 +346,7 @@ async def main():
         bot = TradingBot()
         await bot.run()
     except Exception as e:
-        logger.error(f"💥 Fatal error: {str(e)}")
+        logger.error(f"[FATAL] Fatal error: {str(e)}")
     finally:
         if bot:
             await bot.shutdown()
@@ -221,7 +356,7 @@ if __name__ == "__main__":
         # Run the bot
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("👋 Bot stopped by user")
+        logger.info("[STOP] Bot stopped by user")
     except Exception as e:
-        logger.error(f"💥 Failed to start bot: {str(e)}")
+        logger.error(f"[FAILED] Failed to start bot: {str(e)}")
         exit(1)

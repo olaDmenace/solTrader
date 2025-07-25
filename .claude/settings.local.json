@@ -13,7 +13,8 @@
       "Bash(mv:*)",
       "Bash(venv/Scripts/python.exe:*)",
       "Bash(chmod:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "WebFetch(domain:docs.solanatracker.io)"
     ],
     "deny": []
   },
