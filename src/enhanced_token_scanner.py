@@ -21,9 +21,10 @@ class ScanResult:
     source_effectiveness: float
 
 class EnhancedTokenScanner:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, analytics=None):
         self.settings = settings
         self.solana_tracker = SolanaTrackerClient()
+        self.analytics = analytics  # Analytics system integration
         
         # Optimized filter settings for 40-60% approval rate
         self.min_liquidity = 100.0  # FURTHER REDUCED from 250 SOL for higher approval
@@ -225,6 +226,33 @@ class EnhancedTokenScanner:
                 self.daily_stats['approval_rate'] = (
                     self.daily_stats['tokens_approved'] / self.daily_stats['tokens_scanned']
                 ) * 100
+            
+            # Update analytics system if available
+            if self.analytics:
+                self.analytics.update_scanner_stats(
+                    tokens_scanned=len(all_tokens),
+                    tokens_approved=len(approved_tokens),
+                    high_momentum_bypasses=self.daily_stats['high_momentum_bypasses'],
+                    api_requests_used=self.solana_tracker.get_usage_stats()['requests_used']
+                )
+                
+                # Update discovery analytics for each source
+                for source, stats in self.source_stats.items():
+                    if stats['discovered'] > 0:
+                        avg_age = sum(token.age_minutes for token in all_tokens if token.source == source) / max(stats['discovered'], 1)
+                        liquidity_values = [token.liquidity for token in all_tokens if token.source == source and token.liquidity > 0]
+                        liquidity_stats = {
+                            'min': min(liquidity_values) if liquidity_values else 0,
+                            'max': max(liquidity_values) if liquidity_values else 0,
+                            'avg': sum(liquidity_values) / len(liquidity_values) if liquidity_values else 0
+                        }
+                        self.analytics.update_discovery_analytics(
+                            source=source,
+                            discovered=stats['discovered'],
+                            approved=stats['approved'],
+                            avg_age=avg_age,
+                            liquidity_stats=liquidity_stats
+                        )
             
             # Log scan results
             scan_duration = time.time() - scan_start

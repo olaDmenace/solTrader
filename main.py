@@ -68,8 +68,8 @@ class TradingBot:
         
         # Initialize enhanced components
         self.solana_tracker = SolanaTrackerClient()
-        self.enhanced_scanner = EnhancedTokenScanner(self.settings)
         self.analytics = PerformanceAnalytics(self.settings)
+        self.enhanced_scanner = EnhancedTokenScanner(self.settings, self.analytics)
         self.email_system = EmailNotificationSystem(self.settings)
         self.dashboard = EnhancedDashboard(
             self.settings, 

@@ -1110,10 +1110,10 @@ class TradingStrategy(TradingStrategyProtocol):
                 market_cap_sol = float(token.get("market_cap_sol", token.get("market_cap", 0)))  # FIX: Check both fields
             else:
                 address = getattr(token, "address", "")
-                volume_24h = float(getattr(token, "volume24h", 0))
+                volume_24h = float(getattr(token, "volume_24h", 0))  # FIX: Use volume_24h not volume24h
                 liquidity = float(getattr(token, "liquidity", 0))
-                price_sol = float(getattr(token, "price_sol", 0))
-                market_cap_sol = float(getattr(token, "market_cap_sol", getattr(token, "market_cap", 0)))  # FIX: Check both fields
+                price_sol = float(getattr(token, "price", 0))  # FIX: Use price not price_sol
+                market_cap_sol = float(getattr(token, "market_cap", 0))  # FIX: Use market_cap
 
             # Check if this is a trending token (more permissive validation)
             is_trending = token.get('source') == 'birdeye_trending' if isinstance(token, dict) else getattr(token, 'source', '') == 'birdeye_trending'
