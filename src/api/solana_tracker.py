@@ -98,12 +98,24 @@ class SolanaTrackerClient:
             self.session = None
 
     def _reset_daily_counter_if_needed(self):
-        today = datetime.now().date()
-        if today > self.last_reset:
-            self.requests_today = 0
-            self.last_reset = today
-            self.request_count = {k: 0 for k in self.request_count}
-            logger.info(f"Daily request counter reset. New day: {today}")
+        try:
+            today = datetime.now().date()
+            if today > self.last_reset:
+                old_count = self.requests_today
+                self.requests_today = 0
+                self.last_reset = today
+                self.request_count = {k: 0 for k in self.request_count}
+                logger.info(f"Daily request counter reset. New day: {today} (Previous: {old_count} requests)")
+        except Exception as e:
+            logger.error(f"Error during daily counter reset: {e}")
+            # Ensure we don't get stuck in a bad state
+            try:
+                self.requests_today = 0
+                self.last_reset = datetime.now().date()
+                self.request_count = {k: 0 for k in self.request_count}
+                logger.warning("Emergency counter reset performed")
+            except Exception as emergency_error:
+                logger.critical(f"Emergency counter reset failed: {emergency_error}")
 
     def _can_make_request(self) -> bool:
         self._reset_daily_counter_if_needed()
@@ -533,20 +545,33 @@ class SolanaTrackerClient:
 
     def get_usage_stats(self) -> Dict[str, Any]:
         """Get current API usage statistics"""
-        self._reset_daily_counter_if_needed()
-        
-        return {
-            'requests_today': self.requests_today,
-            'daily_limit': self.daily_limit,
-            'remaining_requests': self.daily_limit - self.requests_today,
-            'usage_percentage': (self.requests_today / self.daily_limit) * 100,
-            'request_breakdown': self.request_count.copy(),
-            'last_reset': self.last_reset.isoformat(),
-            'next_scheduled': {
-                endpoint: self.last_requests.get(endpoint, 0) + self.intervals[endpoint] - time.time()
-                for endpoint in self.intervals
+        try:
+            self._reset_daily_counter_if_needed()
+            
+            return {
+                'requests_today': self.requests_today,
+                'daily_limit': self.daily_limit,
+                'remaining_requests': max(0, self.daily_limit - self.requests_today),
+                'usage_percentage': (self.requests_today / self.daily_limit) * 100 if self.daily_limit > 0 else 0,
+                'request_breakdown': self.request_count.copy(),
+                'last_reset': self.last_reset.isoformat() if hasattr(self.last_reset, 'isoformat') else str(self.last_reset),
+                'next_scheduled': {
+                    endpoint: max(0, self.last_requests.get(endpoint, 0) + self.intervals[endpoint] - time.time())
+                    for endpoint in self.intervals
+                }
             }
-        }
+        except Exception as e:
+            logger.error(f"Error getting usage stats: {e}")
+            # Return safe defaults
+            return {
+                'requests_today': 0,
+                'daily_limit': self.daily_limit,
+                'remaining_requests': self.daily_limit,
+                'usage_percentage': 0,
+                'request_breakdown': {k: 0 for k in ['trending', 'volume', 'memescope', 'total']},
+                'last_reset': datetime.now().date().isoformat(),
+                'next_scheduled': {endpoint: 0 for endpoint in self.intervals}
+            }
 
     async def test_connection(self) -> bool:
         """Test API connectivity"""

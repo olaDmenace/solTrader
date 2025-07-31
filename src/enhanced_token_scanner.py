@@ -185,9 +185,13 @@ class EnhancedTokenScanner:
                 logger.error("Still no tokens after retry")
                 return []
             
-            # Update API usage stats
-            usage_stats = self.solana_tracker.get_usage_stats()
-            self.daily_stats['api_requests_used'] = usage_stats['requests_today']
+            # Update API usage stats with error handling
+            try:
+                usage_stats = self.solana_tracker.get_usage_stats()
+                self.daily_stats['api_requests_used'] = usage_stats.get('requests_today', 0)
+            except Exception as stats_error:
+                logger.warning(f"Failed to get usage stats: {stats_error}")
+                self.daily_stats['api_requests_used'] = 0
             
             # Filter and score tokens
             approved_tokens = []
@@ -227,32 +231,42 @@ class EnhancedTokenScanner:
                     self.daily_stats['tokens_approved'] / self.daily_stats['tokens_scanned']
                 ) * 100
             
-            # Update analytics system if available
+            # Update analytics system if available with error handling
             if self.analytics:
-                self.analytics.update_scanner_stats(
-                    tokens_scanned=len(all_tokens),
-                    tokens_approved=len(approved_tokens),
-                    high_momentum_bypasses=self.daily_stats['high_momentum_bypasses'],
-                    api_requests_used=self.solana_tracker.get_usage_stats()['requests_used']
-                )
-                
-                # Update discovery analytics for each source
-                for source, stats in self.source_stats.items():
-                    if stats['discovered'] > 0:
-                        avg_age = sum(token.age_minutes for token in all_tokens if token.source == source) / max(stats['discovered'], 1)
-                        liquidity_values = [token.liquidity for token in all_tokens if token.source == source and token.liquidity > 0]
-                        liquidity_stats = {
-                            'min': min(liquidity_values) if liquidity_values else 0,
-                            'max': max(liquidity_values) if liquidity_values else 0,
-                            'avg': sum(liquidity_values) / len(liquidity_values) if liquidity_values else 0
-                        }
-                        self.analytics.update_discovery_analytics(
-                            source=source,
-                            discovered=stats['discovered'],
-                            approved=stats['approved'],
-                            avg_age=avg_age,
-                            liquidity_stats=liquidity_stats
-                        )
+                try:
+                    usage_stats = self.solana_tracker.get_usage_stats()
+                    api_requests = usage_stats.get('requests_today', 0)
+                    
+                    self.analytics.update_scanner_stats(
+                        tokens_scanned=len(all_tokens),
+                        tokens_approved=len(approved_tokens),
+                        high_momentum_bypasses=self.daily_stats['high_momentum_bypasses'],
+                        api_requests_used=api_requests
+                    )
+                    
+                    # Update discovery analytics for each source
+                    for source, stats in self.source_stats.items():
+                        if stats['discovered'] > 0:
+                            try:
+                                avg_age = sum(token.age_minutes for token in all_tokens if token.source == source) / max(stats['discovered'], 1)
+                                liquidity_values = [token.liquidity for token in all_tokens if token.source == source and token.liquidity > 0]
+                                liquidity_stats = {
+                                    'min': min(liquidity_values) if liquidity_values else 0,
+                                    'max': max(liquidity_values) if liquidity_values else 0,
+                                    'avg': sum(liquidity_values) / len(liquidity_values) if liquidity_values else 0
+                                }
+                                self.analytics.update_discovery_analytics(
+                                    source=source,
+                                    discovered=stats['discovered'],
+                                    approved=stats['approved'],
+                                    avg_age=avg_age,
+                                    liquidity_stats=liquidity_stats
+                                )
+                            except Exception as source_error:
+                                logger.warning(f"Failed to update analytics for source {source}: {source_error}")
+                                
+                except Exception as analytics_error:
+                    logger.warning(f"Failed to update analytics: {analytics_error}")
             
             # Log scan results
             scan_duration = time.time() - scan_start
@@ -269,6 +283,25 @@ class EnhancedTokenScanner:
             
         except Exception as e:
             logger.error(f"Error in full scan: {e}")
+            
+            # Try to recover from API errors
+            try:
+                # Check if it's an API-related error
+                if 'requests_' in str(e) or 'usage_stats' in str(e):
+                    logger.warning("API stats error detected - attempting recovery")
+                    # Reset API client if needed
+                    if hasattr(self.solana_tracker, 'session') and self.solana_tracker.session:
+                        await self.solana_tracker.close()
+                        await asyncio.sleep(2)
+                        await self.solana_tracker.start_session()
+                    
+                    # Return empty list to prevent crash but continue operation
+                    logger.info("Recovery attempt completed - continuing with empty token list")
+                    return []
+                    
+            except Exception as recovery_error:
+                logger.error(f"Recovery attempt failed: {recovery_error}")
+            
             return []
 
     async def _evaluate_token(self, token: TokenData) -> Optional[ScanResult]:

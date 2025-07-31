@@ -14,7 +14,9 @@
       "Bash(venv/Scripts/python.exe:*)",
       "Bash(chmod:*)",
       "Bash(touch:*)",
-      "WebFetch(domain:docs.solanatracker.io)"
+      "WebFetch(domain:docs.solanatracker.io)",
+      "Bash(claude-code --version)",
+      "Bash(claude-code config list)"
     ],
     "deny": []
   },
