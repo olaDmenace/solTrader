@@ -1542,6 +1542,32 @@ class TradingStrategy(TradingStrategyProtocol):
                     "total_positions": len(self.state.paper_positions)
                 },
             )
+            
+            # Update dashboard with trade execution
+            await self._update_dashboard_with_trade({
+                "type": "buy",
+                "token_address": token_address,
+                "symbol": "UNKNOWN",  # Will be updated if available
+                "size": size,
+                "price": price,
+                "cost": cost,
+                "timestamp": datetime.now().isoformat(),
+                "stop_loss": stop_loss_price,
+                "take_profit": take_profit_price,
+                "status": "open"
+            })
+            
+            await self._update_dashboard_activity("trade_executed", {
+                "token": token_address[:8],
+                "type": "paper_buy",
+                "size": size,
+                "price": price,
+                "cost": cost,
+                "remaining_balance": self.state.paper_balance,
+                "positions": len(self.state.paper_positions),
+                "timestamp": datetime.now().isoformat()
+            })
+            
             return True
 
         except Exception as e:
@@ -1852,7 +1878,18 @@ class TradingStrategy(TradingStrategyProtocol):
                 },
             )
             
-            # Record completed trade for dashboard updates
+            # Update the existing trade record in the dashboard to closed status
+            await self._update_dashboard_trade_close({
+                "token_address": token_address,
+                "exit_time": datetime.now().isoformat(),
+                "exit_price": position.current_price,
+                "pnl": realized_pnl,
+                "pnl_percentage": pnl_percentage,
+                "reason": reason,
+                "status": "closed"
+            })
+            
+            # Store completed trade in memory for strategy tracking
             trade_record = {
                 "token": token_address,
                 "entry_time": position.trade_entry.entry_time,
@@ -1866,13 +1903,9 @@ class TradingStrategy(TradingStrategyProtocol):
                 "type": "paper"
             }
             
-            # Store completed trade (this will help dashboard show activity)
             if not hasattr(self.state, 'completed_trades'):
                 self.state.completed_trades = []
             self.state.completed_trades.append(trade_record)
-            
-            # Save to dashboard data file
-            await self._save_trade_to_dashboard(trade_record)
             
             # Update dashboard to indicate position closed
             await self._update_dashboard_activity("position_closed", {
@@ -2066,6 +2099,140 @@ class TradingStrategy(TradingStrategyProtocol):
             
         except Exception as e:
             logger.error(f"Error saving trade to dashboard: {e}")
+
+    async def _update_dashboard_with_trade(self, trade_data: Dict[str, Any]) -> None:
+        """Update dashboard with trade information in trades array"""
+        try:
+            import json
+            dashboard_file = "bot_data.json"
+            
+            # Load existing data
+            try:
+                with open(dashboard_file, 'r') as f:
+                    dashboard_data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                dashboard_data = {
+                    "status": "running",
+                    "trades": [],
+                    "performance": {
+                        "total_pnl": 0.0,
+                        "win_rate": 0.0,
+                        "total_trades": 0,
+                        "balance": self.state.paper_balance,
+                        "unrealized_pnl": 0,
+                        "open_positions": 0
+                    },
+                    "activity": [],
+                    "last_update": datetime.now().isoformat()
+                }
+            
+            # Ensure trades array exists
+            if "trades" not in dashboard_data:
+                dashboard_data["trades"] = []
+            
+            # Add trade to trades array
+            dashboard_data["trades"].append(trade_data)
+            
+            # Update performance metrics
+            if "performance" not in dashboard_data:
+                dashboard_data["performance"] = {
+                    "total_pnl": 0.0,
+                    "win_rate": 0.0,
+                    "total_trades": 0,
+                    "balance": self.state.paper_balance,
+                    "unrealized_pnl": 0,
+                    "open_positions": 0
+                }
+            
+            # Update trade count and balance
+            dashboard_data["performance"]["total_trades"] = len(dashboard_data["trades"])
+            dashboard_data["performance"]["balance"] = self.state.paper_balance
+            unrealized_pnl = sum(pos.unrealized_pnl for pos in self.state.paper_positions.values())
+            dashboard_data["performance"]["unrealized_pnl"] = unrealized_pnl
+            dashboard_data["performance"]["open_positions"] = len(self.state.paper_positions)
+            
+            # Update win rate
+            completed_trades = [t for t in dashboard_data["trades"] if t.get("status") == "closed"]
+            if completed_trades:
+                winning_trades = [t for t in completed_trades if t.get("pnl", 0) > 0]
+                dashboard_data["performance"]["win_rate"] = len(winning_trades) / len(completed_trades) * 100
+            
+            # Update total PnL
+            total_pnl = sum(t.get("pnl", 0) for t in completed_trades)
+            dashboard_data["performance"]["total_pnl"] = total_pnl
+            
+            # Update status and timestamp
+            dashboard_data["status"] = "running"
+            dashboard_data["last_update"] = datetime.now().isoformat()
+            
+            # Save updated data
+            with open(dashboard_file, 'w') as f:
+                json.dump(dashboard_data, f, indent=2)
+                
+            logger.info(f"[DASHBOARD] Trade added to dashboard - Total trades: {len(dashboard_data['trades'])}")
+            
+        except Exception as e:
+            logger.error(f"Error updating dashboard with trade: {e}")
+
+    async def _update_dashboard_trade_close(self, close_data: Dict[str, Any]) -> None:
+        """Update existing trade record in dashboard when position is closed"""
+        try:
+            import json
+            dashboard_file = "bot_data.json"
+            
+            # Load existing data
+            try:
+                with open(dashboard_file, 'r') as f:
+                    dashboard_data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                logger.error("Dashboard file not found or corrupted when trying to close trade")
+                return
+            
+            if "trades" not in dashboard_data:
+                logger.error("No trades array found in dashboard data")
+                return
+                
+            # Find the corresponding open trade and update it
+            token_address = close_data["token_address"]
+            for trade in dashboard_data["trades"]:
+                if (trade.get("token_address") == token_address and 
+                    trade.get("status") == "open"):
+                    # Update the trade with closing information
+                    trade["exit_time"] = close_data["exit_time"]
+                    trade["exit_price"] = close_data["exit_price"]
+                    trade["pnl"] = close_data["pnl"]
+                    trade["pnl_percentage"] = close_data["pnl_percentage"]
+                    trade["reason"] = close_data["reason"]
+                    trade["status"] = "closed"
+                    
+                    logger.info(f"[DASHBOARD] Updated trade record for {token_address[:8]}... - PnL: {close_data['pnl']:.4f} SOL")
+                    break
+            else:
+                logger.warning(f"[DASHBOARD] Could not find open trade record for {token_address[:8]}...")
+            
+            # Recalculate performance metrics
+            completed_trades = [t for t in dashboard_data["trades"] if t.get("status") == "closed"]
+            if completed_trades:
+                winning_trades = [t for t in completed_trades if t.get("pnl", 0) > 0]
+                dashboard_data["performance"]["win_rate"] = len(winning_trades) / len(completed_trades) * 100
+                
+                total_pnl = sum(t.get("pnl", 0) for t in completed_trades)
+                dashboard_data["performance"]["total_pnl"] = total_pnl
+            
+            # Update trade count
+            dashboard_data["performance"]["total_trades"] = len(dashboard_data["trades"])
+            dashboard_data["performance"]["balance"] = self.state.paper_balance
+            dashboard_data["performance"]["open_positions"] = len(self.state.paper_positions)
+            
+            # Update timestamp
+            dashboard_data["last_update"] = datetime.now().isoformat()
+            
+            # Save updated data
+            with open(dashboard_file, 'w') as f:
+                json.dump(dashboard_data, f, indent=2)
+                
+        except Exception as e:
+            logger.error(f"Error updating dashboard trade close: {e}")
 
     async def _update_dashboard_activity(self, activity_type: str, data: Dict[str, Any]) -> None:
         """Update dashboard with real-time bot activity"""

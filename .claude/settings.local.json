@@ -16,7 +16,8 @@
       "Bash(touch:*)",
       "WebFetch(domain:docs.solanatracker.io)",
       "Bash(claude-code --version)",
-      "Bash(claude-code config list)"
+      "Bash(claude-code config list)",
+      "Bash(./venv/Scripts/python.exe test_paper_trading_integration.py:*)"
     ],
     "deny": []
   },

@@ -1,15 +1,28 @@
 {
   "status": "running",
-  "trades": [],
+  "trades": [
+    {
+      "type": "buy",
+      "token_address": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+      "symbol": "UNKNOWN",
+      "size": 10.0,
+      "price": 0.11402085807329838,
+      "cost": 1.1402085807329838,
+      "timestamp": "2025-08-03T23:10:18.850728",
+      "stop_loss": 0.10831981516963346,
+      "take_profit": 0.12542294388062825,
+      "status": "open"
+    }
+  ],
   "performance": {
-    "total_pnl": 0.0,
+    "total_pnl": 0,
     "win_rate": 0.0,
-    "total_trades": 0,
-    "balance": 100.0,
-    "unrealized_pnl": 0,
-    "open_positions": 0
+    "total_trades": 1,
+    "balance": 98.85979141926701,
+    "unrealized_pnl": 0.0,
+    "open_positions": 1
   },
-  "last_update": "2025-08-02T18:47:27.149150",
+  "last_update": "2025-08-03T23:10:18.854333",
   "activity": [
     {
       "type": "system_reset",
@@ -33,6 +46,20 @@
         "timestamp": "2025-08-02T18:47:27.149150"
       },
       "timestamp": "2025-08-02T18:47:27.149150"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "HZ1JovNi",
+        "type": "paper_buy",
+        "size": 10.0,
+        "price": 0.11402085807329838,
+        "cost": 1.1402085807329838,
+        "remaining_balance": 98.85979141926701,
+        "positions": 1,
+        "timestamp": "2025-08-03T23:10:18.853334"
+      },
+      "timestamp": "2025-08-03T23:10:18.854333"
     }
   ]
 }
