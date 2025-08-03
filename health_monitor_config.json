@@ -1,0 +1,68 @@
+{
+  "monitoring_interval": 60,
+  "log_file_path": "logs/trading.log",
+  "dashboard_file": "bot_data.json",
+  "max_recovery_attempts_per_hour": 5,
+  "recovery_cooldown_minutes": 5,
+  "thresholds": {
+    "token_discovery_rate": {
+      "warning": 100,
+      "critical": 50,
+      "description": "Minimum tokens discovered per scan"
+    },
+    "approval_rate": {
+      "warning": 20,
+      "critical": 15,
+      "description": "Minimum approval rate percentage"
+    },
+    "api_error_rate": {
+      "warning": 10,
+      "critical": 20,
+      "description": "Maximum API error rate percentage"
+    },
+    "trade_execution_rate": {
+      "warning": 5,
+      "critical": 0,
+      "description": "Minimum trades executed per hour"
+    },
+    "cpu_usage": {
+      "warning": 80,
+      "critical": 95,
+      "description": "Maximum CPU usage percentage"
+    },
+    "memory_usage": {
+      "warning": 80,
+      "critical": 90,
+      "description": "Maximum memory usage percentage"
+    },
+    "disk_usage": {
+      "warning": 85,
+      "critical": 95,
+      "description": "Maximum disk usage percentage"
+    },
+    "api_response_time": {
+      "warning": 10,
+      "critical": 30,
+      "description": "Maximum API response time in seconds"
+    }
+  },
+  "recovery_actions": {
+    "soft_recovery": {
+      "description": "Reset API connections, clear caches",
+      "max_attempts": 3
+    },
+    "medium_recovery": {
+      "description": "Restart scanner and strategy components",
+      "max_attempts": 2
+    },
+    "hard_recovery": {
+      "description": "Full bot restart",
+      "max_attempts": 1
+    }
+  },
+  "alerts": {
+    "email_enabled": true,
+    "critical_threshold": 2,
+    "warning_threshold": 5
+  }
+}

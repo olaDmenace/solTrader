@@ -15,6 +15,7 @@ from src.trading.strategy import TradingStrategy, TradingMode
 from src.analytics.performance_analytics import PerformanceAnalytics
 from src.notifications.email_system import EmailNotificationSystem
 from src.dashboard.enhanced_dashboard import EnhancedDashboard
+from src.monitoring.health_monitor import HealthMonitor
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -88,6 +89,9 @@ class TradingBot:
             mode=mode
         )
 
+        # Initialize health monitoring system
+        self.health_monitor = HealthMonitor(bot_instance=self, settings=self.settings)
+        
         self.telegram_bot: Optional[Any] = None
         logger.info("[OK] Bot components initialized")
 
@@ -153,6 +157,10 @@ class TradingBot:
             logger.info(f"[MODE] Bot initialized in {mode} trading mode")
             logger.info(f"[BALANCE] Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
             logger.info("[ENHANCED] All enhanced features activated successfully")
+            
+            # Start health monitoring
+            await self.health_monitor.start_monitoring()
+            logger.info("[HEALTH] Health monitoring system started")
             
             return True
             
@@ -286,7 +294,12 @@ class TradingBot:
                 "Bot is shutting down. Final statistics will be sent in daily report."
             )
 
-            # Stop enhanced components first
+            # Stop health monitoring first
+            if self.health_monitor:
+                await self.health_monitor.stop_monitoring()
+                logger.info("[OK] Health monitoring stopped")
+            
+            # Stop enhanced components
             logger.info("Stopping enhanced systems...")
             
             if self.dashboard:

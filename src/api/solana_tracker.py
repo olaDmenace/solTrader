@@ -92,10 +92,27 @@ class SolanaTrackerClient:
                 headers=headers
             )
 
-    async def close(self):
+    async def close_session(self):
+        """Close the HTTP session"""
         if self.session:
             await self.session.close()
             self.session = None
+    
+    async def close(self):
+        """Alias for close_session for compatibility"""
+        await self.close_session()
+    
+    async def _test_connection(self) -> bool:
+        """Test API connectivity"""
+        try:
+            await self.start_session()
+            # Make a simple request to test connectivity
+            headers = {"X-API-KEY": self.api_key} if self.api_key else {}
+            async with self.session.get(f"{self.base_url}/tokens/trending", headers=headers, timeout=10) as response:
+                return response.status == 200
+        except Exception as e:
+            logger.error(f"Connection test failed: {e}")
+            return False
 
     def _reset_daily_counter_if_needed(self):
         try:

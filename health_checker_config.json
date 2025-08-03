@@ -1,0 +1,41 @@
+{
+  "bot_script": "main.py",
+  "python_executable": "./venv/Scripts/python.exe",
+  "working_directory": ".",
+  "service_name": "soltrader",
+  "use_systemd": false,
+  "max_restarts_per_hour": 3,
+  "checks": {
+    "process_running": true,
+    "log_activity": true,
+    "performance_metrics": true,
+    "resource_usage": true,
+    "api_connectivity": true
+  },
+  "thresholds": {
+    "max_cpu_usage": 95,
+    "max_memory_usage": 90,
+    "max_log_age_minutes": 15,
+    "min_tokens_per_scan": 50,
+    "min_approval_rate": 15
+  },
+  "files": {
+    "log_file": "logs/trading.log",
+    "dashboard_file": "bot_data.json",
+    "health_report": "health_reports/latest_health_report.json",
+    "restart_log": "logs/restart_log.json"
+  },
+  "email": {
+    "enabled": true,
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "username": null,
+    "password": null,
+    "to_address": null
+  },
+  "monitoring": {
+    "check_interval": 300,
+    "daemon_mode": false,
+    "log_level": "INFO"
+  }
+}
