@@ -935,9 +935,18 @@ class TradingStrategy(TradingStrategyProtocol):
 
                     logger.info(f"[OK] Token {token_address[:8]}... passed validation - analyzing signal...")
                     signal = await self.signal_generator.analyze_token(token_obj)
-                    if not signal or signal.strength < self.settings.SIGNAL_THRESHOLD:
-                        logger.info(f"[DATA] Token {token_address[:8]}... signal too weak: {signal.strength if signal else 'None'}")
+                    
+                    # Use paper trading specific threshold if in paper mode
+                    is_paper_trading = (self.state.mode == TradingMode.PAPER)
+                    threshold = (self.settings.PAPER_SIGNAL_THRESHOLD if is_paper_trading 
+                               else self.settings.SIGNAL_THRESHOLD)
+                    
+                    if not signal or signal.strength < threshold:
+                        mode_str = "PAPER" if is_paper_trading else "LIVE"
+                        logger.info(f"[DATA] Token {token_address[:8]}... [{mode_str}] signal too weak: {signal.strength if signal else 'None'} < {threshold}")
                         continue
+                    
+                    logger.info(f"[SIGNAL] Created signal for {token_address[:8]}... with strength {signal.strength:.2f} (threshold: {threshold:.2f})")
 
                     logger.info(f"[SIGNAL] Strong signal found for {token_address[:8]}... - calculating risk...")
                     
@@ -976,7 +985,7 @@ class TradingStrategy(TradingStrategyProtocol):
                         continue
 
                     self.state.pending_orders.append(entry_signal)
-                    logger.info(f"[DATA] Added to pending orders: {token_address[:8]}...")
+                    logger.info(f"[PENDING] Added entry signal to pending orders for {token_address[:8]}... (Total pending: {len(self.state.pending_orders)})")
                     
                     await self._emit_opportunity_alert(
                         token=token_obj, signal=signal, risk_metrics=risk_metrics, size=size
@@ -1003,6 +1012,14 @@ class TradingStrategy(TradingStrategyProtocol):
                         pass
                     logger.error(f"[ERROR] Error analyzing token {token_addr}...: {e}")
                     continue
+            
+            # Add result summary logging
+            pending_count = len(self.state.pending_orders)
+            mode_str = "PAPER" if self.state.mode == TradingMode.PAPER else "LIVE"
+            logger.info(f"[RESULT] Opportunity scan completed - Total pending orders: {pending_count} [{mode_str} mode]")
+            
+            if pending_count > 0:
+                logger.info(f"[PROCESS] Processing {pending_count} pending orders...")
             
             logger.info("[OK] Opportunity scan completed")
 
@@ -1118,8 +1135,16 @@ class TradingStrategy(TradingStrategyProtocol):
             # Check if this is a trending token (more permissive validation)
             is_trending = token.get('source') == 'birdeye_trending' if isinstance(token, dict) else getattr(token, 'source', '') == 'birdeye_trending'
             
-            # Solana-specific validations with special handling for trending tokens
-            if is_trending:
+            # Check if we're in paper trading mode
+            is_paper_trading = (self.state.mode == TradingMode.PAPER)
+            
+            # Solana-specific validations with special handling for paper trading and trending tokens
+            if is_paper_trading:
+                # Very permissive thresholds for paper trading (allows more opportunities)
+                min_volume = 0.0  # No volume requirement for paper trading
+                min_liquidity = self.settings.PAPER_MIN_LIQUIDITY  # Much lower liquidity requirement
+                logger.info(f"[PAPER_VALIDATION] Using paper trading thresholds - Volume: {min_volume:.1f} SOL, Liquidity: {min_liquidity:.1f} SOL")
+            elif is_trending:
                 # More permissive thresholds for trending tokens (they're already validated by Birdeye)
                 min_volume = max(self.settings.MIN_VOLUME_24H * 0.2, 5)  # 20% of min volume, min 5 SOL for trending
                 min_liquidity = max(self.settings.MIN_LIQUIDITY * 0.5, 200)  # 50% of min liquidity, min 200 SOL for trending
@@ -1149,11 +1174,19 @@ class TradingStrategy(TradingStrategyProtocol):
                     logger.info(f"  Price: {price_sol:.6f} SOL, Market Cap: {market_cap_sol:.0f} SOL")
                 return False
             else:
-                logger.info(f"[FILTER] PASS - Token {address[:8]}... PASSED all validations!")
+                mode_info = ""
+                if is_paper_trading:
+                    mode_info = " [PAPER]"
+                elif is_trending:
+                    mode_info = " [TRENDING]"
+                    
+                logger.info(f"[FILTER] PASS - Token {address[:8]}... PASSED all validations!{mode_info}")
                 logger.info(f"  Volume: {volume_24h:.2f} SOL (threshold: {min_volume:.2f})")
                 logger.info(f"  Liquidity: {liquidity:.2f} SOL (threshold: {min_liquidity:.2f})")
                 logger.info(f"  Price: {price_sol:.6f} SOL, Market Cap: {market_cap_sol:.0f} SOL")
-                if is_trending:
+                if is_paper_trading:
+                    logger.info(f"  [PAPER] PAPER TRADING MODE - Used relaxed validation thresholds")
+                elif is_trending:
                     logger.info(f"  [TRENDING] TRENDING TOKEN - Used permissive validation thresholds")
                 return True
 
@@ -1289,11 +1322,20 @@ class TradingStrategy(TradingStrategyProtocol):
     def _calculate_position_size(
         self, risk_metrics: Dict[str, float], current_balance: float
     ) -> float:
-        """Calculate final position size based on risk metrics"""
+        """Calculate final position size based on risk metrics and trading mode"""
         try:
             position_value = risk_metrics["position_value"]
             position_risk = risk_metrics["position_risk"]
-            max_position_size = self.settings.MAX_POSITION_SIZE
+            
+            # Use paper trading specific position size limits if in paper mode
+            is_paper_trading = (self.state.mode == TradingMode.PAPER)
+            if is_paper_trading:
+                max_position_size = self.settings.PAPER_MAX_POSITION_SIZE
+                base_size = self.settings.PAPER_BASE_POSITION_SIZE
+                logger.info(f"[PAPER] Using paper trading position sizing - max: {max_position_size:.2%}, base: {base_size:.4f} SOL")
+            else:
+                max_position_size = self.settings.MAX_POSITION_SIZE
+                base_size = None
             
             logger.info(f"[RISK] Position value: {position_value:.4f} SOL")
             logger.info(f"[RISK] Position risk: {position_risk:.2f}%")
@@ -1312,7 +1354,14 @@ class TradingStrategy(TradingStrategyProtocol):
             # Apply circuit breaker limit
             circuit_breaker_limit = getattr(self.circuit_breakers, 'max_position_size', float('inf'))
             
-            size = min(risk_adjusted_size, max_allowed_size, circuit_breaker_limit)
+            # For paper trading, ensure we have at least the base size
+            if is_paper_trading and base_size:
+                # Use the larger of risk-adjusted size or base size, but not exceed limits
+                preferred_size = max(risk_adjusted_size, base_size)
+                size = min(preferred_size, max_allowed_size, circuit_breaker_limit)
+                logger.info(f"[PAPER] Preferred size (base or risk-adjusted): {preferred_size:.4f} SOL")
+            else:
+                size = min(risk_adjusted_size, max_allowed_size, circuit_breaker_limit)
             
             logger.info(f"[CALC] Risk-adjusted size: {risk_adjusted_size:.4f} SOL")
             logger.info(f"[CALC] Max allowed size: {max_allowed_size:.4f} SOL")
@@ -1342,20 +1391,27 @@ class TradingStrategy(TradingStrategyProtocol):
     #         return None
 
     def _create_entry_signal(self, signal: Signal, size: float) -> Optional[EntrySignal]:
-        """Create entry signal with dynamic slippage based on opportunity potential"""
+        """Create entry signal with dynamic slippage based on opportunity potential and trading mode"""
         try:
-            # Dynamic slippage: higher tolerance for higher potential gains
-            base_slippage = 0.20  # 20% base slippage
+            # Determine if we're in paper trading mode
+            is_paper_trading = (self.state.mode == TradingMode.PAPER)
             
+            # Use paper trading specific slippage or live trading slippage
+            if is_paper_trading:
+                base_slippage = self.settings.PAPER_TRADING_SLIPPAGE  # 50% for paper trading
+                logger.info(f"[PAPER] Using paper trading slippage: {base_slippage:.1%}")
+            else:
+                base_slippage = 0.20  # 20% base slippage for live trading
+                
             # Check if this is a trending token with high potential
             trending_data = getattr(signal, 'market_data', {})
             trending_score = trending_data.get('trending_score', 0)
             
-            if trending_score > 70:  # High-potential trending token
+            if trending_score > 70 and not is_paper_trading:  # Only apply trending bonus for live trading
                 dynamic_slippage = min(1.5, base_slippage * (1 + trending_score / 50))  # Up to 150%
                 logger.info(f"[SLIPPAGE] High-potential token detected - using {dynamic_slippage:.1%} slippage tolerance")
             else:
-                dynamic_slippage = base_slippage  # Standard 20% slippage
+                dynamic_slippage = base_slippage
                 
             # Create EntrySignal manually instead of using from_signal
             entry_signal = EntrySignal(

@@ -19,7 +19,8 @@
       "Bash(claude-code config list)",
       "Bash(./venv/Scripts/python.exe test_paper_trading_integration.py:*)",
       "Bash(./venv/Scripts/python.exe test_health_monitoring.py)",
-      "Bash(./venv/Scripts/pip.exe install psutil)"
+      "Bash(./venv/Scripts/pip.exe install psutil)",
+      "Bash(./venv/Scripts/python.exe:*)"
     ],
     "deny": []
   },

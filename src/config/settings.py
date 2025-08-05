@@ -21,6 +21,14 @@ class Settings:
     MAX_SLIPPAGE: float = 0.30  # Higher slippage tolerance for meme tokens
     MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
     
+    # Paper Trading Specific Parameters
+    PAPER_MIN_MOMENTUM_THRESHOLD: float = 3.0  # Lower momentum threshold for paper trading
+    PAPER_MIN_LIQUIDITY: float = 50.0  # Lower liquidity requirement for paper trading
+    PAPER_TRADING_SLIPPAGE: float = 0.50  # Higher slippage tolerance for paper trading (50%)
+    PAPER_BASE_POSITION_SIZE: float = 0.1  # Base position size for paper trading
+    PAPER_MAX_POSITION_SIZE: float = 0.5  # Max position size for paper trading
+    PAPER_SIGNAL_THRESHOLD: float = 0.3  # Lower signal threshold for paper trading
+    
     # Trading pause (disable while fixing scanner)
     TRADING_PAUSED: bool = False  # Trading enabled with new scanner
 
@@ -293,6 +301,14 @@ def load_settings() -> Settings:
         # New mappings
         'PAPER_TRADING': ('PAPER_TRADING', lambda x: x.lower() == 'true'),
         'INITIAL_PAPER_BALANCE': ('INITIAL_PAPER_BALANCE', float),
+        
+        # Paper Trading Specific Parameters
+        'PAPER_MIN_MOMENTUM_THRESHOLD': ('PAPER_MIN_MOMENTUM_THRESHOLD', float),
+        'PAPER_MIN_LIQUIDITY': ('PAPER_MIN_LIQUIDITY', float),
+        'PAPER_TRADING_SLIPPAGE': ('PAPER_TRADING_SLIPPAGE', float),
+        'PAPER_BASE_POSITION_SIZE': ('PAPER_BASE_POSITION_SIZE', float),
+        'PAPER_MAX_POSITION_SIZE': ('PAPER_MAX_POSITION_SIZE', float),
+        'PAPER_SIGNAL_THRESHOLD': ('PAPER_SIGNAL_THRESHOLD', float),
         'MIN_GRID_LEVELS': ('MIN_GRID_LEVELS', int),
         'MAX_GRID_LEVELS': ('MAX_GRID_LEVELS', int),
         'MIN_GRID_SPACING': ('MIN_GRID_SPACING', float),
