@@ -309,6 +309,12 @@ def load_settings() -> Settings:
         'PAPER_BASE_POSITION_SIZE': ('PAPER_BASE_POSITION_SIZE', float),
         'PAPER_MAX_POSITION_SIZE': ('PAPER_MAX_POSITION_SIZE', float),
         'PAPER_SIGNAL_THRESHOLD': ('PAPER_SIGNAL_THRESHOLD', float),
+        
+        # Token Price and Market Cap Settings
+        'MAX_TOKEN_PRICE_SOL': ('MAX_TOKEN_PRICE_SOL', float),
+        'MIN_TOKEN_PRICE_SOL': ('MIN_TOKEN_PRICE_SOL', float),
+        'MAX_MARKET_CAP_SOL': ('MAX_MARKET_CAP_SOL', float),
+        'MIN_MARKET_CAP_SOL': ('MIN_MARKET_CAP_SOL', float),
         'MIN_GRID_LEVELS': ('MIN_GRID_LEVELS', int),
         'MAX_GRID_LEVELS': ('MAX_GRID_LEVELS', int),
         'MIN_GRID_SPACING': ('MIN_GRID_SPACING', float),
