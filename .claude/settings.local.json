@@ -23,7 +23,8 @@
       "Bash(./venv/Scripts/python.exe:*)",
       "Bash(rm:*)",
       "Bash(cat:*)",
-      "Bash(./venv/bin/python:*)"
+      "Bash(./venv/bin/python:*)",
+      "Bash(set SOLANA_TRACKER_KEY=542d5c9a-ea00-485c-817b-cd9839411972)"
     ],
     "deny": []
   },

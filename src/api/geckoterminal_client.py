@@ -188,11 +188,13 @@ class GeckoTerminalClient:
                 address_in_name = attributes.get('address', token_address)
                 
                 # Get price and market data
-                base_token_price_usd = float(attributes.get('base_token_price_usd', 0))
-                price_change_24h = float(attributes.get('price_change_percentage', {}).get('h24', 0))
-                volume_24h = float(attributes.get('volume_usd', {}).get('h24', 0))
-                reserve_in_usd = float(attributes.get('reserve_in_usd', 0))
-                market_cap_usd = float(attributes.get('market_cap_usd', 0))
+                base_token_price_usd = float(attributes.get('base_token_price_usd') or 0)
+                price_change_data = attributes.get('price_change_percentage', {}) or {}
+                price_change_24h = float(price_change_data.get('h24') or 0)
+                volume_data = attributes.get('volume_usd', {}) or {}
+                volume_24h = float(volume_data.get('h24') or 0)
+                reserve_in_usd = float(attributes.get('reserve_in_usd') or 0)
+                market_cap_usd = float(attributes.get('market_cap_usd') or 0)
                 
                 # Try to extract symbol from name or use first part
                 symbol = ''
@@ -263,11 +265,13 @@ class GeckoTerminalClient:
                 name = attributes.get('name', '')
                 
                 # Get price and market data
-                base_token_price_usd = float(attributes.get('base_token_price_usd', 0))
-                price_change_24h = float(attributes.get('price_change_percentage', {}).get('h24', 0))
-                volume_24h = float(attributes.get('volume_usd', {}).get('h24', 0))
-                reserve_in_usd = float(attributes.get('reserve_in_usd', 0))
-                market_cap_usd = float(attributes.get('market_cap_usd', 0))
+                base_token_price_usd = float(attributes.get('base_token_price_usd') or 0)
+                price_change_data = attributes.get('price_change_percentage', {}) or {}
+                price_change_24h = float(price_change_data.get('h24') or 0)
+                volume_data = attributes.get('volume_usd', {}) or {}
+                volume_24h = float(volume_data.get('h24') or 0)
+                reserve_in_usd = float(attributes.get('reserve_in_usd') or 0)
+                market_cap_usd = float(attributes.get('market_cap_usd') or 0)
                 
                 # Calculate age from pool creation
                 pool_created_at = attributes.get('pool_created_at', '')
@@ -344,11 +348,16 @@ class GeckoTerminalClient:
                     continue
                 
                 name = attributes.get('name', '')
-                base_token_price_usd = float(attributes.get('base_token_price_usd', 0))
-                price_change_24h = float(attributes.get('price_change_percentage', {}).get('h24', 0))
-                volume_24h = float(attributes.get('volume_usd', {}).get('h24', 0))
-                reserve_in_usd = float(attributes.get('reserve_in_usd', 0))
-                market_cap_usd = float(attributes.get('market_cap_usd', 0))
+                base_token_price_usd = float(attributes.get('base_token_price_usd') or 0)
+                
+                price_change_data = attributes.get('price_change_percentage', {}) or {}
+                price_change_24h = float(price_change_data.get('h24') or 0)
+                
+                volume_data = attributes.get('volume_usd', {}) or {}
+                volume_24h = float(volume_data.get('h24') or 0)
+                
+                reserve_in_usd = float(attributes.get('reserve_in_usd') or 0)
+                market_cap_usd = float(attributes.get('market_cap_usd') or 0)
                 
                 # Extract symbol
                 symbol = ''

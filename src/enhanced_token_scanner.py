@@ -8,6 +8,7 @@ import json
 
 from .api.solana_tracker import SolanaTrackerClient, TokenData
 from .api.geckoterminal_client import GeckoTerminalClient
+from .api.smart_dual_api_manager import SmartDualAPIManager
 from .config.settings import Settings
 import os
 
@@ -27,14 +28,22 @@ class EnhancedTokenScanner:
         self.settings = settings
         self.analytics = analytics  # Analytics system integration
         
-        # API Provider Selection - Use GeckoTerminal by default for quota-free operation
-        api_provider = os.getenv('API_PROVIDER', 'geckoterminal')
-        if api_provider == 'geckoterminal':
+        # API Provider Selection - Smart Dual-API Strategy
+        api_strategy = os.getenv('API_STRATEGY', 'dual')
+        
+        if api_strategy == 'dual':
+            self.api_client = SmartDualAPIManager()
+            logger.info("Using Smart Dual-API Manager - Target: 2,500+ tokens/day")
+        elif api_strategy == 'geckoterminal':
             self.api_client = GeckoTerminalClient()
             logger.info("Using GeckoTerminal API - FREE with 43K+ daily requests")
-        else:
+        elif api_strategy == 'solana_tracker':
             self.api_client = SolanaTrackerClient()
             logger.info("Using Solana Tracker API")
+        else:
+            # Default to dual-API for maximum discovery
+            self.api_client = SmartDualAPIManager()
+            logger.info("Using Smart Dual-API Manager (default) - Target: 2,500+ tokens/day")
         
         # Legacy reference for compatibility
         self.solana_tracker = self.api_client
