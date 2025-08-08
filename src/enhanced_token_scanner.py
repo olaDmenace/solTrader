@@ -553,8 +553,14 @@ class EnhancedTokenScanner:
             logger.info(f"Selected token: {token_data.symbol} (score: {best_token.score:.1f}, source: {token_data.source})")
             
             # Convert to dict format expected by strategy
+            # Clean token address format (remove "solana_" prefix if present)
+            clean_address = token_data.address
+            if clean_address.startswith('solana_'):
+                clean_address = clean_address[7:]  # Remove "solana_" prefix
+                logger.info(f"Cleaned address format: {token_data.address} -> {clean_address}")
+            
             return {
-                'address': token_data.address,
+                'address': clean_address,
                 'symbol': token_data.symbol,
                 'name': token_data.name,
                 'price': token_data.price,
