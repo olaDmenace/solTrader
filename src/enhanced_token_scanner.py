@@ -7,7 +7,9 @@ from dataclasses import dataclass
 import json
 
 from .api.solana_tracker import SolanaTrackerClient, TokenData
+from .api.geckoterminal_client import GeckoTerminalClient
 from .config.settings import Settings
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +25,19 @@ class ScanResult:
 class EnhancedTokenScanner:
     def __init__(self, settings: Settings, analytics=None):
         self.settings = settings
-        self.solana_tracker = SolanaTrackerClient()
         self.analytics = analytics  # Analytics system integration
+        
+        # API Provider Selection - Use GeckoTerminal by default for quota-free operation
+        api_provider = os.getenv('API_PROVIDER', 'geckoterminal')
+        if api_provider == 'geckoterminal':
+            self.api_client = GeckoTerminalClient()
+            logger.info("Using GeckoTerminal API - FREE with 43K+ daily requests")
+        else:
+            self.api_client = SolanaTrackerClient()
+            logger.info("Using Solana Tracker API")
+        
+        # Legacy reference for compatibility
+        self.solana_tracker = self.api_client
         
         # Optimized filter settings for 40-60% approval rate
         self.min_liquidity = 100.0  # FURTHER REDUCED from 250 SOL for higher approval
@@ -86,7 +99,7 @@ class EnhancedTokenScanner:
     def session(self, value):
         """Compatibility setter for strategy.py"""
         if hasattr(self.solana_tracker, 'session'):
-            self.solana_tracker.session = value
+            self.api_client.session = value
 
     async def start(self):
         """Start the scanning process"""
@@ -97,14 +110,14 @@ class EnhancedTokenScanner:
         self.is_running = True
         logger.info("Starting enhanced token scanner...")
         
-        await self.solana_tracker.start_session()
+        await self.api_client.start_session()
         
         # Test API connection (with retry for rate limiting)
         connection_attempts = 0
         max_attempts = 3
         
         while connection_attempts < max_attempts:
-            if await self.solana_tracker.test_connection():
+            if await self.api_client.test_connection():
                 logger.info("Solana Tracker API connection successful")
                 break
             else:
@@ -136,7 +149,7 @@ class EnhancedTokenScanner:
             except asyncio.CancelledError:
                 pass
         
-        await self.solana_tracker.close()
+        await self.api_client.close()
         logger.info("Enhanced token scanner stopped")
 
     async def _scan_loop(self):
@@ -170,15 +183,15 @@ class EnhancedTokenScanner:
         
         try:
             # Get tokens from all sources
-            all_tokens = await self.solana_tracker.get_all_tokens()
+            all_tokens = await self.api_client.get_all_tokens()
             
             logger.info(f"Retrieved {len(all_tokens)} total tokens from API")
             
             if not all_tokens:
                 logger.warning("No tokens retrieved from API - checking connection")
                 # Try to reconnect once
-                if await self.solana_tracker.test_connection():
-                    all_tokens = await self.solana_tracker.get_all_tokens()
+                if await self.api_client.test_connection():
+                    all_tokens = await self.api_client.get_all_tokens()
                     logger.info(f"Retry successful: {len(all_tokens)} tokens")
                 
             if not all_tokens:
@@ -187,7 +200,7 @@ class EnhancedTokenScanner:
             
             # Update API usage stats with error handling
             try:
-                usage_stats = self.solana_tracker.get_usage_stats()
+                usage_stats = self.api_client.get_usage_stats()
                 self.daily_stats['api_requests_used'] = usage_stats.get('requests_today', 0)
             except Exception as stats_error:
                 logger.warning(f"Failed to get usage stats: {stats_error}")
@@ -234,7 +247,7 @@ class EnhancedTokenScanner:
             # Update analytics system if available with error handling
             if self.analytics:
                 try:
-                    usage_stats = self.solana_tracker.get_usage_stats()
+                    usage_stats = self.api_client.get_usage_stats()
                     api_requests = usage_stats.get('requests_today', 0)
                     
                     self.analytics.update_scanner_stats(
@@ -290,10 +303,10 @@ class EnhancedTokenScanner:
                 if 'requests_' in str(e) or 'usage_stats' in str(e):
                     logger.warning("API stats error detected - attempting recovery")
                     # Reset API client if needed
-                    if hasattr(self.solana_tracker, 'session') and self.solana_tracker.session:
-                        await self.solana_tracker.close()
+                    if hasattr(self.api_client, 'session') and self.api_client.session:
+                        await self.api_client.close()
                         await asyncio.sleep(2)
-                        await self.solana_tracker.start_session()
+                        await self.api_client.start_session()
                     
                     # Return empty list to prevent crash but continue operation
                     logger.info("Recovery attempt completed - continuing with empty token list")
@@ -422,7 +435,7 @@ class EnhancedTokenScanner:
             }
         
         # Add API usage
-        usage_stats = self.solana_tracker.get_usage_stats()
+        usage_stats = self.api_client.get_usage_stats()
         stats['api_usage'] = {
             'requests_used': usage_stats['requests_today'],
             'daily_limit': usage_stats['daily_limit'],
