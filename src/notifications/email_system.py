@@ -126,14 +126,19 @@ class EmailNotificationSystem:
                 await asyncio.sleep(5)
 
     async def send_alert(self, subject: str, message: str, alert_type: str = "info", 
-                        priority: str = "normal", data: Dict = None):
+                        priority: str = "normal", data: Dict = None, is_critical: bool = False):
         """Queue an email alert for sending"""
         if not self.enabled:
             logger.debug(f"Email disabled, skipping alert: {subject}")
             return
+        
+        # Override alert_type and priority if is_critical is True
+        if is_critical:
+            alert_type = "critical"
+            priority = "critical"
             
-        # Check rate limiting
-        if not self._can_send_email(alert_type):
+        # Check rate limiting (bypass for critical alerts)
+        if not is_critical and not self._can_send_email(alert_type):
             logger.debug(f"Rate limit hit for {alert_type}, skipping: {subject}")
             return
         

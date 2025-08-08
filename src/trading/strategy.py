@@ -1089,12 +1089,12 @@ class TradingStrategy(TradingStrategyProtocol):
             class TokenObject:
                 def __init__(self, address, info):
                     self.address = address
-                    # FIX: Use the corrected volume from scanner instead of mock data
-                    self.volume24h = info.get("volume_24h_sol", info.get("volume24h", 0))
-                    self.liquidity = info.get("liquidity_sol", 500000)  # Use scanner liquidity
-                    self.market_cap = info.get("market_cap_sol", info.get("market_cap", 0))
+                    # FIX: Use the correct field names from enhanced scanner
+                    self.volume24h = info.get("volume_24h", info.get("volume_24h_sol", info.get("volume24h", 0)))
+                    self.liquidity = info.get("liquidity", info.get("liquidity_sol", 500000))
+                    self.market_cap = info.get("market_cap", info.get("market_cap_sol", 0))
                     self.created_at = info.get("timestamp")
-                    self.price_sol = info.get("price_sol", 0)
+                    self.price_sol = info.get("price", info.get("price_sol", 0))
                     self.scan_id = info.get("scan_id", 0)
                     self.source = info.get("source", "unknown")
             
