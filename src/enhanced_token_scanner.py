@@ -89,6 +89,23 @@ class EnhancedTokenScanner:
         logger.info(f"High momentum bypass: {self.high_momentum_bypass}%")
         logger.info(f"Medium momentum bypass: {self.medium_momentum_bypass}%")
 
+    def _normalize_source_name(self, source: str) -> str:
+        """Normalize source names to match source_stats keys"""
+        # Handle compound source names like 'geckoterminal/volume'
+        if '/' in source:
+            source = source.split('/')[-1]  # Use the part after slash
+        
+        # Map known source types
+        source_mapping = {
+            'trending': 'trending',
+            'volume': 'volume', 
+            'memescope': 'memescope',
+            'solana_tracker': 'trending',  # Default solana tracker to trending
+            'geckoterminal': 'trending'     # Default geckoterminal to trending
+        }
+        
+        return source_mapping.get(source, 'trending')  # Default to trending
+
     @property
     def running(self) -> bool:
         """Compatibility property for strategy.py"""
@@ -221,29 +238,42 @@ class EnhancedTokenScanner:
             
             for token in all_tokens:
                 try:
+                    # Normalize source name for stats tracking
+                    source_key = self._normalize_source_name(token.source)
+                    
                     # Update source discovery stats
-                    self.source_stats[token.source]['discovered'] += 1
+                    if source_key in self.source_stats:
+                        self.source_stats[source_key]['discovered'] += 1
                     
                     # Apply filters and scoring
                     result = await self._evaluate_token(token)
                     
                     if result:
                         approved_tokens.append(result)
-                        self.source_stats[token.source]['approved'] += 1
+                        if source_key in self.source_stats:
+                            self.source_stats[source_key]['approved'] += 1
                         self.discovered_tokens[token.address] = result
-                        logger.info(f"APPROVED: {token.symbol} - Score: {result.score:.1f} - {result.reasons}")
+                        logger.info("APPROVED: %s - Score: %.1f - %s", 
+                                   getattr(token, 'symbol', 'unknown'), 
+                                   result.score, 
+                                   result.reasons)
                         
                         # Update source effectiveness
-                        source_stats = self.source_stats[token.source]
-                        if source_stats['discovered'] > 0:
-                            source_stats['effectiveness'] = (
-                                source_stats['approved'] / source_stats['discovered']
-                            ) * 100
+                        if source_key in self.source_stats:
+                            source_stats = self.source_stats[source_key]
+                            if source_stats['discovered'] > 0:
+                                source_stats['effectiveness'] = (
+                                    source_stats['approved'] / source_stats['discovered']
+                                ) * 100
                     else:
-                        logger.info(f"REJECTED: {token.symbol} - Liquidity: {token.liquidity}, Momentum: {token.price_change_24h}%, Age: {token.age_minutes}min")
+                        logger.info("REJECTED: %s - Liquidity: %s, Momentum: %s%%, Age: %smin", 
+                                   getattr(token, 'symbol', 'unknown'), 
+                                   getattr(token, 'liquidity', 0),
+                                   getattr(token, 'price_change_24h', 0), 
+                                   getattr(token, 'age_minutes', 0))
                         
                 except Exception as e:
-                    logger.error(f"Error evaluating token {token.address}: {e}")
+                    logger.error("Error evaluating token %s: %s", getattr(token, 'address', 'unknown'), str(e))
                     continue
             
             # Update daily stats
@@ -405,7 +435,8 @@ class EnhancedTokenScanner:
             return None
         
         # Calculate source effectiveness
-        source_effectiveness = self.source_stats[token.source]['effectiveness']
+        source_key = self._normalize_source_name(token.source)
+        source_effectiveness = self.source_stats.get(source_key, {}).get('effectiveness', 0.0)
         
         return ScanResult(
             token=token,
