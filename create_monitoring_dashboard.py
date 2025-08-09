@@ -326,7 +326,7 @@ DASHBOARD_HTML = """
     
     <div class="header">
         <h1>🦍 SolTrader APE Bot Dashboard</h1>
-        <span class="status" id="status">{{ data.status }}</span>
+        <span class="status" id="status">{{ data.get('status', 'Unknown') }}</span>
         <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
     </div>
     
@@ -334,27 +334,27 @@ DASHBOARD_HTML = """
         <h2>📊 Performance Metrics</h2>
         <div class="metrics">
             <div class="metric">
-                <div class="metric-value">${{ "%.6f"|format(data.performance.total_pnl) }}</div>
+                <div class="metric-value">${{ "%.6f"|format(data.get('performance', {}).get('total_pnl', 0)) }}</div>
                 <div class="metric-label">Total P&L</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{{ "%.1f"|format(data.performance.win_rate) }}%</div>
+                <div class="metric-value">{{ "%.1f"|format(data.get('performance', {}).get('win_rate', 0)) }}%</div>
                 <div class="metric-label">Win Rate</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{{ data.performance.total_trades }}</div>
+                <div class="metric-value">{{ data.get('performance', {}).get('total_trades', 0) }}</div>
                 <div class="metric-label">Total Trades</div>
             </div>
             <div class="metric">
-                <div class="metric-value">${{ "%.2f"|format(data.performance.balance) }}</div>
+                <div class="metric-value">${{ "%.2f"|format(data.get('performance', {}).get('balance', 0)) }}</div>
                 <div class="metric-label">Balance</div>
             </div>
             <div class="metric">
-                <div class="metric-value">${{ "%.6f"|format(data.performance.get('unrealized_pnl', 0)) }}</div>
+                <div class="metric-value">${{ "%.6f"|format(data.get('performance', {}).get('unrealized_pnl', 0)) }}</div>
                 <div class="metric-label">Unrealized P&L</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{{ data.performance.get('open_positions', 0) }}</div>
+                <div class="metric-value">{{ data.get('performance', {}).get('open_positions', 0) }}</div>
                 <div class="metric-label">Open Positions</div>
             </div>
         </div>
@@ -376,15 +376,15 @@ DASHBOARD_HTML = """
             <tbody>
                 {% for position in data.get('active_positions', []) %}
                 <tr>
-                    <td>{{ position.data.token }}...</td>
-                    <td>${{ "%.6f"|format(position.data.entry_price) }}</td>
-                    <td>${{ "%.6f"|format(position.data.current_price) }}</td>
-                    <td>{{ "%.1f"|format(position.data.age_minutes) }}m</td>
-                    <td class="{% if position.data.pnl_percentage > 0 %}profit{% else %}loss{% endif %}">
-                        {{ "%.2f"|format(position.data.pnl_percentage) }}%
+                    <td>{{ position.get('data', {}).get('token', 'N/A')[:8] }}...</td>
+                    <td>${{ "%.6f"|format(position.get('data', {}).get('entry_price', 0)) }}</td>
+                    <td>${{ "%.6f"|format(position.get('data', {}).get('current_price', 0)) }}</td>
+                    <td>{{ "%.1f"|format(position.get('data', {}).get('age_minutes', 0)) }}m</td>
+                    <td class="{% if position.get('data', {}).get('pnl_percentage', 0) > 0 %}profit{% else %}loss{% endif %}">
+                        {{ "%.2f"|format(position.get('data', {}).get('pnl_percentage', 0)) }}%
                     </td>
-                    <td class="{% if position.data.unrealized_pnl > 0 %}profit{% else %}loss{% endif %}">
-                        ${{ "%.6f"|format(position.data.unrealized_pnl) }}
+                    <td class="{% if position.get('data', {}).get('unrealized_pnl', 0) > 0 %}profit{% else %}loss{% endif %}">
+                        ${{ "%.6f"|format(position.get('data', {}).get('unrealized_pnl', 0)) }}
                     </td>
                 </tr>
                 {% else %}
@@ -410,16 +410,16 @@ DASHBOARD_HTML = """
                 </tr>
             </thead>
             <tbody>
-                {% for trade in data.trades[-10:] %}
+                {% for trade in data.get('trades', [])[-10:] %}
                 <tr>
-                    <td>{{ trade.token[:8] }}...</td>
-                    <td>${{ "%.4f"|format(trade.entry_price) }}</td>
-                    <td>${{ "%.4f"|format(trade.exit_price) }}</td>
-                    <td class="{% if trade.pnl > 0 %}profit{% else %}loss{% endif %}">
-                        ${{ "%.6f"|format(trade.pnl) }}
+                    <td>{{ trade.get('token', 'N/A')[:8] }}...</td>
+                    <td>${{ "%.4f"|format(trade.get('entry_price', 0)) }}</td>
+                    <td>${{ "%.4f"|format(trade.get('exit_price', 0)) }}</td>
+                    <td class="{% if trade.get('pnl', 0) > 0 %}profit{% else %}loss{% endif %}">
+                        ${{ "%.6f"|format(trade.get('pnl', 0)) }}
                     </td>
-                    <td>{{ trade.reason }}</td>
-                    <td>{{ trade.timestamp[:19] }}</td>
+                    <td>{{ trade.get('reason', 'N/A') }}</td>
+                    <td>{{ trade.get('timestamp', 'N/A')[:19] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -429,27 +429,27 @@ DASHBOARD_HTML = """
     <div class="card">
         <h2>📱 Recent Events</h2>
         <div class="events">
-            {% for event in data.recent_events[-20:] %}
+            {% for event in data.get('recent_events', [])[-20:] %}
             <div>
-                <strong>{{ event.timestamp[:19] }}</strong> - {{ event.message }}
+                <strong>{{ event.get('timestamp', 'N/A')[:19] }}</strong> - {{ event.get('message', 'N/A') }}
             </div>
             {% endfor %}
             
             {% for activity in data.get('activity', [])[-10:] %}
-                {% if activity.type == 'position_update' %}
+                {% if activity.get('type') == 'position_update' %}
                 <div style="color: #00ff41;">
-                    <strong>{{ activity.timestamp[:19] }}</strong> - 📊 Position Update: {{ activity.data.token }}... P&L: {{ "%.2f"|format(activity.data.pnl_percentage) }}%
+                    <strong>{{ activity.get('timestamp', 'N/A')[:19] }}</strong> - 📊 Position Update: {{ activity.get('data', {}).get('token', 'N/A')[:8] }}... P&L: {{ "%.2f"|format(activity.get('data', {}).get('pnl_percentage', 0)) }}%
                 </div>
-                {% elif activity.type == 'position_closed' %}
+                {% elif activity.get('type') == 'position_closed' %}
                 <div style="color: #ff6b35;">
-                    <strong>{{ activity.timestamp[:19] }}</strong> - 🔴 Position Closed: {{ activity.data.token }}... Reason: {{ activity.data.exit_reason }}
+                    <strong>{{ activity.get('timestamp', 'N/A')[:19] }}</strong> - 🔴 Position Closed: {{ activity.get('data', {}).get('token', 'N/A')[:8] }}... Reason: {{ activity.get('data', {}).get('exit_reason', 'N/A') }}
                 </div>
-                {% elif activity.type in ['scan_started', 'scan_completed', 'signal_generated'] %}
+                {% elif activity.get('type') in ['scan_started', 'scan_completed', 'signal_generated'] %}
                 <div style="color: #8892b0;">
-                    <strong>{{ activity.timestamp[:19] }}</strong> - 
-                    {% if activity.type == 'scan_started' %}🔍 Scan Started{% endif %}
-                    {% if activity.type == 'scan_completed' %}✅ Scan Completed ({{ activity.data.get('tokens_found', 0) }} tokens){% endif %}
-                    {% if activity.type == 'signal_generated' %}🚀 Signal: {{ activity.data.token }}... @ ${{ "%.6f"|format(activity.data.price) }}{% endif %}
+                    <strong>{{ activity.get('timestamp', 'N/A')[:19] }}</strong> - 
+                    {% if activity.get('type') == 'scan_started' %}🔍 Scan Started{% endif %}
+                    {% if activity.get('type') == 'scan_completed' %}✅ Scan Completed ({{ activity.get('data', {}).get('tokens_found', 0) }} tokens){% endif %}
+                    {% if activity.get('type') == 'signal_generated' %}🚀 Signal: {{ activity.get('data', {}).get('token', 'N/A')[:8] }}... @ ${{ "%.6f"|format(activity.get('data', {}).get('price', 0)) }}{% endif %}
                 </div>
                 {% endif %}
             {% endfor %}
