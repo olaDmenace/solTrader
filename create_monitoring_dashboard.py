@@ -511,13 +511,13 @@ def run_dashboard(port=5000):
     monitor = BotMonitor()
     
     if not FLASK_AVAILABLE:
-        print("❌ Flask not available. Install with: pip install flask")
+        print("Flask not available. Install with: pip install flask")
         return
     
     app = create_flask_app(monitor)
-    print(f"🚀 Starting SolTrader Dashboard at http://localhost:{port}")
-    print("📊 Open your browser and navigate to the URL above")
-    print("🔄 Dashboard auto-refreshes every 3 seconds")
+    print(f"Starting SolTrader Dashboard at http://localhost:{port}")
+    print("Open your browser and navigate to the URL above")
+    print("Dashboard auto-refreshes every 3 seconds")
     
     app.run(host='0.0.0.0', port=port, debug=False)
 
