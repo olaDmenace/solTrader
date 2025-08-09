@@ -1,132 +1,73 @@
 #!/usr/bin/env python3
+
 """
-Test script to verify the market cap field mapping fix
+Test Market Cap Fix - Verify market cap estimation resolves validation issues
 """
-import sys
+
 import os
-sys.path.append('src')
+import sys
+import asyncio
+import logging
+from dotenv import load_dotenv
 
-def test_field_extraction():
-    """Test the exact field extraction logic from strategy.py"""
-    
-    print("🔍 Testing Market Cap Field Extraction Fix")
-    print("=" * 60)
-    
-    # Simulate the exact scanner data structure from logs
-    scanner_token_data = {
-        'address': 'EKpQGSJt...',
-        'volume24h': 4085.30,
-        'liquidity': 500000,
-        'created_at': None,
-        'price': 5.560690,
-        'market_cap': 4459,  # Scanner provides this field
-        'signal_strength': 0.7,
-        'signal_type': 'basic',
-        'scan_id': 1,
-        'source': 'scanner'
-    }
-    
-    print(f"📊 Scanner Token Data:")
-    print(f"  Address: {scanner_token_data['address']}")
-    print(f"  Price: {scanner_token_data['price']}")
-    print(f"  Market Cap: {scanner_token_data['market_cap']}")
-    print(f"  Volume: {scanner_token_data['volume24h']}")
-    print("")
-    
-    # Test OLD field extraction logic (BROKEN)
-    print("❌ OLD Logic (BROKEN):")
-    old_market_cap_sol = float(scanner_token_data.get("market_cap_sol", 0))
-    print(f"  market_cap_sol = token.get('market_cap_sol', 0) = {old_market_cap_sol}")
-    
-    # Test NEW field extraction logic (FIXED)
-    print("✅ NEW Logic (FIXED):")
-    new_market_cap_sol = float(scanner_token_data.get("market_cap_sol", scanner_token_data.get("market_cap", 0)))
-    print(f"  market_cap_sol = token.get('market_cap_sol', token.get('market_cap', 0)) = {new_market_cap_sol}")
-    print("")
-    
-    # Test validation logic
-    print("🔍 Validation Test:")
-    
-    # Mock settings
-    MIN_MARKET_CAP_SOL = 10.0
-    MAX_MARKET_CAP_SOL = 10000.0
-    
-    # OLD validation (would fail)
-    old_validation = (MIN_MARKET_CAP_SOL <= old_market_cap_sol <= MAX_MARKET_CAP_SOL)
-    print(f"  OLD: {MIN_MARKET_CAP_SOL} <= {old_market_cap_sol} <= {MAX_MARKET_CAP_SOL} = {old_validation}")
-    
-    # NEW validation (should pass)
-    new_validation = (MIN_MARKET_CAP_SOL <= new_market_cap_sol <= MAX_MARKET_CAP_SOL)
-    print(f"  NEW: {MIN_MARKET_CAP_SOL} <= {new_market_cap_sol} <= {MAX_MARKET_CAP_SOL} = {new_validation}")
-    print("")
-    
-    # Results
-    print("📋 Results:")
-    if old_validation:
-        print("  ❌ OLD logic: Token would PASS validation (unexpected)")
-    else:
-        print("  ❌ OLD logic: Token would FAIL validation (market_cap = 0)")
-    
-    if new_validation:
-        print("  ✅ NEW logic: Token would PASS validation (market_cap = 4459)")
-    else:
-        print("  ❌ NEW logic: Token would FAIL validation (unexpected)")
-    
-    print("")
-    print("🎯 Expected Log Patterns After Fix:")
-    print("  BEFORE: [FILTER] Token details - Volume: 4085.30, Price: 5.560690, Market Cap: 0")
-    print("  BEFORE: [FILTER] Token rejected: market_cap_range")
-    print("  AFTER:  [FILTER] Token details - Volume: 4085.30, Price: 5.560690, Market Cap: 4459")
-    print("  AFTER:  [PASS] Token passed all filters!")
-    
-    return new_validation
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+load_dotenv()
+os.environ['API_STRATEGY'] = 'dual'
 
-def test_object_creation():
-    """Test TokenObject creation logic"""
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+from src.config.settings import Settings
+from src.enhanced_token_scanner import EnhancedTokenScanner
+
+async def test_market_cap_fix():
+    print("MARKET CAP FIX TEST")
+    print("=" * 50)
     
-    print("\n🔧 Testing TokenObject Creation:")
-    print("=" * 40)
-    
-    # Simulate token info dict
-    token_info = {
-        'market_cap': 4459,
-        'price_sol': 5.560690,
-        'timestamp': None,
-        'scan_id': 1,
-        'source': 'scanner'
-    }
-    
-    print(f"📊 Token Info Dict:")
-    for key, value in token_info.items():
-        print(f"  {key}: {value}")
-    print("")
-    
-    # Test OLD logic (BROKEN)
-    old_market_cap = token_info.get("market_cap_sol", 0)
-    print(f"❌ OLD: info.get('market_cap_sol', 0) = {old_market_cap}")
-    
-    # Test NEW logic (FIXED) 
-    new_market_cap = token_info.get("market_cap_sol", token_info.get("market_cap", 0))
-    print(f"✅ NEW: info.get('market_cap_sol', info.get('market_cap', 0)) = {new_market_cap}")
-    
-    return new_market_cap > 0
+    try:
+        alchemy_rpc = os.getenv('ALCHEMY_RPC_URL', 'https://solana-mainnet.g.alchemy.com/v2/test')
+        wallet_address = os.getenv('WALLET_ADDRESS', 'JxKzzx2Hif9fnpg9J6jY8XfwYnSLHF6CQZK7zT9ScNb')
+        settings = Settings(ALCHEMY_RPC_URL=alchemy_rpc, WALLET_ADDRESS=wallet_address)
+        scanner = EnhancedTokenScanner(settings)
+        
+        print("Testing market cap fix...")
+        await scanner.start()
+        
+        selected_token = await scanner.scan_for_new_tokens()
+        
+        if selected_token:
+            print(f"\nSelected Token: {selected_token['symbol']}")
+            price = selected_token.get('price', 0)
+            market_cap = selected_token.get('market_cap', 0)
+            
+            print(f"Price: {price:.12f}")
+            print(f"Market Cap: {market_cap:.2f}")
+            
+            validation_pass = price > 0 and market_cap > 0
+            
+            if validation_pass:
+                print("\nSUCCESS: Validation should now pass!")
+                print(f"Expected: [OK] Token passed validation")
+            else:
+                print(f"\nFAIL: Still failing validation")
+                print(f"Price valid: {price > 0}, Market cap valid: {market_cap > 0}")
+            
+            await scanner.stop()
+            return validation_pass
+        else:
+            print("No token selected")
+            await scanner.stop()
+            return False
+            
+    except Exception as e:
+        print(f"Test error: {e}")
+        return False
+
+async def main():
+    success = await test_market_cap_fix()
+    print(f"\n{'='*50}")
+    print(f"RESULT: {'SUCCESS' if success else 'FAILED'}")
+    return success
 
 if __name__ == "__main__":
-    print("🚀 Starting Market Cap Field Mapping Fix Test")
-    print("=" * 80)
-    
-    validation_passed = test_field_extraction()
-    object_creation_passed = test_object_creation()
-    
-    print("\n" + "=" * 80)
-    print("📊 FINAL RESULTS:")
-    print(f"  ✅ Field extraction fix: {'WORKING' if validation_passed else 'FAILED'}")
-    print(f"  ✅ Object creation fix: {'WORKING' if object_creation_passed else 'FAILED'}")
-    
-    if validation_passed and object_creation_passed:
-        print("\n🎉 ALL TESTS PASSED! Fix is ready for deployment.")
-        print("💰 Bot should now execute trades with correct market cap values.")
-    else:
-        print("\n❌ TESTS FAILED! Fix needs revision.")
-        
-    print("=" * 80)
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1)

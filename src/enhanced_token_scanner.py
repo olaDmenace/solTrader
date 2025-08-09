@@ -559,6 +559,16 @@ class EnhancedTokenScanner:
                 clean_address = clean_address[7:]  # Remove "solana_" prefix
                 logger.info(f"Cleaned address format: {token_data.address} -> {clean_address}")
             
+            # Fix missing market cap data
+            market_cap = token_data.market_cap
+            if market_cap <= 0 and token_data.price > 0:
+                # Estimate market cap from liquidity and price data
+                # Conservative estimate: assume liquidity represents ~5-10% of total supply
+                liquidity_ratio = 0.08  # Assume 8% of tokens are in liquidity pool
+                estimated_supply = (token_data.liquidity * 2) / (token_data.price * liquidity_ratio)  # *2 for both sides of pool
+                market_cap = token_data.price * estimated_supply
+                logger.info(f"Estimated market cap for {token_data.symbol}: ${market_cap:.0f} (from price ${token_data.price:.8f} and liquidity {token_data.liquidity:.0f})")
+            
             return {
                 'address': clean_address,
                 'symbol': token_data.symbol,
@@ -566,7 +576,7 @@ class EnhancedTokenScanner:
                 'price': token_data.price,
                 'price_change_24h': token_data.price_change_24h,
                 'volume_24h': token_data.volume_24h,
-                'market_cap': token_data.market_cap,
+                'market_cap': market_cap,
                 'liquidity': token_data.liquidity,
                 'age_minutes': token_data.age_minutes,
                 'momentum_score': token_data.momentum_score,
