@@ -354,7 +354,7 @@ DASHBOARD_HTML = """
                 <div class="metric-label">Unrealized P&L</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{{ data.get('performance', {}).get('open_positions', 0) }}</div>
+                <div class="metric-value">{{ data.get('performance', {}).get('active_positions', 0) }}</div>
                 <div class="metric-label">Open Positions</div>
             </div>
         </div>
@@ -374,17 +374,17 @@ DASHBOARD_HTML = """
                 </tr>
             </thead>
             <tbody>
-                {% for position in data.get('active_positions', []) %}
+                {% for position in data.get('positions', []) %}
                 <tr>
-                    <td>{{ position.get('data', {}).get('token', 'N/A')[:8] }}...</td>
-                    <td>${{ "%.6f"|format(position.get('data', {}).get('entry_price', 0)) }}</td>
-                    <td>${{ "%.6f"|format(position.get('data', {}).get('current_price', 0)) }}</td>
-                    <td>{{ "%.1f"|format(position.get('data', {}).get('age_minutes', 0)) }}m</td>
-                    <td class="{% if position.get('data', {}).get('pnl_percentage', 0) > 0 %}profit{% else %}loss{% endif %}">
-                        {{ "%.2f"|format(position.get('data', {}).get('pnl_percentage', 0)) }}%
+                    <td>{{ position.get('token', 'N/A') }}</td>
+                    <td>${{ "%.6f"|format(position.get('entry_price', 0)) }}</td>
+                    <td>${{ "%.6f"|format(position.get('current_price', 0)) }}</td>
+                    <td>{{ "%.1f"|format(position.get('age_minutes', 0)) }}m</td>
+                    <td class="{% if position.get('pnl_percentage', 0) > 0 %}profit{% else %}loss{% endif %}">
+                        {{ "%.2f"|format(position.get('pnl_percentage', 0)) }}%
                     </td>
-                    <td class="{% if position.get('data', {}).get('unrealized_pnl', 0) > 0 %}profit{% else %}loss{% endif %}">
-                        ${{ "%.6f"|format(position.get('data', {}).get('unrealized_pnl', 0)) }}
+                    <td class="{% if position.get('unrealized_pnl', 0) > 0 %}profit{% else %}loss{% endif %}">
+                        ${{ "%.6f"|format(position.get('unrealized_pnl', 0)) }}
                     </td>
                 </tr>
                 {% else %}
