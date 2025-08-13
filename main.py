@@ -29,12 +29,12 @@ def setup_logging():
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
     
-    # Configure logging
+    # Configure logging with UTF-8 encoding
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler('logs/trading.log'),
+            logging.FileHandler('logs/trading.log', encoding='utf-8'),
             logging.StreamHandler()
         ]
     )

@@ -43,6 +43,10 @@ class MonitoringSystem:
         self.window_size = timedelta(hours=24)
         self.update_interval = 60  # seconds
         
+        # Alert cooldown to prevent spam
+        self.alert_cooldowns: Dict[str, datetime] = {}
+        self.alert_cooldown_duration = timedelta(minutes=5)  # 5 minute cooldown
+        
         # Initialize metric storage
         self._initialize_metrics()
 
@@ -130,14 +134,25 @@ class MonitoringSystem:
 
     async def _create_alert(self, severity: str, metric: str, 
                           threshold: float, current: float) -> None:
-        """Create and record alert"""
+        """Create and record alert with cooldown protection"""
+        now = datetime.now()
+        alert_key = f"{metric}_{severity}"
+        
+        # Check cooldown - skip if too recent
+        if alert_key in self.alert_cooldowns:
+            if now - self.alert_cooldowns[alert_key] < self.alert_cooldown_duration:
+                return  # Still in cooldown, skip alert
+        
+        # Update cooldown time
+        self.alert_cooldowns[alert_key] = now
+        
         alert = Alert(
             severity=severity,
             message=f"{metric} threshold breached",
             metric=metric,
             threshold=threshold,
             current_value=current,
-            timestamp=datetime.now()
+            timestamp=now
         )
         
         self.alerts.append(alert)

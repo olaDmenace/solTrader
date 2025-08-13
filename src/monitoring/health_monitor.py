@@ -139,8 +139,8 @@ class HealthMonitor:
             'monitoring_interval': 60,  # seconds
             'log_file_path': 'logs/trading.log',
             'dashboard_file': 'bot_data.json',
-            'max_recovery_attempts_per_hour': 5,
-            'recovery_cooldown_minutes': 5,
+            'max_recovery_attempts_per_hour': 2,  # Reduced to prevent trade interruption
+            'recovery_cooldown_minutes': 15,  # Increased cooldown to 15 minutes
             'thresholds': {
                 'token_discovery_rate': {'warning': 100, 'critical': 50},
                 'approval_rate': {'warning': 20, 'critical': 15},
@@ -355,9 +355,14 @@ class HealthMonitor:
                 
                 recent_activity = False
                 try:
-                    # Read last few lines of log file
-                    with open(log_file, 'r') as f:
-                        lines = f.readlines()[-50:]  # Last 50 lines
+                    # Read last few lines of log file with proper encoding
+                    try:
+                        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                            lines = f.readlines()[-50:]  # Last 50 lines
+                    except UnicodeDecodeError:
+                        # Fallback to latin-1 if UTF-8 fails
+                        with open(log_file, 'r', encoding='latin-1', errors='ignore') as f:
+                            lines = f.readlines()[-50:]  # Last 50 lines
                     
                     for line in lines:
                         if len(line) > 19:  # Minimum length for timestamp
@@ -371,7 +376,11 @@ class HealthMonitor:
                                 continue
                                 
                 except Exception as e:
-                    logger.warning(f"Error reading log file: {e}")
+                    # Don't log encoding errors as warnings - they're handled gracefully
+                    if 'utf-8' in str(e).lower() or 'codec' in str(e).lower():
+                        logger.debug(f"Log file encoding handled: {e}")
+                    else:
+                        logger.warning(f"Error reading log file: {e}")
                 
                 # Update metric based on recent activity
                 self.metrics['log_activity'] = HealthMetric(
