@@ -306,6 +306,9 @@ class PerformanceAnalytics:
         """Get comprehensive daily statistics"""
         stats = asdict(self.current_day_stats)
         
+        # Add trading mode information
+        stats['paper_trading_mode'] = getattr(self.settings, 'PAPER_TRADING', True)
+        
         # Calculate average hold time
         if self.recent_trades:
             hold_times = [trade.hold_time_minutes for trade in self.recent_trades if not trade.is_open]

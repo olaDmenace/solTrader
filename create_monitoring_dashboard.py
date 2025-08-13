@@ -376,7 +376,14 @@ DASHBOARD_HTML = """
             <tbody>
                 {% for position in data.get('positions', []) %}
                 <tr>
-                    <td>{{ position.get('token', 'N/A') }}</td>
+                    <td title="{{ position.get('token', 'N/A') }}">
+                        {% set token_name = position.get('token', 'N/A') %}
+                        {% if token_name|length > 12 %}
+                            {{ token_name[:12] }}...
+                        {% else %}
+                            {{ token_name }}
+                        {% endif %}
+                    </td>
                     <td>${{ "%.6f"|format(position.get('entry_price', 0)) }}</td>
                     <td>${{ "%.6f"|format(position.get('current_price', 0)) }}</td>
                     <td>{{ "%.1f"|format(position.get('age_minutes', 0)) }}m</td>
@@ -412,7 +419,14 @@ DASHBOARD_HTML = """
             <tbody>
                 {% for trade in data.get('trades', [])[-10:] %}
                 <tr>
-                    <td>{{ trade.get('token', 'N/A')[:8] }}...</td>
+                    <td title="{{ trade.get('token', 'N/A') }}">
+                        {% set token_name = trade.get('token', 'N/A') %}
+                        {% if token_name|length > 12 %}
+                            {{ token_name[:12] }}...
+                        {% else %}
+                            {{ token_name }}
+                        {% endif %}
+                    </td>
                     <td>${{ "%.4f"|format(trade.get('entry_price', 0)) }}</td>
                     <td>${{ "%.4f"|format(trade.get('exit_price', 0)) }}</td>
                     <td class="{% if trade.get('pnl', 0) > 0 %}profit{% else %}loss{% endif %}">

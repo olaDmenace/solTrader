@@ -306,21 +306,25 @@ Timestamp: {alert.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}
         """Send daily performance report"""
         subject = f"Daily Report - {datetime.now().strftime('%Y-%m-%d')}"
         
+        # Check if we're in paper trading mode
+        is_paper_trading = stats.get('paper_trading_mode', True)
+        mode_indicator = "📝 PAPER TRADING" if is_paper_trading else "💰 LIVE TRADING"
+        
         message = f"""
-Daily Trading Summary:
+Daily Trading Summary - {mode_indicator}
 
 📊 PERFORMANCE METRICS
 • Tokens Scanned: {stats.get('tokens_scanned', 0)}
 • Tokens Approved: {stats.get('tokens_approved', 0)} ({stats.get('approval_rate', 0):.1f}% rate)
 • Trades Executed: {stats.get('trades_executed', 0)}
 • Win Rate: {stats.get('win_rate', 0):.1f}%
-• Total P&L: ${stats.get('total_pnl', 0):.2f}
+• Total P&L: ${stats.get('total_pnl', 0):.2f}{' (simulated)' if is_paper_trading else ''}
 
 💰 TRADING STATS
 • Best Trade: +{stats.get('best_trade', 0):.1f}%
 • Worst Trade: {stats.get('worst_trade', 0):.1f}%
 • Average Hold Time: {stats.get('avg_hold_time', 0):.1f} minutes
-• Gas Fees: ${stats.get('gas_fees', 0):.2f}
+• Gas Fees: ${stats.get('gas_fees', 0):.2f}{' (simulated)' if is_paper_trading else ''}
 
 🔍 DISCOVERY ANALYTICS
 • API Requests Used: {stats.get('api_requests_used', 0)}/333
@@ -328,9 +332,11 @@ Daily Trading Summary:
 • Source Effectiveness: {stats.get('source_breakdown', {})}
 
 📈 PORTFOLIO STATUS
-• Current Value: ${stats.get('portfolio_value', 0):.2f}
+• Current Value: ${stats.get('portfolio_value', 0):.2f}{' (paper)' if is_paper_trading else ''}
 • Active Positions: {stats.get('active_positions', 0)}
-• Available Balance: ${stats.get('available_balance', 0):.2f}
+• Available Balance: ${stats.get('available_balance', 0):.2f}{' (paper)' if is_paper_trading else ''}
+
+{('🧪 PAPER TRADING NOTES:' + chr(10) + '• All trades are simulated - no real funds at risk' + chr(10) + '• Performance metrics indicate strategy effectiveness' + chr(10) + '• Ready for live trading when you decide to switch modes') if is_paper_trading else ('⚠️ LIVE TRADING ACTIVE:' + chr(10) + '• Real funds at risk - monitor positions closely' + chr(10) + '• All P&L represents actual gains/losses' + chr(10) + '• Ensure risk management settings are appropriate')}
         """
         
         await self.send_alert(subject, message, "daily", "normal", stats)
