@@ -432,18 +432,8 @@ class HealthMonitor:
     
     def _determine_recovery_action(self, metric: HealthMetric) -> RecoveryAction:
         """Determine appropriate recovery action for a critical metric"""
-        if metric.name in ['api_error_rate', 'api_response_time']:
-            return RecoveryAction.SOFT_RECOVERY
-        elif metric.name in ['token_discovery_rate', 'approval_rate']:
-            return RecoveryAction.MEDIUM_RECOVERY
-        elif metric.name in ['trade_execution_rate']:
-            return RecoveryAction.MEDIUM_RECOVERY
-        elif metric.name in ['cpu_usage', 'memory_usage']:
-            return RecoveryAction.HARD_RECOVERY
-        elif metric.name == 'disk_usage':
-            return RecoveryAction.MANUAL_INTERVENTION
-        else:
-            return RecoveryAction.SOFT_RECOVERY
+        # EMERGENCY: DISABLE ALL RECOVERY DUE TO LOOP ISSUE
+        return RecoveryAction.NONE  # Completely disabled until fixed
     
     async def _handle_health_issues(self, report: HealthReport):
         """Handle health issues with appropriate recovery actions"""
@@ -575,8 +565,9 @@ class HealthMonitor:
                 # Reset strategy if available
                 if hasattr(self.bot, 'strategy'):
                     if hasattr(self.bot.strategy, 'state'):
-                        # Clear any stuck state
-                        self.bot.strategy.state.pending_orders.clear()
+                        # EMERGENCY: DISABLE PENDING ORDERS CLEARING 
+                        # self.bot.strategy.state.pending_orders.clear()
+                        logger.info("EMERGENCY: Pending orders clearing DISABLED for debugging")
                 
                 logger.info("Medium recovery completed successfully")
                 return True

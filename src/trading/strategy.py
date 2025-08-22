@@ -29,6 +29,10 @@ from .performance import PerformanceMonitor
 from .signals import Signal, SignalGenerator
 from .market_analyzer import MarketAnalyzer
 from .transaction_manager import TransactionManager, TransactionStatus
+from ..utils.performance_analytics import add_trade_to_analytics
+from ..utils.risk_management import update_risk_metrics
+from ..utils.execution_analytics import start_execution_tracking, complete_execution_tracking
+from ..utils.trade_notifications import send_trade_opened, send_trade_closed, send_alert, send_status_update
 
 logger = logging.getLogger(__name__)
 
@@ -190,8 +194,9 @@ class TradingStrategy(TradingStrategyProtocol):
         self.position_manager = PositionManager(self.swap_executor, settings)
         self.transaction_manager: Optional[TransactionManager] = None
         
-        # Link position manager to settings for monitoring access
+        # Link position manager and strategy to settings for monitoring access
         settings.position_manager = self.position_manager
+        settings.strategy = self  # Link strategy instance for paper trading monitoring
         
         self.monitoring = MonitoringSystem(self.alert_system, settings)
         self.risk_manager = RiskManager(settings)
@@ -291,6 +296,17 @@ class TradingStrategy(TradingStrategyProtocol):
             # Start market condition monitoring
             await self.update_market_conditions()
 
+            # Send startup notification
+            try:
+                mode_str = self.state.mode.value.capitalize()
+                balance_info = f"Balance: {self.state.paper_balance:.3f} SOL" if self.state.mode == TradingMode.PAPER else "Live wallet connected"
+                send_status_update(
+                    status="started",
+                    details=f"{mode_str} trading mode activated. {balance_info}"
+                )
+            except Exception as notification_error:
+                logger.warning(f"Failed to send startup notification: {notification_error}")
+
             # Emit alert
             await self.alert_system.emit_alert(
                 level="info",
@@ -351,6 +367,19 @@ class TradingStrategy(TradingStrategyProtocol):
                 await self._cleanup_positions()
 
             metrics = await self.get_metrics()
+            
+            # Send stop notification
+            try:
+                mode_str = self.state.mode.value.capitalize()
+                total_trades = metrics.get('trading', {}).get('total_trades', 0)
+                total_pnl = metrics.get('trading', {}).get('total_pnl', 0)
+                send_status_update(
+                    status="stopped",
+                    details=f"{mode_str} trading stopped. Total trades: {total_trades}, P&L: {total_pnl:.4f} SOL"
+                )
+            except Exception as notification_error:
+                logger.warning(f"Failed to send stop notification: {notification_error}")
+            
             await self.alert_system.emit_alert(
                 level="info",
                 type=f"{self.state.mode.value}_trading_stop",
@@ -833,16 +862,10 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _validate_price_conditions(self, token_address: str, size: float) -> bool:
         """Validate price-related conditions for trading"""
         try:
-            # For paper trading, use more permissive validation
+            # For paper trading, skip price validation - use signal price directly
             if self.state.mode == TradingMode.PAPER:
-                # For paper trading, we just need to ensure we can get a price
-                current_price = await self._get_current_price(token_address)
-                if current_price and current_price > 0:
-                    logger.info(f"[OK] Paper trading price validation passed for {token_address[:8]}... - price: {current_price}")
-                    return True
-                else:
-                    logger.warning(f"[ERROR] Cannot get valid price for {token_address[:8]}...")
-                    return False
+                logger.info(f"[PAPER] Skipping price validation for {token_address[:8]}... (paper trading mode)")
+                return True
             
             # For live trading, use stricter validation
             market_depth = await self.jupiter.get_market_depth(token_address)
@@ -894,6 +917,12 @@ class TradingStrategy(TradingStrategyProtocol):
             new_token = await self.scanner.scan_for_new_tokens()
             new_tokens = [new_token] if new_token else []
             logger.info(f"[DATA] Scanner returned {len(new_tokens)} tokens")
+            
+            # Debug log the token data structure
+            if new_token:
+                logger.info(f"[DEBUG] Token data keys: {list(new_token.keys())}")
+                logger.info(f"[DEBUG] Token address: {new_token.get('address', 'MISSING')}")
+                logger.info(f"[DEBUG] Token symbol: {new_token.get('symbol', 'MISSING')}")
             
             # Update dashboard with scan results
             await self._update_dashboard_activity("scan_completed", {
@@ -1020,6 +1049,7 @@ class TradingStrategy(TradingStrategyProtocol):
             
             if pending_count > 0:
                 logger.info(f"[PROCESS] Processing {pending_count} pending orders...")
+                await self._process_pending_orders()
             
             logger.info("[OK] Opportunity scan completed")
 
@@ -1166,8 +1196,14 @@ class TradingStrategy(TradingStrategyProtocol):
                 # CRITICAL FIX: Multiple fallback field names for data extraction
                 volume_24h = float(token.get("volume_24h_sol", token.get("volume24h", token.get("volume_24h", token.get("volume", 0)))))
                 liquidity = float(token.get("liquidity_sol", token.get("liquidity", 500000)))  # Default safe value
-                price_sol = float(token.get("price_sol", token.get("price", 0.000001)))  # Default minimal price
-                market_cap_sol = float(token.get("market_cap_sol", token.get("market_cap", 100000)))  # Default safe value
+                
+                # USD-based pricing (API provides USD values)
+                price_usd = float(token.get("price", 0.01))  # Price in USD from API
+                market_cap_usd = float(token.get("market_cap", 500000))  # Market cap in USD from API
+                
+                # Convert to SOL for legacy liquidity/volume comparisons only
+                price_sol = price_usd / 150.0 if price_usd > 0 else 0.000001  # Rough SOL conversion for legacy logic
+                market_cap_sol = market_cap_usd / 150.0 if market_cap_usd > 0 else 100000  # Legacy compatibility
                 
                 # PAPER TRADING BOOST: If volume/price is missing, estimate from available data
                 if volume_24h == 0 and market_cap_sol > 0:
@@ -1184,8 +1220,14 @@ class TradingStrategy(TradingStrategyProtocol):
                 address = getattr(token, "address", "")
                 volume_24h = float(getattr(token, "volume_24h", getattr(token, "volume24h", 0)))
                 liquidity = float(getattr(token, "liquidity", 500000))  # Default safe value
-                price_sol = float(getattr(token, "price_sol", getattr(token, "price", 0.000001)))
-                market_cap_sol = float(getattr(token, "market_cap", 100000))  # Default safe value
+                
+                # USD-based pricing (API provides USD values)  
+                price_usd = float(getattr(token, "price", 0.01))  # Price in USD from API
+                market_cap_usd = float(getattr(token, "market_cap", 500000))  # Market cap in USD from API
+                
+                # Convert to SOL for legacy liquidity/volume comparisons only
+                price_sol = price_usd / 150.0 if price_usd > 0 else 0.000001  # Rough SOL conversion
+                market_cap_sol = market_cap_usd / 150.0 if market_cap_usd > 0 else 100000  # Legacy compatibility
 
             # Check if this is a trending token (more permissive validation)  
             is_trending = token.get('source') == 'birdeye_trending' if isinstance(token, dict) else getattr(token, 'source', '') == 'birdeye_trending'
@@ -1193,43 +1235,43 @@ class TradingStrategy(TradingStrategyProtocol):
             # Check if we're in paper trading mode
             is_paper_trading = (self.state.mode == TradingMode.PAPER)
             
-            # PAPER TRADING OPTIMIZED VALIDATION - Much more permissive thresholds
+            # USD-BASED VALIDATION - Professional standard with better UX
             if is_paper_trading:
                 # ULTRA-PERMISSIVE thresholds for paper trading (maximum opportunities)
                 min_volume = 0.0  # Zero volume requirement for paper trading
-                min_liquidity = getattr(self.settings, 'PAPER_MIN_LIQUIDITY', 10.0)  # Very low requirement
-                min_price = 0.000000001  # Virtually any price
-                max_price = 1000.0  # Very high max price
-                min_market_cap = 1.0  # Minimal market cap
-                max_market_cap = 100000000.0  # Very high max market cap
+                min_liquidity = getattr(self.settings, 'PAPER_MIN_LIQUIDITY', 1.0)  # EXTREMELY low requirement
+                min_price_usd = 0.00001  # $0.00001 minimum
+                max_price_usd = 100.0  # $100 maximum for paper trading
+                min_market_cap_usd = 1000.0  # $1K minimum
+                max_market_cap_usd = 100000000.0  # $100M maximum for paper trading
                 logger.info(f"[PAPER_VALIDATION] Using ULTRA-PERMISSIVE paper trading thresholds")
                 logger.info(f"  Volume: {min_volume:.1f} SOL, Liquidity: {min_liquidity:.1f} SOL")
-                logger.info(f"  Price: {min_price:.9f} - {max_price:.1f} SOL")
-                logger.info(f"  Market Cap: {min_market_cap:.1f} - {max_market_cap:.1f} SOL")
+                logger.info(f"  Price: ${min_price_usd:.5f} - ${max_price_usd:.1f} USD")
+                logger.info(f"  Market Cap: ${min_market_cap_usd:.0f} - ${max_market_cap_usd:.0f} USD")
             elif is_trending:
                 # More permissive thresholds for trending tokens (they're already validated by Birdeye)
                 min_volume = max(getattr(self.settings, 'MIN_VOLUME_24H', 50) * 0.2, 5)
                 min_liquidity = max(getattr(self.settings, 'MIN_LIQUIDITY', 500) * 0.5, 200)
-                min_price = getattr(self.settings, 'MIN_TOKEN_PRICE_SOL', 0.000000001)
-                max_price = getattr(self.settings, 'MAX_TOKEN_PRICE_SOL', 1.0)
-                min_market_cap = getattr(self.settings, 'MIN_MARKET_CAP_SOL', 10000)
-                max_market_cap = getattr(self.settings, 'MAX_MARKET_CAP_SOL', 10000000)
+                min_price_usd = getattr(self.settings, 'MIN_TOKEN_PRICE_USD', 0.00001)
+                max_price_usd = getattr(self.settings, 'MAX_TOKEN_PRICE_USD', 2.0)
+                min_market_cap_usd = getattr(self.settings, 'MIN_MARKET_CAP_USD', 100000) * 0.5  # More permissive
+                max_market_cap_usd = getattr(self.settings, 'MAX_MARKET_CAP_USD', 10000000) * 2  # More permissive
                 logger.info(f"[TRENDING_VALIDATION] Using permissive thresholds - Volume: {min_volume:.1f} SOL, Liquidity: {min_liquidity:.1f} SOL")
             else:
-                # Standard thresholds for non-trending tokens
+                # Standard USD-based thresholds
                 min_volume = max(getattr(self.settings, 'MIN_VOLUME_24H', 50) * 0.5, 10)
                 min_liquidity = max(getattr(self.settings, 'MIN_LIQUIDITY', 500) * 0.7, 300)
-                min_price = getattr(self.settings, 'MIN_TOKEN_PRICE_SOL', 0.000000001)
-                max_price = getattr(self.settings, 'MAX_TOKEN_PRICE_SOL', 1.0)
-                min_market_cap = getattr(self.settings, 'MIN_MARKET_CAP_SOL', 10000)
-                max_market_cap = getattr(self.settings, 'MAX_MARKET_CAP_SOL', 10000000)
+                min_price_usd = getattr(self.settings, 'MIN_TOKEN_PRICE_USD', 0.00001)
+                max_price_usd = getattr(self.settings, 'MAX_TOKEN_PRICE_USD', 2.0)
+                min_market_cap_usd = getattr(self.settings, 'MIN_MARKET_CAP_USD', 100000)
+                max_market_cap_usd = getattr(self.settings, 'MAX_MARKET_CAP_USD', 10000000)
             
             validations = {
                 "has_address": bool(address),
                 "volume": volume_24h >= min_volume,
                 "liquidity": liquidity >= min_liquidity,
-                "price_range": (min_price <= price_sol <= max_price),
-                "market_cap_range": (min_market_cap <= market_cap_sol <= max_market_cap),
+                "price_range": (min_price_usd <= price_usd <= max_price_usd),
+                "market_cap_range": (min_market_cap_usd <= market_cap_usd <= max_market_cap_usd),
                 "not_excluded": address not in getattr(self, '_excluded_tokens', set()),
                 "solana_only": self._is_solana_token(address) if getattr(self.settings, 'SOLANA_ONLY', True) else True,
             }
@@ -1241,7 +1283,7 @@ class TradingStrategy(TradingStrategyProtocol):
                     logger.info(f"[FILTER] FAIL - Token {address[:8]}... REJECTED: {', '.join(failed_checks)}")
                     logger.info(f"  Volume: {volume_24h:.2f} SOL (need: {min_volume:.2f})")
                     logger.info(f"  Liquidity: {liquidity:.2f} SOL (need: {min_liquidity:.2f})")
-                    logger.info(f"  Price: {price_sol:.6f} SOL, Market Cap: {market_cap_sol:.0f} SOL")
+                    logger.info(f"  Price: ${price_usd:.6f} USD, Market Cap: ${market_cap_usd:.0f} USD")
                 return False
             else:
                 mode_info = ""
@@ -1253,7 +1295,7 @@ class TradingStrategy(TradingStrategyProtocol):
                 logger.info(f"[FILTER] PASS - Token {address[:8]}... PASSED all validations!{mode_info}")
                 logger.info(f"  Volume: {volume_24h:.2f} SOL (threshold: {min_volume:.2f})")
                 logger.info(f"  Liquidity: {liquidity:.2f} SOL (threshold: {min_liquidity:.2f})")
-                logger.info(f"  Price: {price_sol:.6f} SOL, Market Cap: {market_cap_sol:.0f} SOL")
+                logger.info(f"  Price: ${price_usd:.6f} USD, Market Cap: ${market_cap_usd:.0f} USD")
                 if is_paper_trading:
                     logger.info(f"  [PAPER] PAPER TRADING MODE - Used relaxed validation thresholds")
                 elif is_trending:
@@ -1542,53 +1584,99 @@ class TradingStrategy(TradingStrategyProtocol):
 
     async def _process_pending_orders(self) -> None:
         """Process pending entry orders"""
-        if not self.state.pending_orders:
-            return
+        try:
+            if not self.state.pending_orders:
+                logger.info("[PROCESS] No pending orders to process")
+                return
+                
+            logger.info(f"[PROCESS] Processing {len(self.state.pending_orders)} pending orders...")
             
-        logger.info(f"[PROCESS] Processing {len(self.state.pending_orders)} pending orders...")
-        
-        for signal in self.state.pending_orders[:]:
-            try:
-                logger.info(f"[ORDER] Processing order for {signal.token_address[:8]}... size: {signal.size}")
-                
-                current_price = await self._get_current_price(signal.token_address)
-                if not current_price:
-                    logger.warning(f"[ERROR] Cannot get current price for {signal.token_address[:8]}...")
-                    continue
-
-                price_deviation = abs(current_price - signal.price) / signal.price
-                logger.info(f"[PRICE] Current price: {current_price}, Signal price: {signal.price}, Deviation: {price_deviation:.2%}")
-                
-                if price_deviation > signal.slippage:
-                    logger.warning(
-                        f"[SLIPPAGE] Price deviation too high for {signal.token_address[:8]}...: {price_deviation:.2%} > {signal.slippage:.2%}"
-                    )
-                    self.state.pending_orders.remove(signal)
-                    continue
-
-                logger.info(f"[VALIDATE] Validating price conditions for {signal.token_address[:8]}...")
-                if await self._validate_price_conditions(
-                    signal.token_address, signal.size
-                ):
-                    logger.info(f"[EXECUTE] Executing trade for {signal.token_address[:8]}...")
-                    success = await self._execute_trade(
-                        token_address=signal.token_address,
-                        size=signal.size,
-                        price=current_price,
-                    )
-                    if success:
-                        self.state.pending_orders.remove(signal)
-                        logger.info(
-                            f"[SUCCESS] Successfully executed entry for {signal.token_address[:8]}... - Position opened!"
-                        )
+            # DEBUG: Check pending orders structure
+            logger.info(f"[DEBUG] Pending orders type: {type(self.state.pending_orders)}")
+            logger.info(f"[DEBUG] First pending order type: {type(self.state.pending_orders[0]) if self.state.pending_orders else 'None'}")
+            logger.info(f"[DEBUG] First pending order: {self.state.pending_orders[0] if self.state.pending_orders else 'None'}")
+            
+            logger.info("[DEBUG] About to start processing loop...")
+            for i, signal in enumerate(self.state.pending_orders[:]):
+                logger.info(f"[DEBUG] Loop iteration {i}: signal type = {type(signal)}")
+                logger.info(f"[DEBUG] Loop iteration {i}: signal = {signal}")
+                try:
+                    logger.info(f"[ORDER] Processing order for {signal.token_address[:8]}... size: {signal.size}")
+                    
+                    # Add more detailed debugging
+                    logger.info(f"[DEBUG] Signal details - Price: {signal.price}, Slippage: {signal.slippage}")
+                    
+                    # PAPER TRADING FIX: Use signal price directly, don't re-fetch current price
+                    if self.state.mode == TradingMode.PAPER:
+                        logger.info(f"[PAPER] Using signal price directly: ${signal.price:.6f} (paper trading mode)")
+                        current_price = signal.price  # Use original signal price for paper trading
                     else:
-                        logger.error(f"[FAILED] Trade execution failed for {signal.token_address[:8]}...")
-                else:
-                    logger.warning(f"[BLOCKED] Price conditions not met for {signal.token_address[:8]}...")
+                        # Live trading: Get current price and check slippage
+                        current_price = await self._get_current_price(signal.token_address)
+                        if not current_price:
+                            logger.warning(f"[ERROR] Cannot get current price for {signal.token_address[:8]}...")
+                            self.state.pending_orders.remove(signal)
+                            continue
 
-            except Exception as e:
-                logger.error(f"[ERROR] Error processing order for {signal.token_address[:8]}...: {e}")
-                self.state.pending_orders.remove(signal)
+                        price_deviation = abs(current_price - signal.price) / signal.price
+                        logger.info(f"[PRICE] Current price: {current_price}, Signal price: {signal.price}, Deviation: {price_deviation:.2%}")
+                        
+                        if price_deviation > signal.slippage:
+                            logger.warning(
+                                f"[SLIPPAGE] Price deviation too high for {signal.token_address[:8]}...: {price_deviation:.2%} > {signal.slippage:.2%}"
+                            )
+                            self.state.pending_orders.remove(signal)
+                            continue
+
+                    logger.info(f"[VALIDATE] Validating price conditions for {signal.token_address[:8]}...")
+                    
+                    # Add detailed validation debugging
+                    try:
+                        validation_result = await self._validate_price_conditions(
+                            signal.token_address, signal.size
+                        )
+                        logger.info(f"[VALIDATE_RESULT] Price validation result: {validation_result}")
+                    except Exception as validation_error:
+                        logger.error(f"[VALIDATE_ERROR] Price validation failed: {validation_error}")
+                        self.state.pending_orders.remove(signal)
+                        continue
+                    
+                    if validation_result:
+                        logger.info(f"[EXECUTE] Executing trade for {signal.token_address[:8]}...")
+                        try:
+                            success = await self._execute_trade(
+                                token_address=signal.token_address,
+                                size=signal.size,
+                                price=current_price,
+                            )
+                            logger.info(f"[EXECUTE_RESULT] Trade execution result: {success}")
+                            
+                            if success:
+                                self.state.pending_orders.remove(signal)
+                                logger.info(
+                                    f"[SUCCESS] Successfully executed entry for {signal.token_address[:8]}... - Position opened!"
+                                )
+                            else:
+                                logger.error(f"[FAILED] Trade execution failed for {signal.token_address[:8]}...")
+                                self.state.pending_orders.remove(signal)
+                        except Exception as execute_error:
+                            logger.error(f"[EXECUTE_ERROR] Trade execution crashed: {execute_error}")
+                            self.state.pending_orders.remove(signal)
+                    else:
+                        logger.warning(f"[BLOCKED] Price conditions not met for {signal.token_address[:8]}...")
+                        self.state.pending_orders.remove(signal)
+
+                except Exception as signal_error:
+                    logger.error(f"[ERROR] Error processing order for {signal.token_address[:8] if hasattr(signal, 'token_address') else 'UNKNOWN'}...: {signal_error}")
+                    if signal in self.state.pending_orders:
+                        self.state.pending_orders.remove(signal)
+                        
+            logger.info(f"[PROCESS_COMPLETE] Finished processing orders. Remaining pending orders: {len(self.state.pending_orders)}")
+            
+        except Exception as outer_error:
+            logger.error(f"[PROCESS_FATAL] Fatal error in _process_pending_orders: {outer_error}")
+            import traceback
+            logger.error(f"[TRACEBACK] {traceback.format_exc()}")
 
     async def _execute_trade(
         self, token_address: str, size: float, price: float
@@ -1606,10 +1694,23 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _execute_paper_trade(
         self, token_address: str, size: float, price: float
     ) -> bool:
-        """Execute paper trade"""
+        """Execute paper trade with proper USD to SOL conversion"""
         try:
-            cost = size * price
-            logger.info(f"[PAPER] Attempting paper trade for {token_address[:8]}... - Cost: {cost:.4f} SOL, Balance: {self.state.paper_balance:.4f} SOL")
+            # Get current SOL price to convert USD token price to SOL cost
+            sol_price_usd = await self.jupiter.get_sol_price()  # Returns SOL price in USD
+            
+            if not sol_price_usd or sol_price_usd <= 0:
+                logger.error("[PAPER] Failed to get SOL price for USD conversion")
+                return False
+                
+            # Convert USD token price to SOL equivalent
+            token_price_usd = price  # Input price is in USD
+            cost_sol = size * (token_price_usd / sol_price_usd)  # Convert to SOL cost
+            
+            logger.info(f"[PAPER] Trade for {token_address[:8]}... - Token: ${token_price_usd:.6f} USD (${token_price_usd/sol_price_usd:.8f} SOL)")
+            logger.info(f"[PAPER] Cost: {cost_sol:.6f} SOL (${token_price_usd * size:.4f} USD), Balance: {self.state.paper_balance:.4f} SOL")
+            
+            cost = cost_sol  # Use SOL cost for balance checking
             
             if cost > self.state.paper_balance:
                 logger.warning(
@@ -1647,10 +1748,10 @@ class TradingStrategy(TradingStrategyProtocol):
             logger.info(f"[TRADE] 🚀 PAPER POSITION OPENED! 🚀")
             logger.info(f"  Token: {token_address[:8]}...")
             logger.info(f"  Size: {size:.4f} tokens")
-            logger.info(f"  Entry Price: {price:.6f} SOL")
-            logger.info(f"  Cost: {cost:.4f} SOL")
-            logger.info(f"  Stop Loss: {stop_loss_price:.6f} SOL ({getattr(self.settings, 'STOP_LOSS_PERCENTAGE', 0.15):.1%})")
-            logger.info(f"  Take Profit: {take_profit_price:.6f} SOL ({getattr(self.settings, 'TAKE_PROFIT_PERCENTAGE', 0.25):.1%})")
+            logger.info(f"  Entry Price: ${token_price_usd:.6f} USD ({token_price_usd/sol_price_usd:.8f} SOL)")
+            logger.info(f"  Cost: {cost:.6f} SOL (${token_price_usd * size:.4f} USD)")
+            logger.info(f"  Stop Loss: ${stop_loss_price:.6f} USD ({getattr(self.settings, 'STOP_LOSS_PERCENTAGE', 0.15):.1%})")
+            logger.info(f"  Take Profit: ${take_profit_price:.6f} USD ({getattr(self.settings, 'TAKE_PROFIT_PERCENTAGE', 0.25):.1%})")
             logger.info(f"  Previous Balance: {self.state.paper_balance + cost:.4f} SOL")
             logger.info(f"  Remaining Balance: {self.state.paper_balance:.4f} SOL")
             logger.info(f"  Total Active Positions: {len(self.state.paper_positions)}")
@@ -1659,15 +1760,18 @@ class TradingStrategy(TradingStrategyProtocol):
             # CRITICAL: Add to completed trades for dashboard
             trade_record = {
                 "token": token_address[:8],
-                "type": "paper_buy",
-                "entry_price": price,
+                "type": "paper_buy", 
+                "entry_price_usd": token_price_usd,  # Store USD price for display
+                "entry_price_sol": token_price_usd / sol_price_usd,  # Store SOL equivalent
                 "size": size,
-                "cost": cost,
+                "cost_sol": cost,  # Cost in SOL 
+                "cost_usd": token_price_usd * size,  # Cost in USD
                 "entry_time": datetime.now().isoformat(),
                 "stop_loss": stop_loss_price,
                 "take_profit": take_profit_price,
                 "status": "open",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "sol_price_at_trade": sol_price_usd  # Store SOL price for historical reference
             }
             self.state.completed_trades.append(trade_record)
             logger.info(f"[DASHBOARD] Added trade record to completed trades (Total: {len(self.state.completed_trades)})")
@@ -1688,17 +1792,20 @@ class TradingStrategy(TradingStrategyProtocol):
                 },
             )
             
-            # Update dashboard with trade execution
+            # Update dashboard with trade execution (backward compatible format)
             await self._update_dashboard_with_trade({
                 "type": "buy",
                 "token_address": token_address,
                 "symbol": "UNKNOWN",  # Will be updated if available
                 "size": size,
-                "price": price,
-                "cost": cost,
+                "price": token_price_usd,  # USD price for display (matches API format)
+                "cost": cost,  # SOL cost for balance calculations
+                "cost_usd": token_price_usd * size,  # USD cost for reference
+                "price_sol": token_price_usd / sol_price_usd,  # SOL equivalent price
+                "sol_price_at_trade": sol_price_usd,  # Historical SOL price
                 "timestamp": datetime.now().isoformat(),
-                "stop_loss": stop_loss_price,
-                "take_profit": take_profit_price,
+                "stop_loss": stop_loss_price,  # USD stop loss
+                "take_profit": take_profit_price,  # USD take profit
                 "status": "open"
             })
             
@@ -1712,6 +1819,19 @@ class TradingStrategy(TradingStrategyProtocol):
                 "positions": len(self.state.paper_positions),
                 "timestamp": datetime.now().isoformat()
             })
+            
+            # Send trade opened notification
+            try:
+                token_symbol = getattr(position, 'symbol', token_address[:8] + "...")
+                send_trade_opened(
+                    token_address=token_address,
+                    symbol=token_symbol,
+                    entry_price=token_price_usd,
+                    quantity=size,
+                    trade_type="paper_buy"
+                )
+            except Exception as notification_error:
+                logger.warning(f"Failed to send trade opened notification: {notification_error}")
             
             return True
 
@@ -1735,6 +1855,10 @@ class TradingStrategy(TradingStrategyProtocol):
                 logger.warning("Emergency controls triggered - trade blocked")
                 return False
                 
+            # Start execution timing tracking
+            trade_id = f"live_{signal.token_address[:8]}_{int(datetime.now().timestamp())}"
+            execution_key = start_execution_tracking(trade_id, signal.token_address, signal.price)
+            
             # Execute swap with enhanced monitoring
             signature = await self.swap_executor.execute_swap(
                 input_token="So11111111111111111111111111111111111111112",  # SOL
@@ -1745,12 +1869,16 @@ class TradingStrategy(TradingStrategyProtocol):
             
             if not signature:
                 logger.error(f"Failed to execute swap for {signal.token_address}")
+                # Complete execution tracking - failed
+                complete_execution_tracking(execution_key, signal.price, 0.0, False, "Swap execution failed")
                 return False
                 
             # Wait for transaction confirmation
             confirmed = await self.wait_for_transaction_confirmation(signature)
             if not confirmed:
                 logger.error(f"Transaction confirmation failed: {signature}")
+                # Complete execution tracking - confirmation failed
+                complete_execution_tracking(execution_key, signal.price, 0.0, False, "Transaction confirmation failed")
                 return False
                 
             # Open position tracking
@@ -1764,6 +1892,12 @@ class TradingStrategy(TradingStrategyProtocol):
             
             if position:
                 self.state.daily_stats.trade_count += 1
+                
+                # Complete execution tracking - success
+                # Get actual execution price from position or estimate gas fee
+                actual_price = position.entry_price
+                estimated_gas_fee = 0.005  # Estimate 0.005 SOL for gas
+                complete_execution_tracking(execution_key, actual_price, estimated_gas_fee, True)
                 
                 # Sync position with blockchain state
                 await self.sync_positions_with_blockchain()
@@ -1781,12 +1915,32 @@ class TradingStrategy(TradingStrategyProtocol):
                         "take_profit": signal.take_profit
                     }
                 )
+                
+                # Send live trade opened notification
+                try:
+                    token_symbol = getattr(position, 'symbol', signal.token_address[:8] + "...")
+                    send_trade_opened(
+                        token_address=signal.token_address,
+                        symbol=token_symbol,
+                        entry_price=signal.price,
+                        quantity=signal.size,
+                        trade_type="live_buy"
+                    )
+                except Exception as notification_error:
+                    logger.warning(f"Failed to send live trade opened notification: {notification_error}")
+                
                 return True
+            else:
+                # Complete execution tracking - position creation failed
+                complete_execution_tracking(execution_key, signal.price, 0.0, False, "Position creation failed")
                 
             return False
             
         except Exception as e:
             logger.error(f"Live trade execution error: {e}")
+            # Complete execution tracking - exception occurred
+            if 'execution_key' in locals():
+                complete_execution_tracking(execution_key, signal.price, 0.0, False, f"Exception: {str(e)}")
             return False
     
     async def close_live_position(self, token_address: str, reason: str) -> bool:
@@ -1800,6 +1954,10 @@ class TradingStrategy(TradingStrategyProtocol):
             if not position:
                 logger.warning(f"No position found for {token_address}")
                 return False
+            
+            # Start execution timing tracking for position close
+            close_trade_id = f"close_{token_address[:8]}_{int(datetime.now().timestamp())}"
+            close_execution_key = start_execution_tracking(close_trade_id, token_address, position.current_price)
                 
             # Execute closing swap
             signature = await self.swap_executor.execute_swap(
@@ -1811,18 +1969,27 @@ class TradingStrategy(TradingStrategyProtocol):
             
             if not signature:
                 logger.error(f"Failed to close position for {token_address}")
+                # Complete execution tracking - close failed
+                complete_execution_tracking(close_execution_key, position.current_price, 0.0, False, "Position close swap failed")
                 return False
                 
             # Wait for confirmation
             confirmed = await self.wait_for_transaction_confirmation(signature)
             if not confirmed:
                 logger.error(f"Position close confirmation failed: {signature}")
+                # Complete execution tracking - confirmation failed
+                complete_execution_tracking(close_execution_key, position.current_price, 0.0, False, "Position close confirmation failed")
                 return False
                 
             # Close position in manager
             success = await self.position_manager.close_position(token_address, reason)
             
             if success:
+                # Complete execution tracking - success
+                actual_close_price = position.current_price
+                estimated_gas_fee = 0.005  # Estimate 0.005 SOL for gas
+                complete_execution_tracking(close_execution_key, actual_close_price, estimated_gas_fee, True)
+                
                 # Sync with blockchain
                 await self.sync_positions_with_blockchain()
                 
@@ -1838,10 +2005,70 @@ class TradingStrategy(TradingStrategyProtocol):
                     }
                 )
                 
+                # Add live trade to performance analytics and risk tracking
+                try:
+                    # Calculate duration in minutes
+                    duration_minutes = (datetime.now() - position.trade_entry.entry_time).total_seconds() / 60
+                    
+                    # Calculate profit/loss in USD (assuming SOL price tracking)
+                    sol_price_usd = getattr(position.trade_entry, 'sol_price_at_trade', 200.0)  # Fallback
+                    profit_loss_sol = position.unrealized_pnl
+                    profit_loss_usd = profit_loss_sol * sol_price_usd
+                    
+                    # Calculate profit percentage
+                    profit_percentage = (profit_loss_sol / (position.size * position.entry_price)) * 100 if (position.size * position.entry_price) > 0 else 0
+                    
+                    # Format trade data for analytics
+                    analytics_trade_data = {
+                        "timestamp": datetime.now().isoformat(),
+                        "token_address": token_address,
+                        "token_symbol": getattr(position, 'symbol', 'UNKNOWN'),
+                        "entry_price": float(position.entry_price),
+                        "exit_price": float(position.current_price),
+                        "quantity": float(position.size),
+                        "profit_loss_usd": profit_loss_usd,
+                        "profit_loss_sol": profit_loss_sol,
+                        "profit_percentage": profit_percentage,
+                        "duration_minutes": duration_minutes,
+                        "trade_type": "live_close",
+                        "source": getattr(position.trade_entry, 'source', 'unknown')
+                    }
+                    
+                    # Add to analytics tracking
+                    add_trade_to_analytics(analytics_trade_data)
+                    
+                    # Update risk metrics
+                    update_risk_metrics(analytics_trade_data)
+                    
+                    logger.info(f"[ANALYTICS] Live trade added to performance tracking and risk analysis")
+                    
+                except Exception as analytics_error:
+                    logger.warning(f"Failed to update analytics for live trade: {analytics_error}")
+                
+                # Send live trade closed notification
+                try:
+                    token_symbol = getattr(position, 'symbol', token_address[:8] + "...")
+                    send_trade_closed(
+                        token_address=token_address,
+                        symbol=token_symbol,
+                        exit_price=float(position.current_price),
+                        pnl=profit_loss_sol,
+                        pnl_percentage=profit_percentage,
+                        duration_minutes=duration_minutes
+                    )
+                except Exception as notification_error:
+                    logger.warning(f"Failed to send live trade closed notification: {notification_error}")
+            else:
+                # Complete execution tracking - position close failed
+                complete_execution_tracking(close_execution_key, position.current_price, 0.0, False, "Position close operation failed")
+                
             return success
             
         except Exception as e:
             logger.error(f"Error closing live position: {e}")
+            # Complete execution tracking - exception occurred
+            if 'close_execution_key' in locals():
+                complete_execution_tracking(close_execution_key, 0.0, 0.0, False, f"Exception: {str(e)}")
             return False
     
     async def verify_live_balance(self, required_amount: float) -> bool:
@@ -2063,6 +2290,55 @@ class TradingStrategy(TradingStrategyProtocol):
             
             logger.info(f"[COMPLETE] Trade completed and recorded - Total completed trades: {len(self.state.completed_trades)}")
             
+            # Add trade to performance analytics and risk tracking
+            try:
+                # Get SOL price at exit time for proper USD conversion
+                sol_price_usd = getattr(position.trade_entry, 'sol_price_at_trade', 200.0)  # Fallback
+                
+                # Calculate duration in minutes
+                duration_minutes = (datetime.now() - position.trade_entry.entry_time).total_seconds() / 60
+                
+                # Format trade data for analytics
+                analytics_trade_data = {
+                    "timestamp": datetime.now().isoformat(),
+                    "token_address": token_address,
+                    "token_symbol": getattr(position, 'symbol', 'UNKNOWN'),
+                    "entry_price": float(position.entry_price),
+                    "exit_price": float(position.current_price),
+                    "quantity": float(position.size),
+                    "profit_loss_usd": realized_pnl * sol_price_usd,  # Convert SOL to USD
+                    "profit_loss_sol": realized_pnl,
+                    "profit_percentage": pnl_percentage,
+                    "duration_minutes": duration_minutes,
+                    "trade_type": "paper_close",
+                    "source": getattr(position.trade_entry, 'source', 'unknown')
+                }
+                
+                # Add to analytics tracking
+                add_trade_to_analytics(analytics_trade_data)
+                
+                # Update risk metrics
+                update_risk_metrics(analytics_trade_data)
+                
+                logger.info(f"[ANALYTICS] Trade added to performance tracking and risk analysis")
+                
+            except Exception as analytics_error:
+                logger.warning(f"Failed to update analytics: {analytics_error}")
+            
+            # Send trade closed notification
+            try:
+                token_symbol = getattr(position, 'symbol', token_address[:8] + "...")
+                send_trade_closed(
+                    token_address=token_address,
+                    symbol=token_symbol,
+                    exit_price=float(position.current_price),
+                    pnl=realized_pnl,
+                    pnl_percentage=pnl_percentage,
+                    duration_minutes=duration_minutes
+                )
+            except Exception as notification_error:
+                logger.warning(f"Failed to send trade closed notification: {notification_error}")
+            
             return True
 
         except Exception as e:
@@ -2124,8 +2400,11 @@ class TradingStrategy(TradingStrategyProtocol):
     async def _get_current_price(self, token_address: str) -> Optional[float]:
         """Get current token price in SOL using multiple methods"""
         try:
+            logger.debug(f"[PRICE] Getting current price for {token_address[:8]}...")
+            
             # Method 1: Try Jupiter quote API first
             try:
+                logger.debug(f"[PRICE] Trying Jupiter quote API for {token_address[:8]}...")
                 price_data = await self.jupiter.get_quote(
                     token_address,
                     "So11111111111111111111111111111111111111112",  # SOL
@@ -2137,6 +2416,8 @@ class TradingStrategy(TradingStrategyProtocol):
                     price_sol = float(price_data["outAmount"]) / 1e9
                     logger.debug(f"[PRICE] Jupiter price for {token_address[:8]}...: {price_sol:.8f} SOL")
                     return price_sol
+                else:
+                    logger.debug(f"[PRICE] Jupiter quote returned no outAmount for {token_address[:8]}...")
             except Exception as e:
                 logger.debug(f"[PRICE] Jupiter quote failed for {token_address[:8]}...: {e}")
             
@@ -2190,7 +2471,7 @@ class TradingStrategy(TradingStrategyProtocol):
         """Save completed trade to dashboard data file"""
         try:
             import json
-            dashboard_file = "bot_data.json"
+            dashboard_file = "dashboard_data.json"
             
             # Load existing data
             try:
@@ -2249,7 +2530,7 @@ class TradingStrategy(TradingStrategyProtocol):
         """Update dashboard with trade information in trades array"""
         try:
             import json
-            dashboard_file = "bot_data.json"
+            dashboard_file = "dashboard_data.json"
             
             # Load existing data
             try:
@@ -2323,7 +2604,7 @@ class TradingStrategy(TradingStrategyProtocol):
         """Update existing trade record in dashboard when position is closed"""
         try:
             import json
-            dashboard_file = "bot_data.json"
+            dashboard_file = "dashboard_data.json"
             
             # Load existing data
             try:
@@ -2383,7 +2664,7 @@ class TradingStrategy(TradingStrategyProtocol):
         """Update dashboard with real-time bot activity"""
         try:
             import json
-            dashboard_file = "bot_data.json"
+            dashboard_file = "dashboard_data.json"
             
             # Load existing data
             try:

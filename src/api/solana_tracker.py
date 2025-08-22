@@ -160,17 +160,20 @@ class SolanaTrackerClient:
 
     async def _make_request(self, endpoint: str, params: dict = None) -> Optional[dict]:
         if not self._can_make_request():
-            await asyncio.sleep(self.min_interval)
+            # Shorter wait for rate limits during startup
+            await asyncio.sleep(0.5)  # Reduced from self.min_interval
             if not self._can_make_request():
+                logger.warning("Rate limit still active after wait - skipping request")
                 return None
 
         if not self.session:
             await self.start_session()
 
-        # Rate limiting delay
+        # Reduced rate limiting delay for faster startup
         time_since_last = time.time() - self.last_request_time
-        if time_since_last < self.min_interval:
-            await asyncio.sleep(self.min_interval - time_since_last)
+        min_delay = 0.5  # Reduced from self.min_interval (1.0)
+        if time_since_last < min_delay:
+            await asyncio.sleep(min_delay - time_since_last)
 
         url = f"{self.base_url}/{endpoint}"
         

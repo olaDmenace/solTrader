@@ -62,13 +62,21 @@ class Settings:
     MEDIUM_MOMENTUM_BYPASS: float = 100.0  # NEW: Medium momentum bypass at 100%
     MAX_PRICE_IMPACT: float = 2.0  # Higher impact tolerance for new tokens
     
-    # New token sniping settings - Solana specific
+    # New token sniping settings - USD-based for better UX
     NEW_TOKEN_MAX_AGE_MINUTES: int = 2880  # Consider tokens new if < 48 hours old (48 * 60 = 2880)
     MIN_CONTRACT_SCORE: int = 70  # Minimum security score for entry
-    MAX_TOKEN_PRICE_SOL: float = 0.01  # Max price in SOL (target micro-cap)
-    MIN_TOKEN_PRICE_SOL: float = 0.000001  # Min price in SOL (avoid dust)
-    MAX_MARKET_CAP_SOL: float = 50000.0  # Max market cap in SOL (~$7.5M)
-    MIN_MARKET_CAP_SOL: float = 10.0  # Min market cap in SOL (~$1.5K)
+    
+    # USD-based pricing (professional standard)
+    MAX_TOKEN_PRICE_USD: float = 2.0  # Max price in USD (target micro-cap tokens)
+    MIN_TOKEN_PRICE_USD: float = 0.00001  # Min price in USD (avoid dust tokens)
+    MAX_MARKET_CAP_USD: float = 10000000.0  # Max market cap in USD ($10M - small cap)
+    MIN_MARKET_CAP_USD: float = 100000.0  # Min market cap in USD ($100K - avoid very new)
+    
+    # Legacy SOL-based settings (deprecated but maintained for compatibility)
+    MAX_TOKEN_PRICE_SOL: float = 0.01  # DEPRECATED: Use MAX_TOKEN_PRICE_USD
+    MIN_TOKEN_PRICE_SOL: float = 0.000001  # DEPRECATED: Use MIN_TOKEN_PRICE_USD  
+    MAX_MARKET_CAP_SOL: float = 50000.0  # DEPRECATED: Use MAX_MARKET_CAP_USD
+    MIN_MARKET_CAP_SOL: float = 10.0  # DEPRECATED: Use MIN_MARKET_CAP_USD
     
     # Solana blockchain specific
     SOLANA_ONLY: bool = True  # Only trade Solana tokens
@@ -311,6 +319,13 @@ def load_settings() -> Settings:
         'PAPER_SIGNAL_THRESHOLD': ('PAPER_SIGNAL_THRESHOLD', float),
         
         # Token Price and Market Cap Settings
+        # USD-based settings (primary)
+        'MAX_TOKEN_PRICE_USD': ('MAX_TOKEN_PRICE_USD', float),
+        'MIN_TOKEN_PRICE_USD': ('MIN_TOKEN_PRICE_USD', float),
+        'MAX_MARKET_CAP_USD': ('MAX_MARKET_CAP_USD', float),
+        'MIN_MARKET_CAP_USD': ('MIN_MARKET_CAP_USD', float),
+        
+        # Legacy SOL-based settings (backward compatibility)
         'MAX_TOKEN_PRICE_SOL': ('MAX_TOKEN_PRICE_SOL', float),
         'MIN_TOKEN_PRICE_SOL': ('MIN_TOKEN_PRICE_SOL', float),
         'MAX_MARKET_CAP_SOL': ('MAX_MARKET_CAP_SOL', float),

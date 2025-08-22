@@ -27,7 +27,8 @@
       "Bash(set SOLANA_TRACKER_KEY=542d5c9a-ea00-485c-817b-cd9839411972)",
       "Bash(cp:*)",
       "Bash(ssh:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   },

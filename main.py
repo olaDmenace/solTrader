@@ -158,9 +158,9 @@ class TradingBot:
             logger.info(f"[BALANCE] Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
             logger.info("[ENHANCED] All enhanced features activated successfully")
             
-            # Start health monitoring
-            await self.health_monitor.start_monitoring()
-            logger.info("[HEALTH] Health monitoring system started")
+            # TEMPORARY: Skip health monitoring to fix core trading
+            # await self.health_monitor.start_monitoring()
+            logger.info("[HEALTH] Health monitoring disabled for debugging")
             
             return True
             

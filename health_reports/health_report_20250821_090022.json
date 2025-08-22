@@ -1,0 +1,64 @@
+{
+  "timestamp": "2025-08-21T09:00:22.664220",
+  "overall_status": "critical",
+  "metrics": {
+    "token_discovery_rate": {
+      "current_value": 1.0,
+      "status": "critical",
+      "last_updated": "2025-08-21T09:00:21.617468"
+    },
+    "approval_rate": {
+      "current_value": 9.090909090909092,
+      "status": "critical",
+      "last_updated": "2025-08-21T09:00:22.628557"
+    },
+    "api_error_rate": {
+      "current_value": 0.0,
+      "status": "healthy",
+      "last_updated": "2025-08-21T09:00:21.617468"
+    },
+    "trade_execution_rate": {
+      "current_value": 0,
+      "status": "critical",
+      "last_updated": "2025-08-21T09:00:21.617468"
+    },
+    "cpu_usage": {
+      "current_value": 75.3,
+      "status": "healthy",
+      "last_updated": "2025-08-21T09:00:22.618042"
+    },
+    "memory_usage": {
+      "current_value": 93.2,
+      "status": "critical",
+      "last_updated": "2025-08-21T09:00:22.627551"
+    },
+    "disk_usage": {
+      "current_value": 95.6947050886347,
+      "status": "critical",
+      "last_updated": "2025-08-21T09:00:22.628557"
+    },
+    "api_response_time": {
+      "current_value": 30,
+      "status": "healthy",
+      "last_updated": "2025-08-21T09:00:21.617468"
+    },
+    "log_activity": {
+      "current_value": true,
+      "status": "healthy",
+      "last_updated": "2025-08-21T09:00:22.664220"
+    }
+  },
+  "issues": [
+    "CRITICAL: token_discovery_rate = 1.0 (threshold: 50)",
+    "CRITICAL: approval_rate = 9.090909090909092 (threshold: 15)",
+    "CRITICAL: trade_execution_rate = 0 (threshold: 0)",
+    "CRITICAL: memory_usage = 93.2 (threshold: 90)",
+    "CRITICAL: disk_usage = 95.6947050886347 (threshold: 95)"
+  ],
+  "recovery_actions": [
+    "medium_recovery",
+    "hard_recovery",
+    "manual_intervention"
+  ],
+  "uptime": 195.578047
+}

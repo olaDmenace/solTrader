@@ -136,29 +136,60 @@ class EnhancedTokenScanner:
         self.is_running = True
         logger.info("Starting enhanced token scanner...")
         
-        await self.api_client.start_session()
-        
-        # Test API connection (with retry for rate limiting)
-        connection_attempts = 0
-        max_attempts = 3
-        
-        while connection_attempts < max_attempts:
-            if await self.api_client.test_connection():
-                logger.info("Solana Tracker API connection successful")
-                break
-            else:
-                connection_attempts += 1
+        try:
+            # Start API session with timeout
+            logger.info("Initializing API client session...")
+            await asyncio.wait_for(self.api_client.start_session(), timeout=30)
+            logger.info("API client session initialized")
+            
+            # Test API connection (with shorter timeout and retries)
+            connection_attempts = 0
+            max_attempts = 2  # Reduced from 3 attempts
+            
+            while connection_attempts < max_attempts:
+                try:
+                    logger.info(f"Testing API connection (attempt {connection_attempts + 1}/{max_attempts})...")
+                    # Add timeout to prevent hanging
+                    connection_result = await asyncio.wait_for(
+                        self.api_client.test_connection(), 
+                        timeout=15  # 15 second timeout
+                    )
+                    
+                    if connection_result:
+                        logger.info("Solana Tracker API connection successful")
+                        break
+                    else:
+                        logger.warning("API connection test returned False")
+                        connection_attempts += 1
+                        
+                except asyncio.TimeoutError:
+                    logger.warning(f"API connection test timed out (attempt {connection_attempts + 1})")
+                    connection_attempts += 1
+                except Exception as conn_error:
+                    logger.warning(f"API connection test failed: {conn_error}")
+                    connection_attempts += 1
+                
                 if connection_attempts < max_attempts:
-                    logger.warning(f"API connection failed, retrying in 10 seconds... (attempt {connection_attempts}/{max_attempts})")
-                    await asyncio.sleep(10)
-                else:
-                    logger.error("❌ Failed to connect to Solana Tracker API after 3 attempts")
-                    self.is_running = False
-                    return
-        
-        # Start scanning task
-        self.scan_task = asyncio.create_task(self._scan_loop())
-        logger.info("Enhanced token scanner started successfully")
+                    logger.info("Waiting 5 seconds before retry...")
+                    await asyncio.sleep(5)  # Reduced from 10 seconds
+            
+            # Even if API test fails, continue with reduced functionality
+            if connection_attempts >= max_attempts:
+                logger.warning("API connection tests failed, but continuing with limited functionality")
+            
+            # Start scanning task
+            logger.info("Starting scanning task...")
+            self.scan_task = asyncio.create_task(self._scan_loop())
+            logger.info("Enhanced token scanner started successfully")
+            
+        except asyncio.TimeoutError:
+            logger.error("Scanner initialization timed out")
+            self.is_running = False
+            return
+        except Exception as e:
+            logger.error(f"Scanner initialization failed: {e}")
+            self.is_running = False
+            return
 
     async def stop(self):
         """Stop the scanning process"""
@@ -175,7 +206,13 @@ class EnhancedTokenScanner:
             except asyncio.CancelledError:
                 pass
         
-        await self.api_client.close()
+        # Explicit session cleanup
+        try:
+            await self.api_client.close()
+            logger.info("API client sessions closed successfully")
+        except Exception as e:
+            logger.warning(f"Error closing API sessions: {e}")
+        
         logger.info("Enhanced token scanner stopped")
 
     async def _scan_loop(self):
@@ -378,15 +415,15 @@ class EnhancedTokenScanner:
         
         # Apply standard filters (unless high momentum bypassed)
         if not high_momentum:
-            # More permissive liquidity filter for medium momentum tokens
-            liquidity_threshold = self.min_liquidity / 2 if medium_momentum else self.min_liquidity
+            # ULTRA-PERMISSIVE liquidity filter for maximum opportunities
+            liquidity_threshold = self.min_liquidity / 10 if medium_momentum else self.min_liquidity / 5  # Much lower
             if token.liquidity < liquidity_threshold:
                 return None
             reasons.append(f"Liquidity: {token.liquidity:.0f} SOL")
             score += min(token.liquidity / 500, 15)  # More generous scoring, up to 15 points
             
-            # More permissive momentum filter
-            momentum_threshold = self.min_momentum_percentage / 2 if medium_momentum else self.min_momentum_percentage
+            # ULTRA-PERMISSIVE momentum filter (allow even small gains)
+            momentum_threshold = max(0.5, self.min_momentum_percentage / 10)  # Minimum 0.5% gain
             if token.price_change_24h < momentum_threshold:
                 return None
             reasons.append(f"Momentum: +{token.price_change_24h:.1f}%")
@@ -423,13 +460,13 @@ class EnhancedTokenScanner:
         # Momentum score from API
         score += token.momentum_score * 2  # Up to 20 points
         
-        # Much lower score threshold for 40-60% approval rate
+        # ULTRA-LOW score threshold for maximum paper trading opportunities
         if high_momentum:
             min_score = 0  # High momentum tokens always pass
         elif medium_momentum:
-            min_score = 5  # Very low threshold for medium momentum
+            min_score = 2  # Ultra-low threshold for medium momentum
         else:
-            min_score = 8  # Significantly reduced from 15 to 8 for regular tokens
+            min_score = 3  # Ultra-low threshold for maximum opportunities (was 8)
             
         if score < min_score:
             return None
@@ -546,11 +583,35 @@ class EnhancedTokenScanner:
                     logger.error("Fresh scan also returned 0 tokens")
                     return None
             
-            # Return the highest-scoring token
-            best_token = approved_tokens[0]  # Already sorted by score
-            token_data = best_token.token
+            # APE-ING STRATEGY: Prioritize smaller market cap tokens for higher growth potential
+            # Filter tokens by market cap for optimal selection
+            small_cap_tokens = []
+            medium_cap_tokens = []
+            large_cap_tokens = []
             
-            logger.info(f"Selected token: {token_data.symbol} (score: {best_token.score:.1f}, source: {token_data.source})")
+            for token in approved_tokens:
+                market_cap = token.token.market_cap
+                if market_cap < 1000000:  # Under $1M - small cap
+                    small_cap_tokens.append(token)
+                elif market_cap < 10000000:  # $1M-$10M - medium cap  
+                    medium_cap_tokens.append(token)
+                else:  # Over $10M - large cap
+                    large_cap_tokens.append(token)
+            
+            # Prioritize smaller caps for APE-ing strategy
+            if small_cap_tokens:
+                best_token = small_cap_tokens[0]  # Highest score among small caps
+                logger.info(f"[APE-ING] Selected SMALL CAP token for maximum growth potential")
+            elif medium_cap_tokens:
+                best_token = medium_cap_tokens[0]  # Highest score among medium caps
+                logger.info(f"[APE-ING] Selected MEDIUM CAP token (no small caps available)")
+            else:
+                best_token = large_cap_tokens[0] if large_cap_tokens else approved_tokens[0]
+                logger.info(f"[APE-ING] Selected LARGE CAP token (no smaller caps available)")
+            
+            token_data = best_token.token
+            market_cap_str = f"${token_data.market_cap:,.0f}" if token_data.market_cap > 0 else "Unknown"
+            logger.info(f"Selected token: {token_data.symbol} (score: {best_token.score:.1f}, market cap: {market_cap_str}, source: {token_data.source})")
             
             # Convert to dict format expected by strategy
             # Clean token address format (remove "solana_" prefix if present)

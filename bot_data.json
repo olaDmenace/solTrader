@@ -1,0 +1,212 @@
+{
+  "status": "running",
+  "trades": [
+    {
+      "type": "buy",
+      "token_address": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+      "symbol": "UNKNOWN",
+      "size": 10.0,
+      "price": 0.0030510115387256706,
+      "cost": 0.030510115387256707,
+      "timestamp": "2025-08-20T16:56:13.148353",
+      "stop_loss": 0.0024408092309805367,
+      "take_profit": 0.003966315000343372,
+      "status": "open"
+    },
+    {
+      "type": "buy",
+      "token_address": "hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux",
+      "symbol": "UNKNOWN",
+      "size": 10.0,
+      "price": 2.6829087855014366,
+      "cost": 26.829087855014365,
+      "timestamp": "2025-08-20T16:58:06.618678",
+      "stop_loss": 2.1463270284011493,
+      "take_profit": 3.4877814211518676,
+      "status": "open"
+    },
+    {
+      "type": "buy",
+      "token_address": "LjhnUsxCTsrXRzm9ybLSnUYfmMnXfPRhfWP8su6pump",
+      "symbol": "UNKNOWN",
+      "size": 5.0,
+      "price": 0.0004102279154172876,
+      "cost": 0.002051139577086438,
+      "timestamp": "2025-08-20T17:07:20.636941",
+      "stop_loss": 0.0003281823323338301,
+      "take_profit": 0.0005332962900424739,
+      "status": "open"
+    },
+    {
+      "type": "buy",
+      "token_address": "D8vHJr9UtyM4oA17EYH1SBaakLo1yxbBYwwgj4uGvPAu",
+      "symbol": "UNKNOWN",
+      "size": 2.0,
+      "price": 0.006383592796056211,
+      "cost": 0.012767185592112422,
+      "timestamp": "2025-08-20T17:15:18.230320",
+      "stop_loss": 0.005106874236844969,
+      "take_profit": 0.008298670634873075,
+      "status": "open"
+    },
+    {
+      "type": "buy",
+      "token_address": "LiGHtkg3uTa9836RaNkKLLriqTNRcMdRAhqjGWNv777",
+      "symbol": "UNKNOWN",
+      "size": 3.0,
+      "price": 0.2457456068652411,
+      "cost": 0.7372368205957234,
+      "timestamp": "2025-08-20T17:15:18.242421",
+      "stop_loss": 0.19659648549219289,
+      "take_profit": 0.31946928892481347,
+      "status": "open"
+    },
+    {
+      "type": "buy",
+      "token_address": "GKCEpRYhQqgi8pmeY2zbB6kXd8ypHvtAVgTti5wPraiC",
+      "symbol": "UNKNOWN",
+      "size": 4.0,
+      "price": 0.014329865094603952,
+      "cost": 0.05731946037841581,
+      "timestamp": "2025-08-20T17:15:18.254546",
+      "stop_loss": 0.011463892075683163,
+      "take_profit": 0.018628824622985138,
+      "status": "open"
+    }
+  ],
+  "performance": {
+    "total_pnl": 0,
+    "win_rate": 0.0,
+    "total_trades": 6,
+    "balance": 100.0,
+    "unrealized_pnl": 0,
+    "open_positions": 0
+  },
+  "activity": [
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "pumpCmXq",
+        "type": "paper_buy",
+        "size": 10.0,
+        "price": 0.0030510115387256706,
+        "cost": 0.030510115387256707,
+        "remaining_balance": 99.96948988461274,
+        "positions": 1,
+        "timestamp": "2025-08-20T16:56:13.151606"
+      },
+      "timestamp": "2025-08-20T16:56:13.155630"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "hntyVP6Y",
+        "type": "paper_buy",
+        "size": 10.0,
+        "price": 2.6829087855014366,
+        "cost": 26.829087855014365,
+        "remaining_balance": 73.17091214498564,
+        "positions": 1,
+        "timestamp": "2025-08-20T16:58:06.620677"
+      },
+      "timestamp": "2025-08-20T16:58:06.620677"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "LjhnUsxC",
+        "type": "paper_buy",
+        "size": 5.0,
+        "price": 0.0004102279154172876,
+        "cost": 0.002051139577086438,
+        "remaining_balance": 99.99794886042291,
+        "positions": 1,
+        "timestamp": "2025-08-20T17:07:20.641893"
+      },
+      "timestamp": "2025-08-20T17:07:20.641893"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "D8vHJr9U",
+        "type": "paper_buy",
+        "size": 2.0,
+        "price": 0.006383592796056211,
+        "cost": 0.012767185592112422,
+        "remaining_balance": 99.98723281440789,
+        "positions": 1,
+        "timestamp": "2025-08-20T17:15:18.234676"
+      },
+      "timestamp": "2025-08-20T17:15:18.238256"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "LiGHtkg3",
+        "type": "paper_buy",
+        "size": 3.0,
+        "price": 0.2457456068652411,
+        "cost": 0.7372368205957234,
+        "remaining_balance": 99.24999599381216,
+        "positions": 2,
+        "timestamp": "2025-08-20T17:15:18.248375"
+      },
+      "timestamp": "2025-08-20T17:15:18.249371"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "GKCEpRYh",
+        "type": "paper_buy",
+        "size": 4.0,
+        "price": 0.014329865094603952,
+        "cost": 0.05731946037841581,
+        "remaining_balance": 99.19267653343375,
+        "positions": 3,
+        "timestamp": "2025-08-20T17:15:18.261225"
+      },
+      "timestamp": "2025-08-20T17:15:18.262212"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-21T08:58:16.072160"
+      },
+      "timestamp": "2025-08-21T08:58:16.072160"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-21T08:58:18.145860"
+      },
+      "timestamp": "2025-08-21T08:58:18.145860"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-21T09:13:18.689131"
+      },
+      "timestamp": "2025-08-21T09:13:18.689131"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-21T09:13:18.703130"
+      },
+      "timestamp": "2025-08-21T09:13:18.704128"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "Cb9NCNQp",
+        "size": 0.19603752951812015,
+        "price": 0.00018620487364274548,
+        "timestamp": "2025-08-21T09:13:18.750541"
+      },
+      "timestamp": "2025-08-21T09:13:18.751538"
+    }
+  ],
+  "last_update": "2025-08-21T09:13:18.751538"
+}

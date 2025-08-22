@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Dict, List, Any
 import threading
 import time
+import sys
+
+# Add project root to path
+sys.path.append(str(Path(__file__).parent))
+from src.utils.simple_token_namer import SimpleTokenNamer
 
 try:
     from flask import Flask, render_template_string, jsonify
@@ -23,10 +28,11 @@ except ImportError:
 class BotMonitor:
     """Simple bot monitoring system"""
     
-    def __init__(self, log_file="logs/trading.log", data_file="bot_data.json"):
+    def __init__(self, log_file="logs/trading.log", data_file="dashboard_data.json"):
         self.log_file = log_file
         self.data_file = data_file
         self.app = None
+        self.token_namer = SimpleTokenNamer()
         
         # Initialize data structure
         self.data = {
@@ -190,30 +196,85 @@ class BotMonitor:
         self.save_data()
     
     def get_status(self) -> Dict[str, Any]:
-        """Get current bot status"""
-        # Load fresh data from JSON file instead of parsing logs
+        """Get current bot status with token names"""
+        # Load fresh data from the actual dashboard JSON file
         self.load_data()
         self.update_from_logs()  # Still get recent events from logs
         
-        # Process active positions for display
-        active_positions = {}
+        # Extract unique token addresses for name generation
+        unique_tokens = set()
+        trades = self.data.get('trades', [])
+        
+        for trade in trades:
+            token_addr = trade.get('token_address', '')
+            if token_addr and not token_addr.startswith('TEST'):
+                unique_tokens.add(token_addr)
+        
+        # Generate token names quickly (no external API calls)
+        token_info_batch = self.token_namer.get_batch_token_info(list(unique_tokens))
+        
+        # Enrich trades with token names
+        enriched_trades = []
+        for trade in trades:
+            token_addr = trade.get('token_address', '')
+            token_info = token_info_batch.get(token_addr, {})
+            
+            enriched_trade = trade.copy()
+            enriched_trade.update({
+                'token_name': token_info.get('name', f'Token {token_addr[:8]}...'),
+                'token_symbol': token_info.get('symbol', token_addr[:6]),
+                'token_source': token_info.get('source', 'unknown')
+            })
+            enriched_trades.append(enriched_trade)
+        
+        self.data['trades'] = enriched_trades
+        
+        # Process active positions for display from trading data
+        active_positions = []
         closed_tokens = set()
         
         # Find latest position updates and closed positions
         for activity in self.data.get('activity', []):
             if activity.get('type') == 'position_update':
                 token = activity['data']['token']
-                active_positions[token] = activity
+                token_info = token_info_batch.get(token, {})
+                
+                # Convert to display format
+                position = {
+                    'token': token,
+                    'token_name': token_info.get('name', f'Token {token[:8]}...'),
+                    'token_symbol': token_info.get('symbol', token[:6]),
+                    'entry_price': activity['data'].get('entry_price', 0),
+                    'current_price': activity['data'].get('current_price', 0),
+                    'age_minutes': activity['data'].get('age_minutes', 0),
+                    'pnl_percentage': activity['data'].get('pnl_percentage', 0),
+                    'unrealized_pnl': activity['data'].get('unrealized_pnl', 0)
+                }
+                active_positions.append(position)
             elif activity.get('type') == 'position_closed':
                 token = activity['data']['token']
                 closed_tokens.add(token)
         
         # Remove closed positions from active positions
-        for token in closed_tokens:
-            active_positions.pop(token, None)
+        active_positions = [pos for pos in active_positions if pos['token'] not in closed_tokens]
         
         # Add processed active positions to data
-        self.data['active_positions'] = list(active_positions.values())
+        self.data['positions'] = active_positions
+        
+        # Ensure performance data is properly formatted for dashboard
+        if 'performance' not in self.data:
+            self.data['performance'] = {}
+        
+        # Map the actual performance data from dashboard_data.json
+        perf_data = self.data.get('performance', {})
+        self.data['performance'].update({
+            'total_pnl': perf_data.get('total_pnl', 0),
+            'win_rate': perf_data.get('win_rate', 0),
+            'total_trades': perf_data.get('total_trades', 0),
+            'balance': perf_data.get('balance', 100.0),
+            'unrealized_pnl': perf_data.get('unrealized_pnl', 0),
+            'open_positions': perf_data.get('open_positions', len(active_positions))
+        })
         
         return self.data
 
@@ -376,13 +437,9 @@ DASHBOARD_HTML = """
             <tbody>
                 {% for position in data.get('positions', []) %}
                 <tr>
-                    <td title="{{ position.get('token', 'N/A') }}">
-                        {% set token_name = position.get('token', 'N/A') %}
-                        {% if token_name|length > 12 %}
-                            {{ token_name[:12] }}...
-                        {% else %}
-                            {{ token_name }}
-                        {% endif %}
+                    <td title="{{ position.get('token', 'N/A') }} - {{ position.get('token_name', 'Unknown') }}">
+                        <strong>{{ position.get('token_symbol', position.get('token', 'N/A')[:8]) }}</strong><br>
+                        <small style="color: #8892b0;">{{ position.get('token_name', 'Unknown')[:20] }}{% if position.get('token_name', '')|length > 20 %}...{% endif %}</small>
                     </td>
                     <td>${{ "%.6f"|format(position.get('entry_price', 0)) }}</td>
                     <td>${{ "%.6f"|format(position.get('current_price', 0)) }}</td>
@@ -419,15 +476,11 @@ DASHBOARD_HTML = """
             <tbody>
                 {% for trade in data.get('trades', [])[-10:] %}
                 <tr>
-                    <td title="{{ trade.get('token', 'N/A') }}">
-                        {% set token_name = trade.get('token', 'N/A') %}
-                        {% if token_name|length > 12 %}
-                            {{ token_name[:12] }}...
-                        {% else %}
-                            {{ token_name }}
-                        {% endif %}
+                    <td title="{{ trade.get('token_address', 'N/A') }} - {{ trade.get('token_name', 'Unknown') }}">
+                        <strong>{{ trade.get('token_symbol', trade.get('token_address', 'N/A')[:8]) }}</strong><br>
+                        <small style="color: #8892b0;">{{ trade.get('token_name', 'Unknown')[:20] }}{% if trade.get('token_name', '')|length > 20 %}...{% endif %}</small>
                     </td>
-                    <td>${{ "%.4f"|format(trade.get('entry_price', 0)) }}</td>
+                    <td>${{ "%.4f"|format(trade.get('price', 0)) }}</td>
                     <td>${{ "%.4f"|format(trade.get('exit_price', 0)) }}</td>
                     <td class="{% if trade.get('pnl', 0) > 0 %}profit{% else %}loss{% endif %}">
                         ${{ "%.6f"|format(trade.get('pnl', 0)) }}

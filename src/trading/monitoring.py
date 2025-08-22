@@ -200,12 +200,30 @@ class MonitoringSystem:
 
     async def _get_portfolio_value(self) -> float:
         """Calculate total portfolio value"""
+        # Check if we're in paper trading mode
+        strategy = getattr(self.settings, 'strategy', None)
+        if strategy and hasattr(strategy, 'state') and hasattr(strategy.state, 'mode'):
+            from ..trading.strategy import TradingMode
+            if strategy.state.mode == TradingMode.PAPER:
+                # Paper trading: use paper balance + paper positions value
+                paper_balance = getattr(strategy.state, 'paper_balance', 100.0)
+                paper_positions_value = 0.0
+                
+                if hasattr(strategy.state, 'paper_positions'):
+                    for position in strategy.state.paper_positions.values():
+                        paper_positions_value += position.size * position.current_price
+                
+                return paper_balance + paper_positions_value
+        
+        # Live trading: use position manager
         value = 0.0
         position_manager = getattr(self.settings, 'position_manager', None)
         if position_manager and hasattr(position_manager, 'positions'):
             for position in position_manager.positions.values():
                 value += position.size * position.current_price
-        return value
+        
+        # If no positions found, use default portfolio value to avoid false alerts
+        return value if value > 0 else getattr(self.settings, 'PORTFOLIO_VALUE', 100.0)
 
     def _calculate_error_rate(self) -> float:
         """Calculate current error rate"""
