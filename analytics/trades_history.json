@@ -334,5 +334,19 @@
     "duration_minutes": 30.0,
     "trade_type": "test_integration",
     "source": "integration_test"
+  },
+  {
+    "timestamp": "2025-08-22T19:42:38.722100",
+    "token_address": "12Z5CsL5kCPRmnLQcwpY2QrEub3MahHCtRHxoQEdpump",
+    "token_symbol": "UNKNOWN",
+    "entry_price": 0.0005255809395510127,
+    "exit_price": 0.00217525,
+    "quantity": 0.19601780955092865,
+    "profit_loss_usd": 0.0646729031426298,
+    "profit_loss_sol": 0.000323364515713149,
+    "profit_percentage": 313.875358923451,
+    "duration_minutes": 0.027627433333333333,
+    "trade_type": "paper_close",
+    "source": "unknown"
   }
 ]

@@ -684,326 +684,97 @@
       "pnl": -8.459378916052159e-05,
       "pnl_percentage": -85.3598579977468,
       "reason": "stop_loss"
+    },
+    {
+      "type": "buy",
+      "token_address": "12Z5CsL5kCPRmnLQcwpY2QrEub3MahHCtRHxoQEdpump",
+      "symbol": "UNKNOWN",
+      "size": 0.19601780955092865,
+      "price": 0.0005255809395510127,
+      "cost": 5.230129565957484e-07,
+      "cost_usd": 0.00010302322451250855,
+      "price_sol": 2.6681910066945275e-06,
+      "sol_price_at_trade": 196.980253,
+      "timestamp": "2025-08-22T19:42:37.069483",
+      "stop_loss": 0.0004204647516408102,
+      "take_profit": 0.0006832552214163166,
+      "status": "closed",
+      "exit_time": "2025-08-22T19:42:38.691249",
+      "exit_price": 0.00217525,
+      "pnl": 0.000323364515713149,
+      "pnl_percentage": 313.875358923451,
+      "reason": "take_profit"
+    },
+    {
+      "type": "buy",
+      "token_address": "2WWMMqR5Rj1Kz6XsBAM4LJrGnhkbBQHMSZ9U7TdjBAGS",
+      "symbol": "UNKNOWN",
+      "size": 0.19599006974410593,
+      "price": 3.701936160516156e-05,
+      "cost": 3.6836591121126796e-08,
+      "cost_usd": 7.255427262877891e-06,
+      "price_sol": 1.8795131390698733e-07,
+      "sol_price_at_trade": 196.962505,
+      "timestamp": "2025-08-22T19:44:16.625918",
+      "stop_loss": 2.9615489284129248e-05,
+      "take_profit": 4.812517008671003e-05,
+      "status": "closed",
+      "exit_time": "2025-08-22T19:44:20.080371",
+      "exit_price": 1.06e-07,
+      "pnl": -7.234652315485016e-06,
+      "pnl_percentage": -99.71366334965317,
+      "reason": "stop_loss"
+    },
+    {
+      "type": "buy",
+      "token_address": "2WWMMqR5Rj1Kz6XsBAM4LJrGnhkbBQHMSZ9U7TdjBAGS",
+      "symbol": "UNKNOWN",
+      "size": 0.19599006974410593,
+      "price": 3.701936160516156e-05,
+      "cost": 3.6871596227920345e-08,
+      "cost_usd": 7.255427262877891e-06,
+      "price_sol": 1.8812992043965124e-07,
+      "sol_price_at_trade": 196.775513,
+      "timestamp": "2025-08-22T19:59:18.527179",
+      "stop_loss": 2.9615489284129248e-05,
+      "take_profit": 4.812517008671003e-05,
+      "status": "closed",
+      "exit_time": "2025-08-22T19:59:19.856133",
+      "exit_price": 6.2e-08,
+      "pnl": -7.243275878553756e-06,
+      "pnl_percentage": -99.83252007243864,
+      "reason": "stop_loss"
+    },
+    {
+      "type": "buy",
+      "token_address": "3KtHC6KrMYsEVyUjgQL3N5gocUoL6hRjsEreN85BgnBW",
+      "symbol": "UNKNOWN",
+      "size": 0.19599006974410593,
+      "price": 0.00018688970127102972,
+      "cost": 1.858668344465989e-07,
+      "cost_usd": 3.6628525586564236e-05,
+      "price_sol": 9.483482234037448e-07,
+      "sol_price_at_trade": 197.068647,
+      "timestamp": "2025-08-22T20:14:19.686446",
+      "stop_loss": 0.0001495117610168238,
+      "take_profit": 0.00024295661165233865,
+      "status": "closed",
+      "exit_time": "2025-08-22T20:14:23.046471",
+      "exit_price": 0.002692617,
+      "pnl": 0.0004910976680376011,
+      "pnl_percentage": 1340.7519417536732,
+      "reason": "take_profit"
     }
   ],
   "performance": {
-    "total_pnl": 0.0074242907719853065,
-    "win_rate": 77.77777777777779,
-    "total_trades": 38,
+    "total_pnl": 0.008224275027542017,
+    "win_rate": 74.19354838709677,
+    "total_trades": 42,
     "balance": 100.0,
     "unrealized_pnl": 0,
     "open_positions": 0
   },
   "activity": [
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:14:15.577469"
-      },
-      "timestamp": "2025-08-22T18:14:15.577469"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "5NsdEGTM",
-        "size": 0.19601984715645304,
-        "price": 0.00041842854099409857,
-        "timestamp": "2025-08-22T18:14:15.587468"
-      },
-      "timestamp": "2025-08-22T18:14:15.592466"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:15:28.660897"
-      },
-      "timestamp": "2025-08-22T18:15:28.660897"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:15:28.669731"
-      },
-      "timestamp": "2025-08-22T18:15:28.671404"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "97B5Ldjd",
-        "size": 0.19609454053490064,
-        "price": 0.0004118347711789626,
-        "timestamp": "2025-08-22T18:15:28.688790"
-      },
-      "timestamp": "2025-08-22T18:15:28.688790"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:29:10.544997"
-      },
-      "timestamp": "2025-08-22T18:29:10.545990"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:29:10.553970"
-      },
-      "timestamp": "2025-08-22T18:29:10.555962"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "Dwm8WF75",
-        "size": 0.19599006974410593,
-        "price": 3.92547328047086e-05,
-        "timestamp": "2025-08-22T18:29:10.567331"
-      },
-      "timestamp": "2025-08-22T18:29:10.568318"
-    },
-    {
-      "type": "trade_executed",
-      "data": {
-        "token": "Dwm8WF75",
-        "type": "paper_buy",
-        "size": 0.19599006974410593,
-        "price": 3.92547328047086e-05,
-        "cost": 3.8879666994704705e-08,
-        "remaining_balance": 100.00598586928005,
-        "positions": 1,
-        "timestamp": "2025-08-22T18:29:10.764086"
-      },
-      "timestamp": "2025-08-22T18:29:10.765049"
-    },
-    {
-      "type": "position_update",
-      "data": {
-        "token": "Dwm8WF75",
-        "age_minutes": 0.0311442,
-        "entry_price": 3.92547328047086e-05,
-        "current_price": 0.000306583,
-        "pnl_percentage": 681.0090098568329,
-        "unrealized_pnl": 5.2393685732176145e-05,
-        "timestamp": "2025-08-22T18:29:12.627698"
-      },
-      "timestamp": "2025-08-22T18:29:12.627698"
-    },
-    {
-      "type": "position_closed",
-      "data": {
-        "token": "Dwm8WF75",
-        "exit_reason": "take_profit",
-        "realized_pnl": 5.2393685732176145e-05,
-        "pnl_percentage": 681.0090098568329,
-        "timestamp": "2025-08-22T18:29:12.638695"
-      },
-      "timestamp": "2025-08-22T18:29:12.639696"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:29:16.584761"
-      },
-      "timestamp": "2025-08-22T18:29:16.585757"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:29:16.598754"
-      },
-      "timestamp": "2025-08-22T18:29:16.599755"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "5NsdEGTM",
-        "size": 0.19601984715645304,
-        "price": 0.00041842854099409857,
-        "timestamp": "2025-08-22T18:29:16.617756"
-      },
-      "timestamp": "2025-08-22T18:29:16.620778"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:30:29.343448"
-      },
-      "timestamp": "2025-08-22T18:30:29.347542"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:30:29.389639"
-      },
-      "timestamp": "2025-08-22T18:30:29.392636"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "97B5Ldjd",
-        "size": 0.19609454053490064,
-        "price": 0.0004118347711789626,
-        "timestamp": "2025-08-22T18:30:29.433568"
-      },
-      "timestamp": "2025-08-22T18:30:29.433568"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:44:11.466360"
-      },
-      "timestamp": "2025-08-22T18:44:11.469359"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:44:11.486361"
-      },
-      "timestamp": "2025-08-22T18:44:11.488365"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "Dwm8WF75",
-        "size": 0.19599006974410593,
-        "price": 3.92547328047086e-05,
-        "timestamp": "2025-08-22T18:44:11.518360"
-      },
-      "timestamp": "2025-08-22T18:44:11.519362"
-    },
-    {
-      "type": "trade_executed",
-      "data": {
-        "token": "Dwm8WF75",
-        "type": "paper_buy",
-        "size": 0.19599006974410593,
-        "price": 3.92547328047086e-05,
-        "cost": 3.910191234364118e-08,
-        "remaining_balance": 100.0060459174017,
-        "positions": 1,
-        "timestamp": "2025-08-22T18:44:11.783365"
-      },
-      "timestamp": "2025-08-22T18:44:11.785361"
-    },
-    {
-      "type": "position_update",
-      "data": {
-        "token": "Dwm8WF75",
-        "age_minutes": 0.023948616666666665,
-        "entry_price": 3.92547328047086e-05,
-        "current_price": 0.000222014,
-        "pnl_percentage": 465.57256701889827,
-        "unrealized_pnl": 3.581900152398685e-05,
-        "timestamp": "2025-08-22T18:44:13.206278"
-      },
-      "timestamp": "2025-08-22T18:44:13.210273"
-    },
-    {
-      "type": "position_closed",
-      "data": {
-        "token": "Dwm8WF75",
-        "exit_reason": "take_profit",
-        "realized_pnl": 3.581900152398685e-05,
-        "pnl_percentage": 465.5725670188984,
-        "timestamp": "2025-08-22T18:44:13.235286"
-      },
-      "timestamp": "2025-08-22T18:44:13.237280"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:44:17.591154"
-      },
-      "timestamp": "2025-08-22T18:44:17.597152"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:44:17.615150"
-      },
-      "timestamp": "2025-08-22T18:44:17.617149"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "4U7QWDnN",
-        "size": 0.19601984715645304,
-        "price": 8.454220680130939e-05,
-        "timestamp": "2025-08-22T18:44:17.643151"
-      },
-      "timestamp": "2025-08-22T18:44:17.644151"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:45:30.296170"
-      },
-      "timestamp": "2025-08-22T18:45:30.299168"
-    },
-    {
-      "type": "scan_completed",
-      "data": {
-        "tokens_found": 1,
-        "timestamp": "2025-08-22T18:45:30.323165"
-      },
-      "timestamp": "2025-08-22T18:45:30.324165"
-    },
-    {
-      "type": "signal_generated",
-      "data": {
-        "token": "Em4fyB9q",
-        "size": 0.19609454053490064,
-        "price": 0.00020862128901244677,
-        "timestamp": "2025-08-22T18:45:30.376170"
-      },
-      "timestamp": "2025-08-22T18:45:30.379193"
-    },
-    {
-      "type": "position_closed",
-      "data": {
-        "token": "HL7xpwxw",
-        "exit_reason": "trading_stopped",
-        "realized_pnl": 0.0,
-        "pnl_percentage": 0.0,
-        "timestamp": "2025-08-22T18:53:02.408039"
-      },
-      "timestamp": "2025-08-22T18:53:02.411085"
-    },
-    {
-      "type": "position_closed",
-      "data": {
-        "token": "55bVkvRc",
-        "exit_reason": "trading_stopped",
-        "realized_pnl": 0.0,
-        "pnl_percentage": 0.0,
-        "timestamp": "2025-08-22T18:53:02.472272"
-      },
-      "timestamp": "2025-08-22T18:53:02.472272"
-    },
-    {
-      "type": "position_closed",
-      "data": {
-        "token": "7HcKWqnx",
-        "exit_reason": "trading_stopped",
-        "realized_pnl": 0.0,
-        "pnl_percentage": 0.0,
-        "timestamp": "2025-08-22T18:53:02.529552"
-      },
-      "timestamp": "2025-08-22T18:53:02.529552"
-    },
-    {
-      "type": "scan_started",
-      "data": {
-        "timestamp": "2025-08-22T18:59:12.452697"
-      },
-      "timestamp": "2025-08-22T18:59:12.454695"
-    },
     {
       "type": "scan_completed",
       "data": {
@@ -1172,7 +943,334 @@
         "timestamp": "2025-08-22T19:14:20.518193"
       },
       "timestamp": "2025-08-22T19:14:20.518193"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T19:42:34.126563"
+      },
+      "timestamp": "2025-08-22T19:42:34.133232"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T19:42:36.333192"
+      },
+      "timestamp": "2025-08-22T19:42:36.337428"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "12Z5CsL5",
+        "size": 0.19601780955092865,
+        "price": 0.0005255809395510127,
+        "timestamp": "2025-08-22T19:42:36.374081"
+      },
+      "timestamp": "2025-08-22T19:42:36.378045"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "12Z5CsL5",
+        "type": "paper_buy",
+        "size": 0.19601780955092865,
+        "price": 0.0005255809395510127,
+        "cost": 5.230129565957484e-07,
+        "remaining_balance": 99.99999947698704,
+        "positions": 1,
+        "timestamp": "2025-08-22T19:42:37.088772"
+      },
+      "timestamp": "2025-08-22T19:42:37.091863"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "12Z5CsL5",
+        "age_minutes": 0.026843266666666664,
+        "entry_price": 0.0005255809395510127,
+        "current_price": 0.00217525,
+        "pnl_percentage": 313.875358923451,
+        "unrealized_pnl": 0.000323364515713149,
+        "timestamp": "2025-08-22T19:42:38.675050"
+      },
+      "timestamp": "2025-08-22T19:42:38.677571"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "12Z5CsL5",
+        "exit_reason": "take_profit",
+        "realized_pnl": 0.000323364515713149,
+        "pnl_percentage": 313.875358923451,
+        "timestamp": "2025-08-22T19:42:38.708567"
+      },
+      "timestamp": "2025-08-22T19:42:38.710554"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T19:44:16.224944"
+      },
+      "timestamp": "2025-08-22T19:44:16.225943"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T19:44:16.233841"
+      },
+      "timestamp": "2025-08-22T19:44:16.234842"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "2WWMMqR5",
+        "size": 0.19599006974410593,
+        "price": 3.701936160516156e-05,
+        "timestamp": "2025-08-22T19:44:16.242994"
+      },
+      "timestamp": "2025-08-22T19:44:16.248238"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "2WWMMqR5",
+        "type": "paper_buy",
+        "size": 0.19599006974410593,
+        "price": 3.701936160516156e-05,
+        "cost": 3.6836591121126796e-08,
+        "remaining_balance": 100.00699021648259,
+        "positions": 1,
+        "timestamp": "2025-08-22T19:44:16.638271"
+      },
+      "timestamp": "2025-08-22T19:44:16.640011"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "2WWMMqR5",
+        "age_minutes": 0.057378766666666664,
+        "entry_price": 3.701936160516156e-05,
+        "current_price": 1.06e-07,
+        "pnl_percentage": -99.71366334965317,
+        "unrealized_pnl": -7.234652315485016e-06,
+        "timestamp": "2025-08-22T19:44:20.069099"
+      },
+      "timestamp": "2025-08-22T19:44:20.070098"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "2WWMMqR5",
+        "exit_reason": "stop_loss",
+        "realized_pnl": -7.234652315485016e-06,
+        "pnl_percentage": -99.71366334965317,
+        "timestamp": "2025-08-22T19:44:20.088470"
+      },
+      "timestamp": "2025-08-22T19:44:20.088470"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T19:44:22.782929"
+      },
+      "timestamp": "2025-08-22T19:44:22.782929"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T19:44:22.802816"
+      },
+      "timestamp": "2025-08-22T19:44:22.804030"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "6uxzuRPb",
+        "size": 0.19601984715645304,
+        "price": 9.987794537505066e-05,
+        "timestamp": "2025-08-22T19:44:22.827609"
+      },
+      "timestamp": "2025-08-22T19:44:22.828620"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T19:59:18.197176"
+      },
+      "timestamp": "2025-08-22T19:59:18.199751"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T19:59:18.215896"
+      },
+      "timestamp": "2025-08-22T19:59:18.217724"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "2WWMMqR5",
+        "size": 0.19599006974410593,
+        "price": 3.701936160516156e-05,
+        "timestamp": "2025-08-22T19:59:18.252521"
+      },
+      "timestamp": "2025-08-22T19:59:18.253735"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "2WWMMqR5",
+        "type": "paper_buy",
+        "size": 0.19599006974410593,
+        "price": 3.701936160516156e-05,
+        "cost": 3.6871596227920345e-08,
+        "remaining_balance": 100.00699020038594,
+        "positions": 1,
+        "timestamp": "2025-08-22T19:59:18.552744"
+      },
+      "timestamp": "2025-08-22T19:59:18.555725"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "2WWMMqR5",
+        "age_minutes": 0.021553,
+        "entry_price": 3.701936160516156e-05,
+        "current_price": 6.2e-08,
+        "pnl_percentage": -99.83252007243864,
+        "unrealized_pnl": -7.243275878553756e-06,
+        "timestamp": "2025-08-22T19:59:19.814214"
+      },
+      "timestamp": "2025-08-22T19:59:19.819544"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "2WWMMqR5",
+        "exit_reason": "stop_loss",
+        "realized_pnl": -7.243275878553756e-06,
+        "pnl_percentage": -99.83252007243864,
+        "timestamp": "2025-08-22T19:59:19.890342"
+      },
+      "timestamp": "2025-08-22T19:59:19.895058"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T19:59:24.267294"
+      },
+      "timestamp": "2025-08-22T19:59:24.269630"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T19:59:24.282336"
+      },
+      "timestamp": "2025-08-22T19:59:24.283975"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "2WWMMqR5",
+        "size": 0.19601984715645304,
+        "price": 2.4462838392603996e-05,
+        "timestamp": "2025-08-22T19:59:24.300351"
+      },
+      "timestamp": "2025-08-22T19:59:24.300351"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T20:14:19.316461"
+      },
+      "timestamp": "2025-08-22T20:14:19.321473"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T20:14:19.349567"
+      },
+      "timestamp": "2025-08-22T20:14:19.351554"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "3KtHC6Kr",
+        "size": 0.19599006974410593,
+        "price": 0.00018688970127102972,
+        "timestamp": "2025-08-22T20:14:19.389171"
+      },
+      "timestamp": "2025-08-22T20:14:19.392741"
+    },
+    {
+      "type": "trade_executed",
+      "data": {
+        "token": "3KtHC6Kr",
+        "type": "paper_buy",
+        "size": 0.19599006974410593,
+        "price": 0.00018688970127102972,
+        "cost": 1.858668344465989e-07,
+        "remaining_balance": 100.0069900266705,
+        "positions": 1,
+        "timestamp": "2025-08-22T20:14:19.713163"
+      },
+      "timestamp": "2025-08-22T20:14:19.716602"
+    },
+    {
+      "type": "position_update",
+      "data": {
+        "token": "3KtHC6Kr",
+        "age_minutes": 0.05530775,
+        "entry_price": 0.00018688970127102972,
+        "current_price": 0.002692617,
+        "pnl_percentage": 1340.7519417536732,
+        "unrealized_pnl": 0.0004910976680376011,
+        "timestamp": "2025-08-22T20:14:23.001136"
+      },
+      "timestamp": "2025-08-22T20:14:23.004900"
+    },
+    {
+      "type": "position_closed",
+      "data": {
+        "token": "3KtHC6Kr",
+        "exit_reason": "take_profit",
+        "realized_pnl": 0.0004910976680376011,
+        "pnl_percentage": 1340.7519417536732,
+        "timestamp": "2025-08-22T20:14:23.072805"
+      },
+      "timestamp": "2025-08-22T20:14:23.077033"
+    },
+    {
+      "type": "scan_started",
+      "data": {
+        "timestamp": "2025-08-22T20:14:25.245238"
+      },
+      "timestamp": "2025-08-22T20:14:25.249617"
+    },
+    {
+      "type": "scan_completed",
+      "data": {
+        "tokens_found": 1,
+        "timestamp": "2025-08-22T20:14:25.286257"
+      },
+      "timestamp": "2025-08-22T20:14:25.291736"
+    },
+    {
+      "type": "signal_generated",
+      "data": {
+        "token": "2WWMMqR5",
+        "size": 0.19601984715645304,
+        "price": 2.4462838392603996e-05,
+        "timestamp": "2025-08-22T20:14:25.339197"
+      },
+      "timestamp": "2025-08-22T20:14:25.339197"
     }
   ],
-  "last_update": "2025-08-22T19:14:20.518193"
+  "last_update": "2025-08-22T20:14:25.339197"
 }

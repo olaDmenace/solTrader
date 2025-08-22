@@ -285,26 +285,33 @@ DASHBOARD_HTML = """
 <head>
     <title>🦍 SolTrader APE Bot Dashboard</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <meta http-equiv="refresh" content="3">
     <style>
         body { 
-            font-family: 'Courier New', monospace; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #0a0e27; 
             color: #00ff41; 
             margin: 0; 
-            padding: 20px; 
+            padding: clamp(10px, 3vw, 20px);
+            overflow-x: hidden;
         }
         .header { 
             text-align: center; 
-            margin-bottom: 30px; 
+            margin-bottom: clamp(15px, 4vw, 30px);
             color: #ff6b35; 
+        }
+        .header h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin: 0;
+            word-break: break-word;
         }
         .status { 
             display: inline-block; 
-            padding: 5px 15px; 
+            padding: 8px 15px; 
             border-radius: 20px; 
-            font-weight: bold; 
+            font-weight: bold;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
         }
         .running { background: #28a745; color: white; }
         .stopped { background: #dc3545; color: white; }
@@ -312,43 +319,62 @@ DASHBOARD_HTML = """
             background: #1a1a2e; 
             border: 1px solid #16213e; 
             border-radius: 10px; 
-            padding: 20px; 
-            margin: 20px 0; 
+            padding: clamp(12px, 3vw, 20px);
+            margin: clamp(10px, 3vw, 20px) 0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            overflow: hidden;
+        }
+        .card h3 {
+            color: #ff6b35;
+            margin-top: 0;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
         }
         .metrics { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 20px; 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: clamp(10px, 2vw, 20px);
         }
         .metric { 
             text-align: center; 
-            padding: 15px; 
+            padding: clamp(10px, 2vw, 15px);
             background: #16213e; 
             border-radius: 8px; 
         }
         .metric-value { 
-            font-size: 2em; 
+            font-size: clamp(1.2rem, 4vw, 2rem);
             font-weight: bold; 
-            color: #00ff41; 
+            color: #00ff41;
+            word-break: break-all;
         }
         .metric-label { 
             color: #8892b0; 
-            margin-top: 5px; 
+            margin-top: 5px;
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
+        }
+        /* Responsive table container */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 10px;
         }
         .trades-table { 
             width: 100%; 
             border-collapse: collapse; 
-            margin-top: 10px; 
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            min-width: 500px;
         }
         .trades-table th, .trades-table td { 
             border: 1px solid #16213e; 
-            padding: 8px; 
-            text-align: left; 
+            padding: clamp(4px, 1.5vw, 8px);
+            text-align: left;
+            word-break: break-word;
         }
         .trades-table th { 
             background: #16213e; 
-            color: #ff6b35; 
+            color: #ff6b35;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
         .profit { color: #28a745; }
         .loss { color: #dc3545; }
@@ -356,25 +382,101 @@ DASHBOARD_HTML = """
             background: #ff6b35; 
             color: white; 
             border: none; 
-            padding: 10px 20px; 
+            padding: clamp(8px, 2vw, 10px) clamp(15px, 3vw, 20px);
             border-radius: 5px; 
             cursor: pointer; 
-            margin: 10px; 
+            margin: 10px;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            touch-action: manipulation;
         }
         .auto-refresh { 
             position: fixed; 
-            top: 20px; 
-            right: 20px; 
+            top: clamp(10px, 2vw, 20px);
+            right: clamp(10px, 2vw, 20px);
             background: #16213e; 
-            padding: 10px; 
-            border-radius: 5px; 
+            padding: clamp(5px, 1.5vw, 10px);
+            border-radius: 5px;
+            font-size: clamp(0.7rem, 1.8vw, 0.9rem);
         }
         .events { 
-            max-height: 200px; 
+            max-height: clamp(150px, 30vw, 200px);
             overflow-y: auto; 
             background: #0f0f0f; 
-            padding: 10px; 
-            border-radius: 5px; 
+            padding: clamp(8px, 2vw, 10px);
+            border-radius: 5px;
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .metrics { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 10px;
+            }
+            
+            .trades-table {
+                min-width: 400px;
+                font-size: 0.75rem;
+            }
+            
+            .auto-refresh {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 10px 0;
+                display: block;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metrics { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .trades-table {
+                min-width: 300px;
+                font-size: 0.7rem;
+            }
+            
+            .trades-table th, .trades-table td { 
+                padding: 3px; 
+            }
+        }
+        
+        /* Touch-friendly interactions */
+        @media (hover: none) and (pointer: coarse) {
+            .refresh-btn {
+                padding: 12px 20px;
+                min-height: 44px;
+            }
+            
+            .card {
+                transition: transform 0.1s ease;
+            }
+            
+            .card:active {
+                transform: scale(0.98);
+            }
+        }
+        
+        /* Scrollbar styling */
+        .events::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .events::-webkit-scrollbar-track,
+        .table-container::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        .events::-webkit-scrollbar-thumb,
+        .table-container::-webkit-scrollbar-thumb {
+            background: #16213e;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -423,7 +525,8 @@ DASHBOARD_HTML = """
     
     <div class="card">
         <h2>📊 Active Positions</h2>
-        <table class="trades-table">
+        <div class="table-container">
+            <table class="trades-table">
             <thead>
                 <tr>
                     <th>Token</th>
@@ -457,12 +560,14 @@ DASHBOARD_HTML = """
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
     
     <div class="card">
         <h2>📈 Recent Trades</h2>
-        <table class="trades-table">
+        <div class="table-container">
+            <table class="trades-table">
             <thead>
                 <tr>
                     <th>Token</th>
@@ -490,7 +595,8 @@ DASHBOARD_HTML = """
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
     
     <div class="card">

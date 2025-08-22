@@ -40,3 +40,8 @@ deploy_fixed_service.sh
 troubleshoot_service.sh
 *.sh
 
+# Documentation (business sensitive)
+*PRD.md
+*_PRD.md
+SolTrader_SaaS_PRD.md
+

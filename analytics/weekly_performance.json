@@ -3,10 +3,10 @@
     "week_start": "2025-08-18",
     "week_end": "2025-08-24",
     "days_active": 3,
-    "total_trades": 24,
+    "total_trades": 25,
     "win_rate": 33.33333333333333,
-    "total_profit_loss_usd": 100.0,
-    "total_profit_loss_sol": 0.5,
+    "total_profit_loss_usd": 100.06467290314264,
+    "total_profit_loss_sol": 0.5003233645157131,
     "daily_performances": [
       {
         "date": "2025-08-20",
@@ -50,28 +50,28 @@
       },
       {
         "date": "2025-08-22",
-        "total_trades": 17,
-        "profitable_trades": 1,
+        "total_trades": 18,
+        "profitable_trades": 2,
         "losing_trades": 0,
-        "win_rate": 5.88235294117647,
-        "total_profit_loss_usd": 100.0,
-        "total_profit_loss_sol": 0.5,
+        "win_rate": 11.11111111111111,
+        "total_profit_loss_usd": 100.06467290314264,
+        "total_profit_loss_sol": 0.5003233645157131,
         "best_trade_profit": 100.0,
         "worst_trade_loss": 0,
-        "average_trade_duration": 1.7647058823529411,
-        "total_volume_usd": 100000.0,
+        "average_trade_duration": 1.6682015240740742,
+        "total_volume_usd": 100000.00010302322,
         "unique_tokens_traded": 7,
-        "trading_hours_active": 10.253037412777777,
-        "sharpe_ratio": 0.24253562503633297,
+        "trading_hours_active": 11.592708653333332,
+        "sharpe_ratio": 0.243544734203843,
         "max_drawdown": 0,
         "profit_factor": 0,
-        "average_win": 100.0,
+        "average_win": 50.03233645157132,
         "average_loss": 0
       }
     ],
-    "consistency_score": 1.7320508075688772,
-    "best_day_profit": 100.0,
+    "consistency_score": 1.730931364004369,
+    "best_day_profit": 100.06467290314264,
     "worst_day_loss": 0.0,
-    "weekly_sharpe": 0.5773502691896258
+    "weekly_sharpe": 0.5773502691896257
   }
 }
