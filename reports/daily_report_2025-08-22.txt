@@ -1,0 +1,37 @@
+SOLTRADER DAILY PERFORMANCE REPORT
+==================================================
+Date: 2025-08-22
+Report Generated: 2025-08-22 14:34:54
+
+TRADING SUMMARY
+--------------------
+Total Trades: 16
+Profitable Trades: 0
+Losing Trades: 0
+Win Rate: 0.0%
+
+PROFIT & LOSS
+--------------------
+Total P&L (USD): $0.00
+Total P&L (SOL): 0.000000 SOL
+Best Trade: +$0.00
+Worst Trade: -$0.00
+Average Win: $0.00
+Average Loss: $0.00
+
+TRADING METRICS
+--------------------
+Average Trade Duration: 0.0 minutes
+Total Volume: $0.00
+Unique Tokens: 6
+Active Hours: 6.4
+
+ADVANCED METRICS
+--------------------
+Sharpe Ratio: 0.00
+Max Drawdown: 0.00%
+Profit Factor: 0.00
+
+ASSESSMENT
+--------------------
+LOSING DAY - POOR PERFORMANCE

@@ -1,0 +1,27 @@
+TRADE EXECUTION ANALYTICS REPORT
+==================================================
+Report Generated: 2025-08-22 18:29:46
+
+EXECUTION PERFORMANCE (30 days)
+------------------------------
+Total Trades: 3
+Success Rate: 66.7%
+Failed Trades: 1
+Average Execution Time: 118.2ms
+Median Execution Time: 101.7ms
+Average Gas Fee: 0.005500 SOL
+
+SLIPPAGE ANALYSIS
+--------------------
+Trades Analyzed: 2
+Average Slippage: 3.500%
+Median Slippage: 3.500%
+Max Slippage: 5.000%
+High Slippage Trades: 1
+Slippage Std Dev: 2.121%
+
+RECENT EXECUTIONS (Last 5)
+------------------------------
+1. TEST1234... - 201.6ms - -5.00% slip - SUCCESS
+2. TEST1234... - 51.3ms - 0.00% slip - FAILED (Network timeout error)
+3. TEST1234... - 101.7ms - 2.00% slip - SUCCESS

@@ -1,0 +1,42 @@
+{
+  "channels": {
+    "email": {
+      "enabled": true,
+      "config": {
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "username": "test@example.com",
+        "password": "test_password",
+        "recipient": "recipient@example.com",
+        "sender_name": "SolTrader Bot"
+      }
+    },
+    "webhook": {
+      "enabled": true,
+      "config": {
+        "url": "https://httpbin.org/post",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "timeout": 10
+      }
+    },
+    "desktop": {
+      "enabled": true,
+      "config": {
+        "show_system_tray": true,
+        "show_console": true,
+        "sound_enabled": false
+      }
+    },
+    "log": {
+      "enabled": true,
+      "config": {
+        "log_level": "INFO",
+        "include_data": true
+      }
+    }
+  },
+  "last_updated": "2025-08-22T18:47:51.982701"
+}

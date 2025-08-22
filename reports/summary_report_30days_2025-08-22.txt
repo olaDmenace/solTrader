@@ -1,0 +1,30 @@
+SOLTRADER PERFORMANCE SUMMARY (30 DAYS)
+============================================================
+Period: 2025-07-23 to 2025-08-22
+Report Generated: 2025-08-22 14:34:54
+
+PERIOD OVERVIEW
+--------------------
+Active Trading Days: 3/30
+Total Trades: 23
+Total Profit/Loss (USD): $0.00
+Total Profit/Loss (SOL): 0.000000 SOL
+Average Daily Profit: $0.00
+
+TOP PERFORMING DAYS
+--------------------
+1. 2025-08-20: $+0.00 (6 trades, 0% win)
+2. 2025-08-21: $+0.00 (1 trades, 0% win)
+3. 2025-08-22: $+0.00 (16 trades, 0% win)
+
+WORST PERFORMING DAYS
+--------------------
+1. 2025-08-20: $+0.00 (6 trades, 0% win)
+2. 2025-08-21: $+0.00 (1 trades, 0% win)
+3. 2025-08-22: $+0.00 (16 trades, 0% win)
+
+PERIOD STATISTICS
+--------------------
+Profitable Days: 0/3 (0.0%)
+Average Trades per Day: 7.7
+Average Win Rate: 0.0%
