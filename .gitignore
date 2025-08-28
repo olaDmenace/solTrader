@@ -35,6 +35,27 @@ temp_*
 fix_*
 *_temp*
 
+# Debug and test files
+debug_*.py
+test_*.py
+simple_*.py
+*_test.py
+*_debug.py
+validate_*.py
+check_*.py
+
+# Runtime data and analytics
+analytics/
+dashboard_data.json
+bot_data*.json
+health_reports/
+reports/
+charts/
+notifications/
+
+# Windows artifacts
+nul
+
 # Deployment and server scripts (server-specific)
 deploy_fixed_service.sh
 troubleshoot_service.sh
