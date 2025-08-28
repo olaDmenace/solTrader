@@ -3,6 +3,8 @@ from typing import Dict, Any, Optional, List
 import aiohttp
 import json
 import base58
+import asyncio
+import time
 from solana.transaction import Transaction
 from solana.rpc.types import TxOpts
 from solders.instruction import Instruction
@@ -14,6 +16,11 @@ class JupiterClient:
     def __init__(self) -> None:
         self.base_url = "https://quote-api.jup.ag/v6"
         self.session: Optional[aiohttp.ClientSession] = None
+        self.quote_cache = {}  # Cache for recent quotes
+        self.cache_duration = 45  # Cache quotes for 45 seconds
+        self.last_request_time = 0
+        self.request_count = 0
+        self.rate_limit_delay = 1.2  # Start with 1.2s delay
 
     async def ensure_session(self) -> None:
         """Ensure aiohttp session exists and is active"""
@@ -26,11 +33,41 @@ class JupiterClient:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
+    
+    def _get_cache_key(self, input_mint: str, output_mint: str, amount: str) -> str:
+        """Generate cache key for quote requests"""
+        return f"{input_mint}:{output_mint}:{amount}"
+    
+    def _is_cache_valid(self, cache_entry: Dict) -> bool:
+        """Check if cached quote is still valid"""
+        return (time.time() - cache_entry['timestamp']) < self.cache_duration
+    
+    async def _smart_delay(self, success: bool = True):
+        """Implement intelligent delay with exponential backoff"""
+        current_time = time.time()
+        
+        # Ensure minimum delay between requests
+        elapsed = current_time - self.last_request_time
+        if elapsed < self.rate_limit_delay:
+            await asyncio.sleep(self.rate_limit_delay - elapsed)
+        
+        # Adjust delay based on success/failure pattern
+        if success:
+            # Gradually reduce delay on success (but keep minimum)
+            self.rate_limit_delay = max(1.0, self.rate_limit_delay * 0.95)
+        else:
+            # Exponential backoff on failure
+            self.rate_limit_delay = min(10.0, self.rate_limit_delay * 1.5)
+            logger.warning(f"Jupiter rate limited, increasing delay to {self.rate_limit_delay:.1f}s")
+        
+        self.last_request_time = time.time()
+        self.request_count += 1
 
     async def test_connection(self) -> bool:
         """Test connection to Jupiter API"""
         try:
             await self.ensure_session()
+            
             # Test with a simple quote request for SOL/USDC
             params = {
                 "inputMint": "So11111111111111111111111111111111111111112",  # SOL
@@ -41,10 +78,10 @@ class JupiterClient:
                 if response.status == 200:
                     logger.info("[OK] Jupiter API connection successful")
                     return True
-                logger.error(f"❌ Jupiter API failed: {response.status}")
+                logger.error(f"Jupiter API failed: {response.status}")
                 return False
         except Exception as e:
-            logger.error(f"❌ Jupiter API error: {e}")
+            logger.error(f"Jupiter API error: {e}")
             return False
 
     async def get_tokens_list(self) -> List[Dict[str, Any]]:
@@ -85,22 +122,15 @@ class JupiterClient:
                        amount: int = 1000000000  # 1 SOL in lamports
                        ) -> Optional[Dict[str, Any]]:
         """Get price quote for token swap"""
+        # Use the smart get_quote method instead of duplicate logic
         try:
-            await self.ensure_session()
-            params = {
-                "inputMint": input_mint,
-                "outputMint": output_mint,
-                "amount": str(amount),
-                "slippageBps": 50
-            }
-
-            async with self.session.get(f"{self.base_url}/quote", params=params) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    logger.debug(f"Price quote response: {data}")
-                    return data
-                logger.debug(f"Price quote failed with status {response.status}")
-                return None
+            result = await self.get_quote(
+                input_mint=input_mint,
+                output_mint=output_mint,
+                amount=str(amount),
+                slippageBps=50
+            )
+            return result if result else None
         except Exception as e:
             logger.debug(f"Error getting price quote: {str(e)}")
             return None
@@ -146,7 +176,7 @@ class JupiterClient:
                 timestamp = current_time - timedelta(hours=23-i)
                 # Simple random walk for mock prices
                 import random
-                price_change = random.uniform(-0.05, 0.05)  # ±5% change
+                price_change = random.uniform(-0.05, 0.05)  # +/-5% change
                 base_price *= (1 + price_change)
                 
                 mock_prices.append({
@@ -171,40 +201,75 @@ class JupiterClient:
             logger.error(f"Error getting token info: {str(e)}")
             return None
 
-    async def get_quote(self, input_mint: str, output_mint: str, amount: str, slippageBps: int) -> Dict[str, Any]:
+    async def get_quote(self, input_mint: str, output_mint: str, amount: str, slippageBps: int, max_retries: int = 3) -> Dict[str, Any]:
         """
-        Get a quote for a token swap
+        Get a quote for a token swap with smart caching and retry
         
         Args:
             input_mint: Input token mint address
             output_mint: Output token mint address  
             amount: Amount to swap (in smallest unit)
             slippageBps: Slippage tolerance in basis points
+            max_retries: Maximum retry attempts
             
         Returns:
             Dict containing quote information
         """
-        try:
-            await self.ensure_session()
-            params = {
-                "inputMint": input_mint,
-                "outputMint": output_mint,
-                "amount": amount,
-                "slippageBps": slippageBps
-            }
-            
-            async with self.session.get(f"{self.base_url}/quote", params=params) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    logger.debug(f"Quote response: {data}")
-                    return data
-                else:
-                    logger.debug(f"Quote request failed with status {response.status}")
-                    return {}
+        # Check cache first
+        cache_key = self._get_cache_key(input_mint, output_mint, amount)
+        if cache_key in self.quote_cache and self._is_cache_valid(self.quote_cache[cache_key]):
+            logger.debug(f"Returning cached quote for {input_mint[:8]}...:{output_mint[:8]}...")
+            return self.quote_cache[cache_key]['data']
+        
+        await self.ensure_session()
+        
+        params = {
+            "inputMint": input_mint,
+            "outputMint": output_mint,
+            "amount": amount,
+            "slippageBps": slippageBps
+        }
+        
+        for attempt in range(max_retries):
+            try:
+                await self._smart_delay(success=True)
+                
+                async with self.session.get(f"{self.base_url}/quote", params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        # Check if we got a valid response (not empty dict)
+                        if isinstance(data, dict) and len(data) > 0 and 'outAmount' in data:
+                            logger.debug(f"Quote success: {input_mint[:8]}...:{output_mint[:8]}...")
+                            
+                            # Cache successful response
+                            self.quote_cache[cache_key] = {
+                                'data': data,
+                                'timestamp': time.time()
+                            }
+                            return data
+                        else:
+                            logger.warning(f"Empty/invalid quote response (attempt {attempt + 1}/{max_retries})")
+                            await self._smart_delay(success=False)
                     
-        except Exception as e:
-            logger.debug(f"Error getting quote: {str(e)}")
-            return {}
+                    elif response.status == 429:
+                        logger.warning(f"Rate limited (attempt {attempt + 1}/{max_retries})")
+                        await self._smart_delay(success=False)
+                        # Exponential backoff for rate limits
+                        await asyncio.sleep(2 ** attempt)
+                    
+                    else:
+                        logger.warning(f"Quote failed with status {response.status} (attempt {attempt + 1}/{max_retries})")
+                        await self._smart_delay(success=False)
+                        
+            except Exception as e:
+                logger.warning(f"Quote request error (attempt {attempt + 1}/{max_retries}): {str(e)}")
+                await self._smart_delay(success=False)
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)
+        
+        logger.error(f"Failed to get quote after {max_retries} attempts")
+        return {}
     
     async def get_routes(self, input_mint: str, output_mint: str, amount: str, slippageBps: int) -> Dict[str, Any]:
         """
@@ -212,9 +277,247 @@ class JupiterClient:
         """
         return await self.get_quote(input_mint, output_mint, amount, slippageBps)
 
+    async def create_swap_instructions(self, quote_response: Dict[str, Any], user_public_key: str) -> Optional[Dict[str, Any]]:
+        """
+        Create swap instructions from a quote using the modern swap-instructions endpoint
+        
+        Args:
+            quote_response: Response from get_quote
+            user_public_key: User's wallet public key
+            
+        Returns:
+            Instructions data for building transaction manually
+        """
+        try:
+            await self.ensure_session()
+            
+            logger.info(f"[JUPITER] Creating swap instructions for user: {user_public_key[:8]}...")
+            logger.debug(f"[JUPITER] Quote response keys: {list(quote_response.keys())}")
+            
+            # Use the swap endpoint instead - it should return a swapTransaction
+            swap_data = {
+                "quoteResponse": quote_response,
+                "userPublicKey": user_public_key,
+                "wrapAndUnwrapSol": True,
+                "dynamicComputeUnitLimit": True,
+                "prioritizationFeeLamports": {
+                    "priorityLevelWithMaxLamports": {
+                        "maxLamports": 1000000,  # 0.001 SOL max priority fee
+                        "priorityLevel": "medium"
+                    }
+                }
+            }
+            
+            async with self.session.post(f"{self.base_url}/swap", json=swap_data) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    # Check for swapTransaction from regular swap endpoint
+                    if "swapTransaction" in data:
+                        logger.info(f"[JUPITER] Successfully created swap transaction")
+                        logger.debug(f"[JUPITER] Response keys: {list(data.keys())}")
+                        return data
+                    else:
+                        logger.error(f"[JUPITER] No swapTransaction in response")
+                        logger.debug(f"[JUPITER] Response keys: {list(data.keys())}")
+                        return None
+                else:
+                    error_text = await response.text()
+                    logger.error(f"[JUPITER] Swap instructions creation failed: {response.status} - {error_text}")
+                    return None
+                    
+        except Exception as e:
+            logger.error(f"[JUPITER] Error creating swap instructions: {str(e)}")
+            return None
+
+    async def build_transaction_from_instructions(self, instructions_data: Dict[str, Any]) -> Optional[str]:
+        """
+        Build a VersionedTransaction from Jupiter instruction data
+        
+        Args:
+            instructions_data: Response from create_swap_instructions
+            
+        Returns:
+            Serialized transaction as base64 string
+        """
+        try:
+            from solders.instruction import Instruction
+            from solders.message import MessageV0, Message
+            from solders.transaction import VersionedTransaction
+            from solders.pubkey import Pubkey
+            from solders.address_lookup_table_account import AddressLookupTableAccount
+            import base64
+            import json
+            
+            logger.info(f"[JUPITER] Building transaction from instructions")
+            
+            # Collect all instructions in order
+            all_instructions = []
+            
+            from solders.instruction import AccountMeta
+            
+            # Add compute budget instructions first
+            for inst_data in instructions_data.get("computeBudgetInstructions", []):
+                accounts = [
+                    AccountMeta(
+                        pubkey=Pubkey.from_string(acc["pubkey"]),
+                        is_signer=acc["isSigner"], 
+                        is_writable=acc["isWritable"]
+                    )
+                    for acc in inst_data["accounts"]
+                ]
+                instruction = Instruction(
+                    program_id=Pubkey.from_string(inst_data["programId"]),
+                    accounts=accounts,
+                    data=base64.b64decode(inst_data["data"])
+                )
+                all_instructions.append(instruction)
+            
+            # Add setup instructions
+            for inst_data in instructions_data.get("setupInstructions", []):
+                accounts = [
+                    AccountMeta(
+                        pubkey=Pubkey.from_string(acc["pubkey"]),
+                        is_signer=acc["isSigner"],
+                        is_writable=acc["isWritable"]
+                    )
+                    for acc in inst_data["accounts"]
+                ]
+                instruction = Instruction(
+                    program_id=Pubkey.from_string(inst_data["programId"]),
+                    accounts=accounts,
+                    data=base64.b64decode(inst_data["data"])
+                )
+                all_instructions.append(instruction)
+            
+            # Add swap instruction
+            swap_inst = instructions_data["swapInstruction"]
+            accounts = [
+                AccountMeta(
+                    pubkey=Pubkey.from_string(acc["pubkey"]),
+                    is_signer=acc["isSigner"],
+                    is_writable=acc["isWritable"]
+                )
+                for acc in swap_inst["accounts"]
+            ]
+            instruction = Instruction(
+                program_id=Pubkey.from_string(swap_inst["programId"]),
+                accounts=accounts,
+                data=base64.b64decode(swap_inst["data"])
+            )
+            all_instructions.append(instruction)
+            
+            # Add cleanup instruction
+            cleanup_inst = instructions_data.get("cleanupInstruction")
+            if cleanup_inst:
+                accounts = [
+                    AccountMeta(
+                        pubkey=Pubkey.from_string(acc["pubkey"]),
+                        is_signer=acc["isSigner"],
+                        is_writable=acc["isWritable"]
+                    )
+                    for acc in cleanup_inst["accounts"]
+                ]
+                instruction = Instruction(
+                    program_id=Pubkey.from_string(cleanup_inst["programId"]),
+                    accounts=accounts,
+                    data=base64.b64decode(cleanup_inst["data"])
+                )
+                all_instructions.append(instruction)
+            
+            # Get blockhash
+            blockhash_data = instructions_data.get("blockhashWithMetadata", {})
+            if "blockhash" in blockhash_data:
+                blockhash_bytes = bytes(blockhash_data["blockhash"])
+                from solders.hash import Hash
+                blockhash = Hash(blockhash_bytes)
+            else:
+                # Fallback - this will require getting a fresh blockhash
+                logger.warning("[JUPITER] No blockhash in instructions data, will need fresh blockhash")
+                return None
+            
+            # Build MessageV0 with lookup tables
+            lookup_tables = []
+            for table_address in instructions_data.get("addressLookupTableAddresses", []):
+                # For now, create empty lookup table - in production you'd fetch the actual table
+                lookup_tables.append(AddressLookupTableAccount(
+                    key=Pubkey.from_string(table_address),
+                    addresses=[]  # Would need to fetch actual addresses
+                ))
+            
+            # Create message - extract payer from swap instructions
+            payer = None
+            for inst_data in instructions_data.get("setupInstructions", []):
+                for acc in inst_data.get("accounts", []):
+                    if acc.get("isSigner", False):
+                        payer = Pubkey.from_string(acc["pubkey"])
+                        break
+                if payer:
+                    break
+            
+            # Fallback to swap instruction signer
+            if not payer:
+                swap_inst = instructions_data.get("swapInstruction", {})
+                for acc in swap_inst.get("accounts", []):
+                    if acc.get("isSigner", False):
+                        payer = Pubkey.from_string(acc["pubkey"])
+                        break
+            
+            try:
+                message = MessageV0.try_compile(
+                    payer=payer,
+                    instructions=all_instructions,
+                    address_lookup_table_accounts=lookup_tables,
+                    recent_blockhash=blockhash
+                )
+                
+                # Create unsigned VersionedTransaction
+                transaction = VersionedTransaction(message, [])
+                
+                # Serialize to base64
+                tx_bytes = bytes(transaction)
+                tx_b64 = base64.b64encode(tx_bytes).decode('utf-8')
+                
+            except Exception as compile_error:
+                logger.error(f"[JUPITER] Error compiling message: {str(compile_error)}")
+                # Try alternative approach - create a simple serializable structure
+                # that the wallet can reconstruct and sign
+                transaction_data = {
+                    "instructions": [
+                        {
+                            "programId": str(inst.program_id),
+                            "accounts": [
+                                {
+                                    "pubkey": str(acc.pubkey),
+                                    "isSigner": acc.is_signer,
+                                    "isWritable": acc.is_writable
+                                }
+                                for acc in inst.accounts
+                            ],
+                            "data": base64.b64encode(inst.data).decode('utf-8')
+                        }
+                        for inst in all_instructions
+                    ],
+                    "blockhash": base64.b64encode(blockhash_bytes).decode('utf-8'),
+                    "payer": str(payer) if payer else "",
+                    "addressLookupTableAddresses": instructions_data.get("addressLookupTableAddresses", [])
+                }
+                
+                # Serialize the instruction data
+                tx_b64 = base64.b64encode(
+                    json.dumps(transaction_data).encode('utf-8')
+                ).decode('utf-8')
+                logger.info("[JUPITER] Created transaction data structure for manual reconstruction")
+            
+            logger.info(f"[JUPITER] Successfully built transaction from instructions")
+            return tx_b64
+            
+        except Exception as e:
+            logger.error(f"[JUPITER] Error building transaction from instructions: {str(e)}")
+            return None
+
     async def create_swap_transaction(self, quote_response: Dict[str, Any], user_public_key: str) -> Optional[str]:
         """
-        Create a swap transaction from a quote
+        Create swap transaction using Jupiter's swap endpoint
         
         Args:
             quote_response: Response from get_quote
@@ -224,26 +527,23 @@ class JupiterClient:
             Serialized transaction as base64 string
         """
         try:
-            await self.ensure_session()
+            # Get swap transaction directly from Jupiter
+            swap_data = await self.create_swap_instructions(quote_response, user_public_key)
+            if not swap_data:
+                logger.error("[JUPITER] Failed to get swap transaction")
+                return None
             
-            swap_data = {
-                "quoteResponse": quote_response,
-                "userPublicKey": user_public_key,
-                "wrapAndUnwrapSol": True,
-                "computeUnitPriceMicroLamports": "auto"
-            }
+            # Extract swapTransaction
+            transaction = swap_data.get("swapTransaction")
+            if not transaction:
+                logger.error("[JUPITER] No swapTransaction in response")
+                return None
             
-            async with self.session.post(f"{self.base_url}/swap", json=swap_data) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    return data.get("swapTransaction")
-                else:
-                    error_text = await response.text()
-                    logger.error(f"Swap transaction creation failed: {response.status} - {error_text}")
-                    return None
-                    
+            logger.info("[JUPITER] Successfully got transaction from Jupiter")
+            return transaction
+            
         except Exception as e:
-            logger.error(f"Error creating swap transaction: {str(e)}")
+            logger.error(f"[JUPITER] Error in create_swap_transaction: {str(e)}")
             return None
 
     async def close(self) -> None:

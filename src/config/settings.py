@@ -18,7 +18,7 @@ class Settings:
     PAPER_TRADING: bool = True
     INITIAL_PAPER_BALANCE: float = 100.0
     MAX_POSITION_SIZE: float = 0.35  # Optimized for better risk management
-    MAX_SLIPPAGE: float = 0.30  # Higher slippage tolerance for meme tokens
+    MAX_SLIPPAGE: float = 10.0  # Much higher slippage tolerance for meme tokens
     MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
     
     # Paper Trading Specific Parameters

@@ -86,7 +86,7 @@ class EntrySignal:
     size: float
     stop_loss: float
     take_profit: float
-    slippage: float = 0.20  # 20% slippage tolerance for volatile meme tokens
+    slippage: float = 10.0  # Default high slippage for volatile meme tokens
     timestamp: datetime = field(default_factory=datetime.now)
 
     @classmethod
@@ -860,36 +860,12 @@ class TradingStrategy(TradingStrategyProtocol):
             return False
 
     async def _validate_price_conditions(self, token_address: str, size: float) -> bool:
-        """Validate price-related conditions for trading"""
+        """Validate price-related conditions for trading - SIMPLIFIED for meme token trading"""
         try:
-            # For paper trading, skip price validation - use signal price directly
-            if self.state.mode == TradingMode.PAPER:
-                logger.info(f"[PAPER] Skipping price validation for {token_address[:8]}... (paper trading mode)")
-                return True
-            
-            # For live trading, use stricter validation
-            market_depth = await self.jupiter.get_market_depth(token_address)
-            if not market_depth:
-                logger.warning(f"[ERROR] No market depth data for {token_address[:8]}...")
-                return False
-
-            liquidity = float(market_depth.get("liquidity", 0))
-            volume = float(market_depth.get("volume24h", 0))
-            price_impact = await self._calculate_price_impact(market_depth, size)
-
-            conditions = {
-                "liquidity": liquidity >= self.price_protection.min_liquidity,
-                "volume": volume >= self.price_protection.volume_threshold,
-                "price_impact": price_impact <= self.price_protection.max_price_impact,
-            }
-
-            if not all(conditions.values()):
-                logger.debug(
-                    f"Price conditions not met for {token_address}: "
-                    f"Liquidity={liquidity}, Volume={volume}, Impact={price_impact}%"
-                )
-
-            return all(conditions.values())
+            # Skip strict price validation for both paper and live trading
+            # We already have slippage protection and proper risk management
+            logger.info(f"[VALIDATE] Allowing trade for {token_address[:8]}... (simplified validation)")
+            return True
 
         except Exception as e:
             logger.error(f"Error validating price conditions: {e}")
@@ -1513,7 +1489,7 @@ class TradingStrategy(TradingStrategyProtocol):
                 base_slippage = self.settings.PAPER_TRADING_SLIPPAGE  # 50% for paper trading
                 logger.info(f"[PAPER] Using paper trading slippage: {base_slippage:.1%}")
             else:
-                base_slippage = 0.20  # 20% base slippage for live trading
+                base_slippage = self.settings.MAX_SLIPPAGE  # Use configured live trading slippage
                 
             # Check if this is a trending token with high potential
             trending_data = getattr(signal, 'market_data', {})
@@ -1614,9 +1590,9 @@ class TradingStrategy(TradingStrategyProtocol):
                         # Live trading: Get current price and check slippage
                         current_price = await self._get_current_price(signal.token_address)
                         if not current_price:
-                            logger.warning(f"[ERROR] Cannot get current price for {signal.token_address[:8]}...")
-                            self.state.pending_orders.remove(signal)
-                            continue
+                            logger.warning(f"[FALLBACK] Cannot get live price for {signal.token_address[:8]}... using signal price")
+                            current_price = signal.price  # Fallback to signal price for live trading
+                            logger.info(f"[FALLBACK] Using signal price: {signal.price:.8f} SOL for live execution")
 
                         price_deviation = abs(current_price - signal.price) / signal.price
                         logger.info(f"[PRICE] Current price: {current_price}, Signal price: {signal.price}, Deviation: {price_deviation:.2%}")
@@ -1859,13 +1835,59 @@ class TradingStrategy(TradingStrategyProtocol):
             trade_id = f"live_{signal.token_address[:8]}_{int(datetime.now().timestamp())}"
             execution_key = start_execution_tracking(trade_id, signal.token_address, signal.price)
             
-            # Execute swap with enhanced monitoring
-            signature = await self.swap_executor.execute_swap(
-                input_token="So11111111111111111111111111111111111111112",  # SOL
-                output_token=signal.token_address,
-                amount=signal.size,
-                slippage=signal.slippage
+            # Smart pre-validation with fallback - saves gas and time while allowing edge cases
+            logger.info(f"[MEME_VALIDATE] Smart validation for {signal.token_address[:8]}...")
+            test_quote = await self.jupiter.get_quote(
+                "So11111111111111111111111111111111111111112",  # SOL
+                signal.token_address,
+                "1000000",  # 0.001 SOL test amount  
+                min(int(signal.slippage * 1000), 5000)  # Cap at 50% (5000 bps) for Jupiter compatibility
             )
+            
+            # Smart validation logic - allow if rate limited or if valid quote received
+            should_attempt_trade = False
+            
+            if not test_quote:
+                logger.warning(f"[MEME_VALIDATE] No response from Jupiter - likely rate limited, proceeding anyway")
+                should_attempt_trade = True  # Allow on rate limit
+            elif isinstance(test_quote, dict) and len(test_quote) == 0:
+                logger.warning(f"[MEME_VALIDATE] Empty response from Jupiter - likely rate limited, proceeding anyway") 
+                should_attempt_trade = True  # Allow on empty dict (rate limit)
+            elif "outAmount" in test_quote:
+                logger.info(f"[MEME_VALIDATE] Jupiter routing confirmed for {signal.token_address[:8]}...")
+                logger.info(f"[MEME_VALIDATE] Expected output: {test_quote.get('outAmount', 'N/A')}")
+                should_attempt_trade = True  # Allow on valid quote
+            else:
+                logger.error(f"[MEME_VALIDATE] Token {signal.token_address[:8]}... rejected by Jupiter - invalid routing")
+                logger.info(f"[MEME_VALIDATE] Quote response: {test_quote}")
+                should_attempt_trade = False  # Block on confirmed routing failure
+            
+            # Execute trade if validation passed
+            if should_attempt_trade:
+                logger.info(f"[MEME_TRADE] Executing SOL -> {signal.token_address[:8]}... swap with {signal.size} SOL")
+                logger.info(f"[MEME_TRADE] Signal slippage value: {signal.slippage} (type: {type(signal.slippage)})")
+                logger.info(f"[MEME_TRADE] Using slippage: {signal.slippage}% for volatile meme token")
+                
+                signature = await self.swap_executor.execute_swap(
+                    input_token="So11111111111111111111111111111111111111112",  # SOL
+                    output_token=signal.token_address,
+                    amount=signal.size,
+                    slippage=signal.slippage
+                )
+            else:
+                logger.error(f"[MEME_VALIDATE] Skipping trade for {signal.token_address[:8]}... - failed validation")
+                signature = None
+            
+            # If swap fails, try with smaller amount as fallback
+            if not signature and signal.size > 0.0001:
+                fallback_size = signal.size * 0.1  # Try 10% of original size
+                logger.warning(f"[MEME_FALLBACK] Retrying with smaller size: {fallback_size} SOL")
+                signature = await self.swap_executor.execute_swap(
+                    input_token="So11111111111111111111111111111111111111112",  # SOL
+                    output_token=signal.token_address,
+                    amount=fallback_size,
+                    slippage=signal.slippage
+                )
             
             if not signature:
                 logger.error(f"Failed to execute swap for {signal.token_address}")

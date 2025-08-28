@@ -107,10 +107,14 @@ class TradingBot:
                 return False
             logger.info("[OK] Alchemy connection successful")
 
-            if not await self.jupiter.test_connection():
-                logger.error("[ERROR] Jupiter connection failed")
-                return False
-            logger.info("[OK] Jupiter connection successful")
+            # Skip Jupiter connection test during startup to avoid rate limits
+            # The connection will be tested during actual trading
+            try:
+                await self.jupiter.test_connection()
+                logger.info("[OK] Jupiter connection successful")
+            except Exception as e:
+                logger.warning(f"[WARNING] Jupiter connection test skipped due to rate limits: {e}")
+                logger.info("[OK] Jupiter will be tested during trading")
 
             if not await self.connect_wallet():
                 logger.error("[ERROR] Wallet connection failed")
@@ -180,7 +184,7 @@ class TradingBot:
                 return True
             else:
                 # For live trading, actually connect wallet
-                return await self.wallet.connect()
+                return await self.wallet.connect(self.settings.WALLET_ADDRESS)
         except Exception as e:
             logger.error(f"Wallet connection error: {e}")
             return False

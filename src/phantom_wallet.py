@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, Optional, List, Callable, Awaitable
+from typing import Dict, Any, Optional, List, Callable, Awaitable, Union
 import base58
 from src.api.alchemy import AlchemyClient
 import asyncio
@@ -7,6 +7,7 @@ from datetime import datetime
 import os
 from solders.keypair import Keypair
 from solana.transaction import Transaction
+from solders.transaction import VersionedTransaction
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Commitment
 from solana.rpc.types import TxOpts
@@ -324,8 +325,8 @@ class PhantomWallet:
             if len(private_key_bytes) != 64:
                 raise ValueError("Private key must be 64 bytes when decoded")
                 
-            keypair = Keypair.from_secret_key(private_key_bytes)
-            logger.info(f"Successfully loaded keypair with public key: {keypair.public_key}")
+            keypair = Keypair.from_bytes(private_key_bytes)
+            logger.info(f"Successfully loaded keypair with public key: {keypair.pubkey()}")
             return keypair
             
         except Exception as e:
@@ -370,7 +371,7 @@ class PhantomWallet:
                 return False
                 
             # Update wallet address to match keypair
-            self.wallet_address = str(self.keypair.public_key)
+            self.wallet_address = str(self.keypair.pubkey())
             self.live_mode = True
             
             logger.info(f"Live mode initialized for wallet: {self.wallet_address}")
@@ -407,12 +408,12 @@ class PhantomWallet:
             logger.error(f"Error getting recent blockhash: {str(e)}")
             raise
     
-    async def sign_and_send_transaction(self, transaction: Transaction, rpc_url: Optional[str] = None) -> Optional[str]:
+    async def sign_and_send_transaction(self, transaction: Union[Transaction, VersionedTransaction], rpc_url: Optional[str] = None) -> Optional[str]:
         """
         Sign and send a transaction to the Solana network
         
         Args:
-            transaction: Transaction to sign and send
+            transaction: Transaction (legacy or versioned) to sign and send
             rpc_url: Optional custom RPC URL
             
         Returns:
@@ -423,11 +424,17 @@ class PhantomWallet:
             return None
             
         try:
-            # Sign the transaction
-            transaction.sign(self.keypair)
-            
-            # Send the transaction
-            signature = await self.submit_transaction(transaction)
+            # Sign the transaction based on its type
+            if isinstance(transaction, VersionedTransaction):
+                logger.info("Signing VersionedTransaction")
+                # For VersionedTransaction, we need to sign it properly
+                # VersionedTransaction doesn't have a sign method, we pass it directly
+                signature = await self.submit_versioned_transaction(transaction)
+            else:
+                logger.info("Signing legacy Transaction")
+                # Legacy transaction signing
+                transaction.sign(self.keypair)
+                signature = await self.submit_transaction(transaction)
             
             if signature:
                 logger.info(f"Transaction sent successfully: {signature}")
@@ -473,6 +480,67 @@ class PhantomWallet:
             logger.error(f"Error submitting transaction: {str(e)}")
             raise
     
+    async def submit_versioned_transaction(self, versioned_tx: VersionedTransaction) -> str:
+        """
+        Submit a versioned transaction to the network
+        
+        Args:
+            versioned_tx: VersionedTransaction from Jupiter (already contains message)
+            
+        Returns:
+            str: Transaction signature
+            
+        Raises:
+            RuntimeError: If submission fails
+        """
+        if not self.rpc_client:
+            raise RuntimeError("RPC client not initialized")
+            
+        try:
+            # Extract the message and create a properly signed VersionedTransaction
+            from solders.transaction import VersionedTransaction
+            
+            # Create a new signed VersionedTransaction using the message and our keypair
+            signed_tx = VersionedTransaction(versioned_tx.message, [self.keypair])
+            
+            # Serialize and send as raw transaction
+            tx_bytes = bytes(signed_tx)
+            
+            # Try with priority fee settings for better success rate
+            opts = TxOpts(
+                skip_confirmation=False, 
+                skip_preflight=True,  # Skip simulation to avoid Jupiter timing issues
+                max_retries=0  # We handle retries manually
+            )
+            
+            response = await self.rpc_client.send_raw_transaction(tx_bytes, opts=opts)
+            
+            logger.debug(f"RPC response type: {type(response)}")
+            logger.debug(f"RPC response: {response}")
+            
+            if response and hasattr(response, 'value') and response.value:
+                signature = str(response.value)
+                logger.info(f"Transaction submitted successfully with signature: {signature}")
+                return signature
+            elif response is None:
+                raise RuntimeError("RPC client returned None response - connection issue")
+            else:
+                # The transaction might still be successful, let's check the response structure
+                if hasattr(response, 'result'):
+                    signature = str(response.result)
+                    logger.info(f"Transaction submitted successfully (via result field): {signature}")
+                    return signature
+                else:
+                    logger.error(f"Unexpected response structure: {dir(response)}")
+                    raise RuntimeError(f"VersionedTransaction submission failed - response: {response}")
+                
+        except Exception as e:
+            error_msg = str(e) if str(e) else "Unknown RPC error"
+            logger.error(f"Error submitting versioned transaction: {error_msg}")
+            logger.error(f"Error type: {type(e).__name__}")
+            logger.error(f"Error details: {repr(e)}")
+            raise
+    
     async def get_transaction_status(self, signature: str) -> str:
         """
         Get the status of a transaction
@@ -487,18 +555,18 @@ class PhantomWallet:
             raise RuntimeError("RPC client not initialized")
             
         try:
-            response = await self.rpc_client.get_signature_status(signature)
+            response = await self.rpc_client.get_signature_statuses([signature])
             
             if not response.value:
                 return "pending"
                 
-            status = response.value[0]
+            status = response.value[0]  # get_signature_statuses returns [status]
             if not status:
                 return "pending"
                 
             if status.err:
                 return "failed"
-            elif status.confirmation_status:
+            elif hasattr(status, 'confirmation_status') and status.confirmation_status:
                 return status.confirmation_status.value
             else:
                 return "confirmed"

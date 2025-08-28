@@ -332,7 +332,7 @@ class MEVProtection:
         """Apply protection measures to transaction"""
         try:
             protected_tx = {
-                'slippageBps': int(params['slippage'] * 10000),
+                'slippageBps': min(int(params['slippage'] * 1000), 5000),  # Cap at 50%
                 'deadline': int(
                     (datetime.now() + timedelta(seconds=30)).timestamp()
                 ),

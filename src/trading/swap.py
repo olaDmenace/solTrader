@@ -75,10 +75,15 @@ class SwapExecutor:
     ) -> Optional[str]:
         """Execute swap with MEV protection"""
         try:
+            logger.info(f"[SWAP_ENTRY] Starting swap execution")
+            logger.info(f"[SWAP_ENTRY] Input: {input_token[:8]}... -> Output: {output_token[:8]}...")
+            logger.info(f"[SWAP_ENTRY] Amount: {amount} SOL, Slippage: {slippage}")
+            
             start_time = asyncio.get_event_loop().time()
             config = config or self.default_config
 
             # Get optimal route
+            logger.info(f"[SWAP_STEP1] Getting optimal route...")
             route = await self._get_optimal_route(
                 input_token,
                 output_token,
@@ -86,19 +91,26 @@ class SwapExecutor:
                 slippage
             )
             if not route:
+                logger.error(f"[SWAP_STEP1] FAILED - No route available")
                 return None
+            logger.info(f"[SWAP_STEP1] SUCCESS - Route obtained")
 
             # Add random delay if configured
             if config.randomize_timing:
                 delay = random.uniform(config.min_delay, config.max_delay)
+                logger.info(f"[SWAP_DELAY] Adding random delay: {delay:.2f}s")
                 await asyncio.sleep(delay)
 
             # Get quote with protection measures
+            logger.info(f"[SWAP_STEP2] Getting protected quote...")
             quote = await self._get_protected_quote(route, config)
             if not quote:
+                logger.error(f"[SWAP_STEP2] FAILED - No quote available")
                 return None
+            logger.info(f"[SWAP_STEP2] SUCCESS - Quote obtained: {quote.get('outAmount', 'N/A')}")
 
             # Build and execute protected transaction
+            logger.info(f"[SWAP_STEP3] Executing protected swap...")
             result = await self._execute_protected_swap(quote, config)
             
             # Update metrics
@@ -106,14 +118,44 @@ class SwapExecutor:
             self._update_metrics(result.success, execution_time)
 
             if result.success and result.signature:
+                logger.info(f"[SWAP_SUCCESS] Swap completed: {result.signature}")
                 self._record_successful_swap(route, result)
                 return result.signature
-
-            return None
+            else:
+                logger.error(f"[SWAP_FAILED] Swap execution failed")
+                logger.error(f"[SWAP_FAILED] Success: {result.success}, Signature: {result.signature}")
+                logger.error(f"[SWAP_FAILED] Error: {result.error}")
+                return None
 
         except Exception as e:
-            logger.error(f"Swap execution failed: {str(e)}")
+            logger.error(f"[SWAP_EXCEPTION] Swap execution failed: {str(e)}")
+            import traceback
+            logger.error(f"[SWAP_EXCEPTION] Traceback: {traceback.format_exc()}")
             self.failed_swaps += 1
+            return None
+
+    async def execute_meme_token_swap(
+        self,
+        token_address: str,
+        sol_amount: float,
+        slippage: float = 10.0,
+        config: Optional[PrivateSwapConfig] = None
+    ) -> Optional[str]:
+        """Execute meme token swap using SOL routing"""
+        try:
+            logger.info(f"[MEME_SWAP] Attempting SOL -> {token_address[:8]}... swap with {sol_amount} SOL")
+            
+            # Use SOL as input, meme token as output
+            return await self.execute_swap(
+                input_token="So11111111111111111111111111111111111111112",  # SOL
+                output_token=token_address,
+                amount=sol_amount,
+                slippage=slippage,
+                config=config
+            )
+            
+        except Exception as e:
+            logger.error(f"[MEME_SWAP] Failed to execute meme token swap: {str(e)}")
             return None
 
     async def _get_optimal_route(
@@ -125,25 +167,69 @@ class SwapExecutor:
     ) -> Optional[SwapRoute]:
         """Get optimal swap route with MEV protection considerations"""
         try:
+            logger.info(f"[ROUTE] Getting routes from Jupiter...")
+            logger.info(f"[ROUTE] Input: {input_token[:8]}..., Output: {output_token[:8]}...")
+            logger.info(f"[ROUTE] Amount: {amount} SOL ({int(amount * Decimal('1e9'))} lamports)")
+            slippage_bps = min(int(slippage * 1000), 5000)  # Cap at 50% for Jupiter
+            logger.info(f"[ROUTE] Slippage: {slippage} ({slippage_bps} basis points)")
+            
             # Get all possible routes
             routes = await self.jupiter.get_routes(
                 input_mint=input_token,
                 output_mint=output_token,
                 amount=str(int(amount * Decimal("1e9"))),
-                slippageBps=int(slippage * 10000)
+                slippageBps=slippage_bps
             )
 
-            if not routes or 'data' not in routes:
-                return None
+            logger.info(f"[ROUTE] Jupiter response type: {type(routes)}")
+            logger.info(f"[ROUTE] Jupiter response: {routes}")
+
+            if not routes:
+                logger.warning(f"[ROUTE] No routes from Jupiter - trying fallback quote method")
+                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+                
+            if not isinstance(routes, dict):
+                logger.warning(f"[ROUTE] Non-dict response - trying fallback quote method")
+                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+                
+            # Jupiter quote API returns the quote directly, not wrapped in 'data'
+            # Check if this is a direct quote response (has outAmount) or a routes response (has data)
+            if "outAmount" in routes:
+                logger.info(f"[ROUTE] Got direct quote response - converting to route format")
+                # This is a direct quote, create a route from it
+                route = SwapRoute(
+                    input_mint=input_token,
+                    output_mint=output_token,
+                    amount=amount,
+                    slippage=slippage,
+                    platforms=["Jupiter"],
+                    expected_output=Decimal(str(routes.get('outAmount', 0))) / Decimal("1e9")
+                )
+                logger.info(f"[ROUTE] SUCCESS - Direct quote route created")
+                return route
+            elif 'data' not in routes:
+                logger.warning(f"[ROUTE] No 'data' field and no 'outAmount' - trying fallback quote method")
+                logger.info(f"[ROUTE] Available keys: {list(routes.keys()) if isinstance(routes, dict) else 'N/A'}")
+                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+            else:
+                # This is a routes response with 'data' field
+                routes_data = routes['data']
+                logger.info(f"[ROUTE] Found {len(routes_data)} potential routes")
 
             # Filter and sort routes by safety and efficiency
-            safe_routes = self._filter_safe_routes(routes['data'])
+            safe_routes = self._filter_safe_routes(routes_data)
+            logger.info(f"[ROUTE] {len(safe_routes)} routes passed safety filter")
+            
             if not safe_routes:
+                logger.error(f"[ROUTE] FAILED - No safe routes available")
                 return None
 
             # Select optimal route
             best_route = safe_routes[0]
-            return SwapRoute(
+            logger.info(f"[ROUTE] Selected best route with {len(best_route.get('platforms', []))} platforms")
+            logger.info(f"[ROUTE] Expected output: {best_route.get('outAmount', 0)} lamports")
+            
+            route = SwapRoute(
                 input_mint=input_token,
                 output_mint=output_token,
                 amount=amount,
@@ -151,9 +237,59 @@ class SwapExecutor:
                 platforms=best_route.get('platforms', []),
                 expected_output=Decimal(str(best_route.get('outAmount', 0))) / Decimal("1e9")
             )
+            
+            logger.info(f"[ROUTE] SUCCESS - Route created")
+            return route
 
         except Exception as e:
-            logger.error(f"Error getting optimal route: {str(e)}")
+            logger.error(f"[ROUTE] EXCEPTION - Error getting optimal route: {str(e)}")
+            import traceback
+            logger.error(f"[ROUTE] Traceback: {traceback.format_exc()}")
+            return None
+
+    async def _fallback_route_creation(
+        self,
+        input_token: str,
+        output_token: str,
+        amount: Decimal,
+        slippage: float
+    ) -> Optional[SwapRoute]:
+        """Fallback route creation when Jupiter routes fail"""
+        try:
+            logger.info(f"[FALLBACK] Attempting direct Jupiter quote for route creation...")
+            
+            # Try direct quote instead of routes
+            quote = await self.jupiter.get_quote(
+                input_mint=input_token,
+                output_mint=output_token,
+                amount=str(int(amount * Decimal("1e9"))),
+                slippageBps=min(int(slippage * 1000), 5000)  # Cap at 50% for Jupiter
+            )
+            
+            logger.info(f"[FALLBACK] Quote response: {quote}")
+            
+            if quote and isinstance(quote, dict) and "outAmount" in quote:
+                logger.info(f"[FALLBACK] SUCCESS - Creating route from quote")
+                
+                # Create a route from the quote
+                route = SwapRoute(
+                    input_mint=input_token,
+                    output_mint=output_token,
+                    amount=amount,
+                    slippage=slippage,
+                    platforms=["Jupiter Direct"],  # Indicate this is a direct quote route
+                    expected_output=Decimal(str(quote.get('outAmount', 0))) / Decimal("1e9")
+                )
+                
+                logger.info(f"[FALLBACK] Route created with expected output: {route.expected_output}")
+                return route
+            else:
+                logger.error(f"[FALLBACK] FAILED - No valid quote available")
+                logger.error(f"[FALLBACK] This token likely cannot be traded on Jupiter")
+                return None
+                
+        except Exception as e:
+            logger.error(f"[FALLBACK] EXCEPTION - Error in fallback route creation: {str(e)}")
             return None
 
     def _filter_safe_routes(self, routes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -215,7 +351,7 @@ class SwapExecutor:
                 input_mint=route.input_mint,
                 output_mint=route.output_mint,
                 amount=str(int(route.amount * Decimal("1e9"))),
-                slippageBps=int(route.slippage * 10000)
+                slippageBps=min(int(route.slippage * 1000), 5000)  # Cap at 50% for Jupiter
             )
 
             if not quote:
@@ -243,30 +379,53 @@ class SwapExecutor:
     ) -> SwapResult:
         """Execute swap with protection measures"""
         try:
-            # Build transaction
-            swap_ix = await self.jupiter.get_swap_ix(quote)
-            if not swap_ix:
+            # Build transaction using Jupiter v6 API
+            logger.info(f"[SWAP] Creating transaction with Jupiter for quote: {quote.get('outAmount', 'unknown')}")
+            swap_tx = await self.jupiter.create_swap_transaction(quote, str(self.wallet.wallet_address))
+            if not swap_tx:
+                logger.error(f"[SWAP] Jupiter transaction creation returned None - no transaction created")
                 return SwapResult(
                     success=False,
                     signature=None,
                     output_amount=None,
                     execution_time=0.0,
-                    error="Failed to get swap instruction"
+                    error="Failed to get swap transaction from Jupiter"
                 )
 
-            # Create transaction
-            recent_blockhash = await self.wallet.get_recent_blockhash()
-            tx = Transaction()
-            tx.recent_blockhash = Hash.from_string(recent_blockhash)
-            
-            # Add priority fee if configured
-            if config.priority_fee_multiplier > 1.0:
-                priority_fee = await self._calculate_priority_fee(quote)
-                tx.recent_blockhash = Hash.from_string(
-                    await self.wallet.get_recent_blockhash(priority_fee)
+            # Deserialize transaction from Jupiter
+            import base64
+            try:
+                # Jupiter returns a serialized transaction as base64
+                # We need to deserialize it properly for solana-py
+                from solders.transaction import VersionedTransaction
+                
+                tx_bytes = base64.b64decode(swap_tx)
+                logger.info(f"[SWAP] Decoded {len(tx_bytes)} bytes from Jupiter")
+                
+                # Try deserializing as VersionedTransaction first (Jupiter v6 format)
+                try:
+                    versioned_tx = VersionedTransaction.from_bytes(tx_bytes)
+                    logger.info(f"[SWAP] Successfully deserialized as VersionedTransaction")
+                    
+                    # Use the VersionedTransaction directly (don't convert)
+                    tx = versioned_tx
+                    logger.info(f"[SWAP] Using VersionedTransaction directly")
+                    
+                except Exception as ve:
+                    logger.warning(f"[SWAP] VersionedTransaction failed: {ve}, trying legacy format")
+                    # Fallback to legacy transaction format
+                    tx = Transaction.deserialize(tx_bytes)
+                    logger.info(f"[SWAP] Successfully deserialized as legacy Transaction")
+                    
+            except Exception as e:
+                logger.error(f"[SWAP] Failed to deserialize transaction: {str(e)}")
+                return SwapResult(
+                    success=False,
+                    signature=None,
+                    output_amount=None,
+                    execution_time=0.0,
+                    error=f"Transaction deserialization failed: {str(e)}"
                 )
-
-            tx.add(swap_ix)
 
             # Execute with retries
             start_time = asyncio.get_event_loop().time()
@@ -320,20 +479,26 @@ class SwapExecutor:
         """Execute transaction with retries"""
         for attempt in range(self.max_retries):
             try:
+                logger.info(f"[SWAP] Attempt {attempt + 1}/{self.max_retries} to send transaction")
                 # Use private RPC if configured
                 if config.use_private_rpc and self.private_rpcs:
                     rpc_url = random.choice(self.private_rpcs)
+                    logger.info(f"[SWAP] Using private RPC: {rpc_url}")
                     signature = await self.wallet.sign_and_send_transaction(
                         tx, rpc_url=rpc_url
                     )
                 else:
+                    logger.info(f"[SWAP] Using default RPC endpoint")
                     signature = await self.wallet.sign_and_send_transaction(tx)
                     
                 if signature:
+                    logger.info(f"[SWAP] Transaction sent successfully: {signature}")
                     return signature
+                else:
+                    logger.warning(f"[SWAP] Transaction returned None signature")
 
             except Exception as e:
-                logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
+                logger.error(f"[SWAP] Attempt {attempt + 1} failed with error: {str(e)}")
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(self.retry_delay * (attempt + 1))
 
