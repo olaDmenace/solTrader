@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from solana.transaction import Transaction
 from solders.hash import Hash
 import random
+from .unverified_token_handler import UnverifiedTokenHandler
+from ..risk import get_risk_manager, RiskLevel
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,9 @@ class SwapExecutor:
         self.retry_delay: float = 1.0
         self.default_config = PrivateSwapConfig()
         
+        # Unverified token handler for "BananaGuy-like" tokens
+        self.unverified_handler = UnverifiedTokenHandler()
+        
         # Performance metrics
         self.total_swaps: int = 0
         self.successful_swaps: int = 0
@@ -71,9 +76,10 @@ class SwapExecutor:
         output_token: str,
         amount: float,
         slippage: float = 0.01,
-        config: Optional[PrivateSwapConfig] = None
+        config: Optional[PrivateSwapConfig] = None,
+        current_balance: Optional[float] = None
     ) -> Optional[str]:
-        """Execute swap with MEV protection"""
+        """Execute swap with MEV protection and risk management"""
         try:
             logger.info(f"[SWAP_ENTRY] Starting swap execution")
             logger.info(f"[SWAP_ENTRY] Input: {input_token[:8]}... -> Output: {output_token[:8]}...")
@@ -81,6 +87,26 @@ class SwapExecutor:
             
             start_time = asyncio.get_event_loop().time()
             config = config or self.default_config
+            
+            # ⭐ RISK MANAGEMENT VALIDATION ⭐
+            risk_manager = get_risk_manager()
+            
+            if current_balance is not None:
+                # Validate trade with risk management
+                trade_allowed, risk_reason, risk_level = risk_manager.validate_trade(
+                    token_address=output_token,
+                    trade_size=Decimal(str(amount)),
+                    current_balance=Decimal(str(current_balance)),
+                    trade_type="buy" if input_token == "So11111111111111111111111111111111111111112" else "sell"
+                )
+                
+                if not trade_allowed:
+                    logger.warning(f"[RISK_BLOCK] Trade blocked by risk management: {risk_reason} (Level: {risk_level.value})")
+                    return None
+                else:
+                    logger.info(f"[RISK_APPROVED] Trade approved by risk management (Level: {risk_level.value})")
+            else:
+                logger.warning("[RISK_WARNING] No balance provided - risk management validation skipped")
 
             # Get optimal route
             logger.info(f"[SWAP_STEP1] Getting optimal route...")
@@ -120,17 +146,35 @@ class SwapExecutor:
             if result.success and result.signature:
                 logger.info(f"[SWAP_SUCCESS] Swap completed: {result.signature}")
                 self._record_successful_swap(route, result)
+                
+                # ⭐ RISK MANAGEMENT: Record successful trade ⭐
+                risk_manager.record_trade(success=True)
+                
+                # Update position tracking if we have balance info
+                if current_balance is not None and output_token != "So11111111111111111111111111111111111111112":
+                    # This is a token purchase, update position
+                    risk_manager.update_position(output_token, Decimal(str(amount)))
+                
                 return result.signature
             else:
                 logger.error(f"[SWAP_FAILED] Swap execution failed")
                 logger.error(f"[SWAP_FAILED] Success: {result.success}, Signature: {result.signature}")
                 logger.error(f"[SWAP_FAILED] Error: {result.error}")
+                
+                # ⭐ RISK MANAGEMENT: Record failed trade ⭐
+                risk_manager.record_trade(success=False)
+                
                 return None
 
         except Exception as e:
             logger.error(f"[SWAP_EXCEPTION] Swap execution failed: {str(e)}")
             import traceback
             logger.error(f"[SWAP_EXCEPTION] Traceback: {traceback.format_exc()}")
+            
+            # ⭐ RISK MANAGEMENT: Record exception as failed trade ⭐
+            risk_manager = get_risk_manager()
+            risk_manager.record_trade(success=False)
+            
             self.failed_swaps += 1
             return None
 
@@ -167,6 +211,17 @@ class SwapExecutor:
     ) -> Optional[SwapRoute]:
         """Get optimal swap route with MEV protection considerations"""
         try:
+            # CRITICAL FIX: Block zero-amount swaps before Jupiter API calls
+            if amount <= 0:
+                logger.warning(f"[ROUTE] BLOCKED - Zero or negative amount: {amount} SOL")
+                return None
+            
+            # Additional safety check for extremely small amounts  
+            min_amount = Decimal('0.000001')  # 0.000001 SOL minimum
+            if amount < min_amount:
+                logger.warning(f"[ROUTE] BLOCKED - Amount too small: {amount} SOL (minimum: {min_amount} SOL)")
+                return None
+            
             logger.info(f"[ROUTE] Getting routes from Jupiter...")
             logger.info(f"[ROUTE] Input: {input_token[:8]}..., Output: {output_token[:8]}...")
             logger.info(f"[ROUTE] Amount: {amount} SOL ({int(amount * Decimal('1e9'))} lamports)")
@@ -254,22 +309,42 @@ class SwapExecutor:
         amount: Decimal,
         slippage: float
     ) -> Optional[SwapRoute]:
-        """Fallback route creation when Jupiter routes fail"""
+        """Enhanced fallback for unverified/flagged tokens (BananaGuy-like tokens)"""
         try:
-            logger.info(f"[FALLBACK] Attempting direct Jupiter quote for route creation...")
+            logger.info(f"[FALLBACK] Attempting enhanced fallback for potential unverified token...")
             
-            # Try direct quote instead of routes
-            quote = await self.jupiter.get_quote(
-                input_mint=input_token,
-                output_mint=output_token,
-                amount=str(int(amount * Decimal("1e9"))),
-                slippageBps=min(int(slippage * 1000), 5000)  # Cap at 50% for Jupiter
+            # STEP 1: Validate if this is a safe unverified token trade
+            is_safe, reason, metadata = await self.unverified_handler.validate_unverified_token_trade(
+                input_token, amount, output_token
             )
+            
+            if not is_safe:
+                logger.warning(f"[FALLBACK] Unverified token validation failed: {reason}")
+                self.unverified_handler.mark_token_failed(input_token)
+                return None
+            
+            logger.info(f"[FALLBACK] Unverified token validation passed: {reason}")
+            if metadata:
+                token_name = metadata.get('name', 'Unknown')
+                logger.info(f"[FALLBACK] Trading {token_name} ({input_token[:8]}...)")
+            
+            # STEP 2: Try direct quote with unverified token handler
+            quote = await self.unverified_handler._get_direct_quote(input_token, amount, output_token)
+            
+            if not quote:
+                logger.warning(f"[FALLBACK] Direct quote failed - trying Jupiter API fallback...")
+                # Final fallback to original Jupiter API
+                quote = await self.jupiter.get_quote(
+                    input_mint=input_token,
+                    output_mint=output_token,
+                    amount=str(int(amount * Decimal("1e9"))),
+                    slippageBps=min(int(slippage * 1000), 5000)
+                )
             
             logger.info(f"[FALLBACK] Quote response: {quote}")
             
             if quote and isinstance(quote, dict) and "outAmount" in quote:
-                logger.info(f"[FALLBACK] SUCCESS - Creating route from quote")
+                logger.info(f"[FALLBACK] SUCCESS - Creating route from validated unverified token quote")
                 
                 # Create a route from the quote
                 route = SwapRoute(
@@ -429,7 +504,7 @@ class SwapExecutor:
 
             # Execute with retries
             start_time = asyncio.get_event_loop().time()
-            signature = await self._execute_with_retries(tx, config)
+            signature = await self._execute_with_retries(tx, config, quote)
             execution_time = asyncio.get_event_loop().time() - start_time
 
             if not signature:
@@ -445,18 +520,21 @@ class SwapExecutor:
             confirmed = await self._confirm_transaction(signature)
             
             if not confirmed:
+                logger.warning(f"[SWAP] CONFIRMATION FAILED for {signature} - transaction may be pending or dropped")
                 return SwapResult(
                     success=False,
                     signature=signature,
                     output_amount=None,
                     execution_time=execution_time,
-                    error="Transaction not confirmed"
+                    error=f"Transaction confirmation failed after {execution_time:.1f}s - status unknown"
                 )
 
+            output_amount = Decimal(str(quote.get('outAmount', 0))) / Decimal("1e9")
+            logger.info(f"[SWAP] SWAP SUCCESSFUL: {signature} - Output: {output_amount} tokens ({execution_time:.1f}s)")
             return SwapResult(
                 success=True,
                 signature=signature,
-                output_amount=Decimal(str(quote.get('outAmount', 0))) / Decimal("1e9"),
+                output_amount=output_amount,
                 execution_time=execution_time,
                 route_info=quote.get('route')
             )
@@ -474,24 +552,45 @@ class SwapExecutor:
     async def _execute_with_retries(
         self,
         tx: Transaction,
-        config: PrivateSwapConfig
+        config: PrivateSwapConfig,
+        quote: Optional[Dict[str, Any]] = None
     ) -> Optional[str]:
-        """Execute transaction with retries"""
+        """Execute transaction with retries and blockhash refresh"""
+        current_tx = tx
+        
         for attempt in range(self.max_retries):
             try:
+                # For retries after the first attempt, create a new transaction with fresh blockhash
+                if attempt > 0 and quote:
+                    logger.info(f"[SWAP] Creating fresh transaction with new blockhash for retry {attempt + 1}")
+                    try:
+                        fresh_tx = await self.jupiter.create_swap_transaction(quote, str(self.wallet.wallet_address))
+                        if fresh_tx:
+                            current_tx = fresh_tx
+                            logger.info(f"[SWAP] Created fresh transaction for retry")
+                        else:
+                            logger.warning(f"[SWAP] Failed to create fresh transaction, using original")
+                    except Exception as refresh_error:
+                        logger.warning(f"[SWAP] Failed to refresh transaction: {refresh_error}, using original")
+                
                 logger.info(f"[SWAP] Attempt {attempt + 1}/{self.max_retries} to send transaction")
                 # Use private RPC if configured
                 if config.use_private_rpc and self.private_rpcs:
                     rpc_url = random.choice(self.private_rpcs)
                     logger.info(f"[SWAP] Using private RPC: {rpc_url}")
                     signature = await self.wallet.sign_and_send_transaction(
-                        tx, rpc_url=rpc_url
+                        current_tx, rpc_url=rpc_url
                     )
                 else:
                     logger.info(f"[SWAP] Using default RPC endpoint")
-                    signature = await self.wallet.sign_and_send_transaction(tx)
+                    signature = await self.wallet.sign_and_send_transaction(current_tx)
                     
                 if signature:
+                    # Check if this signature was already processed successfully
+                    if self.wallet.is_signature_processed(signature):
+                        logger.info(f"[SWAP] Transaction {signature} already processed successfully - skipping retry")
+                        return signature
+                    
                     logger.info(f"[SWAP] Transaction sent successfully: {signature}")
                     return signature
                 else:
@@ -507,20 +606,42 @@ class SwapExecutor:
     async def _confirm_transaction(
         self,
         signature: str,
-        max_retries: int = 30
+        max_retries: int = 12
     ) -> bool:
-        """Confirm transaction with timeout"""
-        for _ in range(max_retries):
+        """Confirm transaction with extended timeout and better status handling"""
+        logger.info(f"[SWAP] Confirming transaction {signature}...")
+        start_time = asyncio.get_event_loop().time()
+        
+        for attempt in range(max_retries):
             try:
                 status = await self.wallet.get_transaction_status(signature)
-                if status == 'confirmed':
+                elapsed = asyncio.get_event_loop().time() - start_time
+                logger.debug(f"[SWAP] Transaction {signature} status check {attempt + 1}/{max_retries} (elapsed: {elapsed:.1f}s): {status}")
+                
+                # Check for success status (handles various status formats)
+                if 'finalized' in status.lower() or 'confirmed' in status.lower():
+                    logger.info(f"[SWAP] Transaction {signature} CONFIRMED with status: {status} (elapsed: {elapsed:.1f}s)")
                     return True
-                elif status == 'failed':
+                elif 'failed' in status.lower():
+                    logger.error(f"[SWAP] Transaction {signature} FAILED with status: {status} (elapsed: {elapsed:.1f}s)")
                     return False
-                await asyncio.sleep(1)
+                    
+                # Wait progressively longer between checks
+                wait_time = min(5 + attempt, 10)  # 5-10 seconds
+                logger.debug(f"[SWAP] Status pending, waiting {wait_time}s before next check...")
+                await asyncio.sleep(wait_time)
+                
             except Exception as e:
-                logger.error(f"Error checking transaction status: {str(e)}")
-                return False
+                elapsed = asyncio.get_event_loop().time() - start_time
+                error_type = type(e).__name__
+                if "timeout" in str(e).lower() or "connection" in str(e).lower():
+                    logger.warning(f"[SWAP] TEMPORARY RPC ERROR (attempt {attempt + 1}/{max_retries}, {elapsed:.1f}s): {error_type} - {str(e)}")
+                else:
+                    logger.warning(f"[SWAP] ERROR checking status (attempt {attempt + 1}/{max_retries}, {elapsed:.1f}s): {error_type} - {str(e)}")
+                await asyncio.sleep(2)
+                
+        elapsed = asyncio.get_event_loop().time() - start_time
+        logger.warning(f"[SWAP] Transaction {signature} confirmation TIMED OUT after {max_retries} attempts ({elapsed:.1f}s total)")
         return False
 
     async def _calculate_priority_fee(self, quote: Dict[str, Any]) -> int:

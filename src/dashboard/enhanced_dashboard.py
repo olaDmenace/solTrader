@@ -11,6 +11,8 @@ from ..analytics.performance_analytics import PerformanceAnalytics
 from ..notifications.email_system import EmailNotificationSystem
 from ..api.solana_tracker import SolanaTrackerClient
 from ..config.settings import Settings
+from ..cache import get_token_cache, get_token_display_name, TokenMetadata
+from ..risk import get_risk_manager
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,12 @@ class EnhancedDashboard:
         self.analytics = analytics
         self.email_system = email_system
         self.solana_tracker = solana_tracker
+        
+        # Token metadata cache integration
+        self.token_cache = get_token_cache()
+        
+        # Risk management integration
+        self.risk_manager = get_risk_manager()
         
         # Dashboard state
         self.is_running = False
@@ -34,6 +42,8 @@ class EnhancedDashboard:
             'daily_breakdown': {},
             'historical_analysis': {},
             'token_discovery': {},
+            'enhanced_portfolio': {},
+            'token_metadata_stats': {},
             'risk_analysis': {},
             'system_health': {},
             'api_status': {},
@@ -43,6 +53,10 @@ class EnhancedDashboard:
         # Performance tracking
         self.performance_history = defaultdict(list)
         self.alert_history = []
+        
+        # Cache refresh tracking
+        self.last_cache_refresh = time.time()
+        self.cache_refresh_interval = 300  # 5 minutes
         
         # Update task
         self.update_task: Optional[asyncio.Task] = None
@@ -87,9 +101,16 @@ class EnhancedDashboard:
                 await self._update_daily_breakdown()
                 await self._update_historical_analysis()
                 await self._update_token_discovery()
+                await self._update_enhanced_portfolio()
+                await self._update_token_metadata_stats()
                 await self._update_risk_analysis()
                 await self._update_system_health()
                 await self._update_api_status()
+                
+                # Periodic token cache refresh (every 5 minutes)
+                if time.time() - self.last_cache_refresh > self.cache_refresh_interval:
+                    asyncio.create_task(self.refresh_token_cache_background())
+                    self.last_cache_refresh = time.time()
                 
                 # Update timestamp
                 self.dashboard_data['timestamp'] = datetime.now().isoformat()
@@ -185,47 +206,82 @@ class EnhancedDashboard:
             logger.error(f"Error updating historical analysis: {e}")
 
     async def _update_token_discovery(self):
-        """Update token discovery intelligence"""
+        """Update token discovery intelligence with cached metadata"""
         try:
             discovery_data = self.analytics.get_token_discovery_intelligence()
+            
+            # Enhance token data with cached metadata
+            enhanced_tokens = await self._enhance_tokens_with_metadata(discovery_data)
             
             # Enhanced discovery metrics
             enhanced_discovery = {
                 **discovery_data,
+                'enhanced_tokens': enhanced_tokens,
                 'discovery_efficiency': self._calculate_discovery_efficiency(),
                 'source_ranking': self._rank_discovery_sources(),
                 'timing_analysis': self._analyze_discovery_timing(),
                 'quality_trends': self._analyze_quality_trends(),
-                'competitive_analysis': self._perform_competitive_analysis()
+                'competitive_analysis': self._perform_competitive_analysis(),
+                'cache_stats': self.token_cache.get_cache_stats()
             }
             
             self.dashboard_data['token_discovery'] = enhanced_discovery
             
         except Exception as e:
             logger.error(f"Error updating token discovery: {e}")
+    
+    async def _update_enhanced_portfolio(self):
+        """Update enhanced portfolio view with token metadata"""
+        try:
+            portfolio_data = await self.get_enhanced_portfolio_view()
+            self.dashboard_data['enhanced_portfolio'] = portfolio_data
+            
+        except Exception as e:
+            logger.error(f"Error updating enhanced portfolio: {e}")
+    
+    async def _update_token_metadata_stats(self):
+        """Update token metadata cache statistics"""
+        try:
+            metadata_stats = self.get_token_metadata_stats()
+            self.dashboard_data['token_metadata_stats'] = metadata_stats
+            
+        except Exception as e:
+            logger.error(f"Error updating token metadata stats: {e}")
 
     async def _update_risk_analysis(self):
-        """Update risk analysis and monitoring"""
+        """Update risk analysis and monitoring with real risk manager data"""
         try:
-            # Current risk metrics
-            current_risk = self.analytics.risk_metrics.copy()
+            # Get comprehensive risk summary from risk manager
+            risk_summary = self.risk_manager.get_risk_summary()
             
-            # Risk trend analysis
-            risk_trends = self._analyze_risk_trends()
+            # Get active risk alerts
+            active_alerts = self.risk_manager.get_active_alerts()
             
-            # Position concentration analysis
-            concentration_analysis = self._analyze_position_concentration()
-            
-            # Risk alerts
-            risk_alerts = self._generate_risk_alerts()
+            # Enhanced risk analysis with token metadata
+            enhanced_risk_analysis = await self._enhance_risk_analysis_with_metadata(risk_summary)
             
             self.dashboard_data['risk_analysis'] = {
-                'current_metrics': current_risk,
-                'risk_trends': risk_trends,
-                'concentration_analysis': concentration_analysis,
-                'risk_alerts': risk_alerts,
-                'risk_score_breakdown': self._breakdown_risk_score(),
-                'recommended_actions': self._generate_risk_recommendations()
+                'summary': risk_summary,
+                'active_alerts': active_alerts,
+                'enhanced_analysis': enhanced_risk_analysis,
+                'emergency_status': {
+                    'emergency_stop_active': risk_summary.get('emergency_stop_active', False),
+                    'alert_count': len(active_alerts),
+                    'critical_alerts': len([a for a in active_alerts if a.get('level') == 'critical'])
+                },
+                'position_analysis': {
+                    'total_positions': risk_summary.get('active_positions', 0),
+                    'position_limits': {
+                        'max_positions': risk_summary.get('limits', {}).get('max_positions', 0),
+                        'max_position_size': risk_summary.get('limits', {}).get('max_position_size', 0)
+                    }
+                },
+                'performance_metrics': {
+                    'daily_pnl': risk_summary.get('daily_pnl', 0),
+                    'daily_trade_count': risk_summary.get('daily_trade_count', 0),
+                    'current_drawdown': risk_summary.get('portfolio_metrics', {}).get('current_drawdown', 0),
+                    'max_drawdown': risk_summary.get('portfolio_metrics', {}).get('max_drawdown', 0)
+                }
             }
             
         except Exception as e:
@@ -542,3 +598,206 @@ class EnhancedDashboard:
             return 'warning'
         else:
             return 'normal'
+    
+    async def _enhance_tokens_with_metadata(self, discovery_data: Dict) -> Dict[str, Any]:
+        """Enhance token discovery data with cached metadata"""
+        try:
+            enhanced_tokens = {}
+            token_addresses = []
+            
+            # Extract token addresses from discovery data
+            if 'recent_discoveries' in discovery_data:
+                for token_info in discovery_data['recent_discoveries']:
+                    if isinstance(token_info, dict) and 'address' in token_info:
+                        token_addresses.append(token_info['address'])
+                    elif isinstance(token_info, str):
+                        token_addresses.append(token_info)
+            
+            # Get batch metadata for all tokens
+            if token_addresses:
+                logger.info(f"[DASHBOARD] Enhancing {len(token_addresses)} tokens with cached metadata")
+                metadata_batch = await self.token_cache.get_batch_metadata(token_addresses)
+                
+                # Process each token with its metadata
+                for address, metadata in metadata_batch.items():
+                    if metadata:
+                        enhanced_tokens[address] = {
+                            'address': address,
+                            'display_name': metadata.display_name,
+                            'full_display_name': metadata.full_display_name,
+                            'symbol': metadata.symbol,
+                            'name': metadata.name,
+                            'verified': metadata.verified,
+                            'price_usd': metadata.price_usd,
+                            'market_cap_usd': metadata.market_cap_usd,
+                            'warnings': metadata.warnings,
+                            'logo_uri': metadata.logo_uri,
+                            'source': metadata.source,
+                            'last_updated': metadata.cached_at.isoformat() if metadata.cached_at else None
+                        }
+                    else:
+                        # Fallback for tokens without metadata
+                        enhanced_tokens[address] = {
+                            'address': address,
+                            'display_name': f"{address[:8]}...",
+                            'full_display_name': f"Unknown ({address[:8]}...)",
+                            'symbol': 'UNKNOWN',
+                            'name': 'Unknown Token',
+                            'verified': False,
+                            'warnings': ['metadata_unavailable'],
+                            'source': 'fallback'
+                        }
+            
+            return {
+                'tokens': enhanced_tokens,
+                'total_enhanced': len(enhanced_tokens),
+                'metadata_coverage': len([t for t in enhanced_tokens.values() if t['source'] != 'fallback']) / len(enhanced_tokens) * 100 if enhanced_tokens else 0
+            }
+            
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Error enhancing tokens with metadata: {e}")
+            return {'tokens': {}, 'total_enhanced': 0, 'metadata_coverage': 0}
+    
+    async def get_enhanced_portfolio_view(self) -> Dict[str, Any]:
+        """Get portfolio view with enhanced token information"""
+        try:
+            # Get current positions from analytics
+            positions = getattr(self.analytics, 'current_positions', {})
+            enhanced_positions = {}
+            
+            if positions:
+                # Get metadata for all position tokens
+                position_addresses = list(positions.keys())
+                metadata_batch = await self.token_cache.get_batch_metadata(position_addresses)
+                
+                for address, position_data in positions.items():
+                    metadata = metadata_batch.get(address)
+                    
+                    enhanced_positions[address] = {
+                        **position_data,
+                        'token_info': {
+                            'display_name': metadata.display_name if metadata else f"{address[:8]}...",
+                            'full_display_name': metadata.full_display_name if metadata else f"Unknown ({address[:8]}...)",
+                            'symbol': metadata.symbol if metadata else 'UNKNOWN',
+                            'name': metadata.name if metadata else 'Unknown Token',
+                            'verified': metadata.verified if metadata else False,
+                            'price_usd': metadata.price_usd if metadata else None,
+                            'logo_uri': metadata.logo_uri if metadata else None,
+                            'warnings': metadata.warnings if metadata else [],
+                        }
+                    }
+            
+            return {
+                'enhanced_positions': enhanced_positions,
+                'total_positions': len(enhanced_positions),
+                'verified_positions': len([p for p in enhanced_positions.values() if p['token_info']['verified']]),
+                'total_value_usd': sum(
+                    p.get('value_usd', 0) for p in enhanced_positions.values() 
+                    if p.get('value_usd') is not None
+                )
+            }
+            
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Error creating enhanced portfolio view: {e}")
+            return {'enhanced_positions': {}, 'total_positions': 0, 'verified_positions': 0, 'total_value_usd': 0}
+    
+    async def refresh_token_cache_background(self):
+        """Background task to refresh popular token metadata"""
+        try:
+            await self.token_cache.refresh_popular_tokens()
+            await self.token_cache.clear_expired_cache()
+            logger.info("[DASHBOARD] Background token cache refresh completed")
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Background token cache refresh failed: {e}")
+    
+    def get_token_metadata_stats(self) -> Dict[str, Any]:
+        """Get token metadata cache statistics for dashboard"""
+        try:
+            cache_stats = self.token_cache.get_cache_stats()
+            return {
+                'cache_performance': {
+                    'memory_entries': cache_stats.get('memory_cache_size', 0),
+                    'disk_entries': cache_stats.get('disk_cache_files', 0),
+                    'last_refresh': cache_stats.get('last_refresh'),
+                    'cache_directory': cache_stats.get('cache_directory')
+                },
+                'metadata_sources': {
+                    'jupiter_primary': True,
+                    'birdeye_enhancement': bool(self.token_cache.birdeye_api_key),
+                    'solana_rpc_fallback': True
+                }
+            }
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Error getting token metadata stats: {e}")
+            return {'cache_performance': {}, 'metadata_sources': {}}
+    
+    async def _enhance_risk_analysis_with_metadata(self, risk_summary: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance risk analysis with token metadata"""
+        try:
+            enhanced_analysis = {
+                'position_details': {},
+                'token_risk_assessment': {},
+                'portfolio_composition': {}
+            }
+            
+            # Get current positions from risk manager
+            positions = getattr(self.risk_manager, 'current_positions', {})
+            
+            if positions:
+                # Get metadata for all position tokens
+                position_addresses = list(positions.keys())
+                metadata_batch = await self.token_cache.get_batch_metadata(position_addresses)
+                
+                for address, position_risk in positions.items():
+                    metadata = metadata_batch.get(address)
+                    
+                    # Enhanced position details
+                    enhanced_analysis['position_details'][address] = {
+                        'position_size': float(position_risk.position_size),
+                        'token_info': {
+                            'display_name': metadata.display_name if metadata else f"{address[:8]}...",
+                            'symbol': metadata.symbol if metadata else 'UNKNOWN',
+                            'verified': metadata.verified if metadata else False,
+                            'warnings': metadata.warnings if metadata else [],
+                            'price_usd': metadata.price_usd if metadata else None
+                        },
+                        'risk_assessment': {
+                            'concentration_risk': position_risk.concentration_risk.value if hasattr(position_risk, 'concentration_risk') else 'unknown',
+                            'volatility_score': float(position_risk.volatility_score) if hasattr(position_risk, 'volatility_score') and position_risk.volatility_score else None
+                        }
+                    }
+                
+                # Token risk assessment summary
+                verified_count = sum(1 for pos in enhanced_analysis['position_details'].values() if pos['token_info']['verified'])
+                warning_count = sum(1 for pos in enhanced_analysis['position_details'].values() if pos['token_info']['warnings'])
+                
+                enhanced_analysis['token_risk_assessment'] = {
+                    'total_positions': len(positions),
+                    'verified_positions': verified_count,
+                    'unverified_positions': len(positions) - verified_count,
+                    'positions_with_warnings': warning_count,
+                    'verification_rate': verified_count / len(positions) * 100 if positions else 0
+                }
+                
+                # Portfolio composition analysis
+                total_value = sum(
+                    pos.get('position_size', 0) for pos in enhanced_analysis['position_details'].values()
+                )
+                
+                enhanced_analysis['portfolio_composition'] = {
+                    'total_value_estimate': total_value,
+                    'largest_position': max(
+                        (pos.get('position_size', 0) for pos in enhanced_analysis['position_details'].values()),
+                        default=0
+                    ),
+                    'concentration_score': (
+                        max((pos.get('position_size', 0) for pos in enhanced_analysis['position_details'].values()), default=0)
+                        / total_value * 100 if total_value > 0 else 0
+                    )
+                }
+            
+            return enhanced_analysis
+            
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Error enhancing risk analysis with metadata: {e}")
+            return {'position_details': {}, 'token_risk_assessment': {}, 'portfolio_composition': {}}

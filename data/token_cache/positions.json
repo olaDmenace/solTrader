@@ -1,0 +1,19 @@
+{
+  "address": "positions",
+  "symbol": "TOKEN_posi",
+  "name": "Unverified Token",
+  "decimals": 9,
+  "verified": false,
+  "logo_uri": null,
+  "price_usd": null,
+  "market_cap_usd": null,
+  "volume_24h_usd": null,
+  "jupiter_verified": false,
+  "birdeye_verified": false,
+  "warnings": [
+    "unverified"
+  ],
+  "cached_at": "2025-09-04T05:32:14.965716",
+  "expires_at": "2025-09-04T11:32:14.965716",
+  "source": "solana_rpc"
+}

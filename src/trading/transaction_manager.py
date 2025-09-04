@@ -201,7 +201,9 @@ class TransactionManager:
             TransactionStatus: Current status
         """
         try:
-            response = await self.rpc_client.get_signature_status(signature)
+            from solders.signature import Signature
+            sig_obj = Signature.from_string(signature)
+            response = await self.rpc_client.get_signature_statuses([sig_obj])
             
             if not response.value:
                 return TransactionStatus.PENDING
@@ -220,9 +222,10 @@ class TransactionManager:
                 return TransactionStatus.FAILED
                 
             if status_info.confirmation_status:
-                if status_info.confirmation_status.value == "finalized":
+                status_str = str(status_info.confirmation_status).lower()
+                if "finalized" in status_str:
                     return TransactionStatus.FINALIZED
-                elif status_info.confirmation_status.value == "confirmed":
+                elif "confirmed" in status_str:
                     return TransactionStatus.CONFIRMED
                     
             return TransactionStatus.PENDING

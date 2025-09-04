@@ -13,29 +13,29 @@ class Settings:
     ALCHEMY_RPC_URL: str
     WALLET_ADDRESS: str
 
-    # Paper Trading settings - OPTIMIZED
+    # Paper Trading settings - RISK MITIGATION APPLIED
     position_manager: Any = None
     PAPER_TRADING: bool = True
     INITIAL_PAPER_BALANCE: float = 100.0
-    MAX_POSITION_SIZE: float = 0.35  # Optimized for better risk management
-    MAX_SLIPPAGE: float = 10.0  # Much higher slippage tolerance for meme tokens
-    MAX_TRADES_PER_DAY: int = 20  # More trades for ape strategy
+    MAX_POSITION_SIZE: float = 0.05  # CRITICAL FIX: 5% max position (was suicide 35%)
+    MAX_SLIPPAGE: float = 3.0  # CRITICAL FIX: 3% slippage (was destroying profits at 10%)
+    MAX_TRADES_PER_DAY: int = 15  # Reduced for better quality trades
     
-    # Paper Trading Specific Parameters
+    # Paper Trading Specific Parameters - RISK MITIGATION
     PAPER_MIN_MOMENTUM_THRESHOLD: float = 3.0  # Lower momentum threshold for paper trading
     PAPER_MIN_LIQUIDITY: float = 50.0  # Lower liquidity requirement for paper trading
-    PAPER_TRADING_SLIPPAGE: float = 0.50  # Higher slippage tolerance for paper trading (50%)
-    PAPER_BASE_POSITION_SIZE: float = 0.1  # Base position size for paper trading
-    PAPER_MAX_POSITION_SIZE: float = 0.5  # Max position size for paper trading
-    PAPER_SIGNAL_THRESHOLD: float = 0.3  # Lower signal threshold for paper trading
+    PAPER_TRADING_SLIPPAGE: float = 0.03  # CRITICAL FIX: 3% slippage (was destroying 50%)
+    PAPER_BASE_POSITION_SIZE: float = 0.02  # CRITICAL FIX: 2% base position (was risky 10%)
+    PAPER_MAX_POSITION_SIZE: float = 0.05  # CRITICAL FIX: 5% max position (was suicide 50%)
+    PAPER_SIGNAL_THRESHOLD: float = 0.25  # Lower threshold for paper trading to allow more signal execution
     
     # Trading pause (disable while fixing scanner)
     TRADING_PAUSED: bool = False  # Trading enabled with new scanner
 
-    # Trading parameters (optimized for new token sniping)
+    # Trading parameters - RISK MITIGATION APPLIED
     MIN_BALANCE: float = 0.1  # Minimum SOL balance to maintain
-    MAX_TRADE_SIZE: float = 2.0  # Smaller trades for more opportunities
-    SLIPPAGE_TOLERANCE: float = 0.25  # Higher tolerance for meme tokens
+    MAX_TRADE_SIZE: float = 0.5  # CRITICAL FIX: Max 0.5 SOL per trade (was risky 2.0)
+    SLIPPAGE_TOLERANCE: float = 0.03  # CRITICAL FIX: 3% slippage (was too high 25%)
 
     # Position Management - OPTIMIZED
     MAX_POSITIONS: int = 3  # Maximum number of open positions
@@ -93,25 +93,46 @@ class Settings:
     MOMENTUM_THRESHOLD: float = -0.03  # Exit on 3% negative momentum
     RSI_OVERBOUGHT: float = 80.0  # RSI overbought level
     PROFIT_PROTECTION_THRESHOLD: float = 0.2  # Start trailing at 20% profit
+    
+    # Mean Reversion Strategy Settings
+    ENABLE_MEAN_REVERSION: bool = False  # Enable mean reversion strategy (Phase 2)
+    MEAN_REVERSION_RSI_OVERSOLD: float = 20.0  # RSI oversold threshold
+    MEAN_REVERSION_RSI_OVERBOUGHT: float = 80.0  # RSI overbought threshold
+    MEAN_REVERSION_Z_SCORE_THRESHOLD: float = -2.0  # Z-score buy threshold
+    MEAN_REVERSION_MIN_LIQUIDITY_USD: float = 25000.0  # Minimum liquidity for mean reversion
+    MEAN_REVERSION_CONFIDENCE_THRESHOLD: float = 0.6  # Minimum confidence for signal
+    
+    # Enhanced Exit Manager Settings - CONFIGURABLE VIA .ENV
+    DYNAMIC_STOP_LOSS_BASE: float = 0.10  # Base stop loss percentage (10%)
+    VOLATILITY_MULTIPLIER: float = 1.5  # Stop loss volatility adjustment multiplier
+    TRAILING_STOP_ACTIVATION: float = 0.15  # Profit threshold to activate trailing stop (15%)
+    TRAILING_STOP_PERCENTAGE: float = 0.08  # Trailing stop distance (8%)
+    MAX_HOLD_TIME_HOURS: int = 6  # Maximum hold time in hours
+    TAKE_PROFIT_LEVEL_1: float = 0.20  # First take profit level (20%)
+    TAKE_PROFIT_LEVEL_2: float = 0.35  # Second take profit level (35%)  
+    TAKE_PROFIT_LEVEL_3: float = 0.50  # Third take profit level (50%)
+    POSITION_SCALE_1: float = 0.30  # First exit percentage (30%)
+    POSITION_SCALE_2: float = 0.40  # Second exit percentage (40%)
+    POSITION_SCALE_3: float = 0.30  # Third exit percentage (30%)
 
     # Notification settings
     DISCORD_WEBHOOK_URL: Optional[str] = None
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     TELEGRAM_CHAT_ID: Optional[str] = None
 
-    # Risk management (enhanced for ape trading)
-    MAX_DAILY_TRADES: int = 15  # More trades for aggressive strategy
-    MAX_DAILY_LOSS: float = 2.0  # Higher loss tolerance
-    STOP_LOSS_PERCENTAGE: float = 0.15  # 15% stop loss (wider for volatility)
-    TAKE_PROFIT_PERCENTAGE: float = 0.5  # 50% take profit (let winners run)
-    MAX_DRAWDOWN: float = 10.0  # Higher drawdown tolerance
-    MAX_PORTFOLIO_RISK: float = 10.0  # Higher portfolio risk
-    ERROR_THRESHOLD: int = 10  # More errors allowed
-    MAX_VOLATILITY: float = 0.8  # Higher volatility tolerance for new tokens
+    # Risk management - CRITICAL RISK MITIGATION APPLIED
+    MAX_DAILY_TRADES: int = 10  # Reduced for better quality
+    MAX_DAILY_LOSS: float = 0.05  # CRITICAL FIX: 5% daily loss limit (was 2.0 SOL)
+    STOP_LOSS_PERCENTAGE: float = 0.10  # CRITICAL FIX: 10% stop loss (tighter control)
+    TAKE_PROFIT_PERCENTAGE: float = 0.25  # More conservative 25% take profit
+    MAX_DRAWDOWN: float = 5.0  # CRITICAL FIX: 5% max drawdown (was risky 10%)
+    MAX_PORTFOLIO_RISK: float = 5.0  # CRITICAL FIX: 5% portfolio risk (was 10%)
+    ERROR_THRESHOLD: int = 5  # Stricter error tolerance
+    MAX_VOLATILITY: float = 0.5  # Lower volatility tolerance for safety
     
-    # Position management
-    MAX_POSITION_PER_TOKEN: float = 1.0  # Max 1 SOL per token
-    MAX_SIMULTANEOUS_POSITIONS: int = 5  # More concurrent positions
+    # Position management - RISK MITIGATION
+    MAX_POSITION_PER_TOKEN: float = 0.5  # CRITICAL FIX: Max 0.5 SOL per token (was 1.0)
+    MAX_SIMULTANEOUS_POSITIONS: int = 3  # CRITICAL FIX: Max 3 positions (was risky 5)
 
     # Signal settings (optimized for new token detection)
     SIGNAL_THRESHOLD: float = 0.5  # Lower threshold for faster entries
@@ -366,6 +387,19 @@ def load_settings() -> Settings:
         'TRENDING_INTERVAL': ('TRENDING_INTERVAL', int),
         'VOLUME_INTERVAL': ('VOLUME_INTERVAL', int),
         'MEMESCOPE_INTERVAL': ('MEMESCOPE_INTERVAL', int),
+        
+        # Enhanced Exit Manager Settings
+        'DYNAMIC_STOP_LOSS_BASE': ('DYNAMIC_STOP_LOSS_BASE', float),
+        'VOLATILITY_MULTIPLIER': ('VOLATILITY_MULTIPLIER', float),
+        'TRAILING_STOP_ACTIVATION': ('TRAILING_STOP_ACTIVATION', float),
+        'TRAILING_STOP_PERCENTAGE': ('TRAILING_STOP_PERCENTAGE', float),
+        'MAX_HOLD_TIME_HOURS': ('MAX_HOLD_TIME_HOURS', int),
+        'TAKE_PROFIT_LEVEL_1': ('TAKE_PROFIT_LEVEL_1', float),
+        'TAKE_PROFIT_LEVEL_2': ('TAKE_PROFIT_LEVEL_2', float),
+        'TAKE_PROFIT_LEVEL_3': ('TAKE_PROFIT_LEVEL_3', float),
+        'POSITION_SCALE_1': ('POSITION_SCALE_1', float),
+        'POSITION_SCALE_2': ('POSITION_SCALE_2', float),
+        'POSITION_SCALE_3': ('POSITION_SCALE_3', float),
         
         # Email notification settings
         'EMAIL_ENABLED': ('EMAIL_ENABLED', lambda x: x.lower() == 'true'),

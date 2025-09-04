@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, Optional, List, Callable, Awaitable, Union
 import base58
 from src.api.alchemy import AlchemyClient
+from src.api.multi_rpc_manager import MultiRPCManager
 import asyncio
 from datetime import datetime
 import os
@@ -41,6 +42,22 @@ class PhantomWallet:
         self.last_signature: Optional[str] = None
         self._monitor_task: Optional[asyncio.Task] = None
         self.last_update: Optional[datetime] = None
+        
+        # Transaction tracking to prevent duplicates
+        self.processed_signatures: set = set()
+        self.failed_signatures: set = set()
+        
+        # Transaction success metrics
+        self.transaction_stats = {
+            'total_attempted': 0,
+            'rpc_errors': 0,
+            'confirmed_despite_errors': 0,
+            'genuine_failures': 0,
+            'success_rate': 0.0
+        }
+        
+        # Multi-RPC Manager for intelligent provider selection
+        self.rpc_manager = MultiRPCManager()
         
         # Live trading components
         self.keypair: Optional[Keypair] = None
@@ -276,6 +293,10 @@ class PhantomWallet:
             if self.rpc_client:
                 await self.rpc_client.close()
                 self.rpc_client = None
+            
+            # Close multi-RPC manager clients
+            if hasattr(self, 'rpc_manager') and self.rpc_manager:
+                await self.rpc_manager.close_all_clients()
 
             self.connected = False
             self.live_mode = False
@@ -335,7 +356,7 @@ class PhantomWallet:
     
     async def initialize_live_mode(self, rpc_url: Optional[str] = None) -> bool:
         """
-        Initialize live trading mode with private key and RPC connection
+        Initialize live trading mode with private key and intelligent RPC connection
         
         Args:
             rpc_url: Optional custom RPC URL
@@ -351,21 +372,31 @@ class PhantomWallet:
                 
             self.keypair = self._load_keypair_from_private_key(private_key)
             
-            if not rpc_url:
-                network = os.getenv('SOLANA_NETWORK', 'mainnet-beta')
-                if network == 'mainnet-beta':
-                    rpc_url = "https://api.mainnet-beta.solana.com"
-                elif network == 'devnet':
-                    rpc_url = "https://api.devnet.solana.com"
-                else:
-                    rpc_url = "https://api.testnet.solana.com"
-                    
-            self.rpc_client = AsyncClient(rpc_url)
+            # Initialize multi-RPC manager with environment configuration
+            await self._setup_rpc_providers()
             
+            # Get intelligent RPC client selection
+            try:
+                self.rpc_client = await self.rpc_manager.get_client()
+                logger.info(f"Successfully connected using intelligent RPC selection")
+            except Exception as e:
+                logger.warning(f"Multi-RPC failed, falling back to default: {e}")
+                # Fallback to single RPC
+                if not rpc_url:
+                    network = os.getenv('SOLANA_NETWORK', 'mainnet-beta')
+                    if network == 'mainnet-beta':
+                        rpc_url = "https://api.mainnet-beta.solana.com"
+                    elif network == 'devnet':
+                        rpc_url = "https://api.devnet.solana.com"
+                    else:
+                        rpc_url = "https://api.testnet.solana.com"
+                        
+                self.rpc_client = AsyncClient(rpc_url)
+                
             # Test connection
             try:
                 await self.rpc_client.get_latest_blockhash()
-                logger.info(f"Successfully connected to Solana RPC at {rpc_url}")
+                logger.info("RPC connection test successful")
             except Exception as e:
                 logger.error(f"Failed to connect to RPC: {str(e)}")
                 return False
@@ -380,6 +411,30 @@ class PhantomWallet:
         except Exception as e:
             logger.error(f"Failed to initialize live mode: {str(e)}")
             return False
+    
+    async def _setup_rpc_providers(self):
+        """Setup RPC providers from environment variables"""
+        try:
+            # Update providers with API keys from environment
+            helius_key = os.getenv('HELIUS_API_KEY')
+            if helius_key:
+                helius_url = f"https://mainnet.helius-rpc.com/?api-key={helius_key}"
+                self.rpc_manager.update_provider_url("helius_free", helius_url)
+            
+            quicknode_endpoint = os.getenv('QUICKNODE_ENDPOINT')
+            if quicknode_endpoint:
+                self.rpc_manager.update_provider_url("quicknode_free", quicknode_endpoint)
+            
+            # Ankr uses public endpoint (no API key needed)
+            # Solana default already configured
+            
+            # Perform initial health check
+            await self.rpc_manager.health_check_all_providers()
+            
+            logger.info("[RPC] Multi-RPC manager setup complete")
+            
+        except Exception as e:
+            logger.warning(f"[RPC] Setup failed: {e}")
     
     async def get_recent_blockhash(self, priority_fee: Optional[int] = None) -> str:
         """
@@ -450,7 +505,7 @@ class PhantomWallet:
     
     async def submit_transaction(self, signed_tx: Transaction) -> str:
         """
-        Submit a signed transaction to the network
+        Submit a signed transaction to the network with RPC fallback
         
         Args:
             signed_tx: Signed transaction to submit
@@ -463,26 +518,33 @@ class PhantomWallet:
         """
         if not self.rpc_client:
             raise RuntimeError("RPC client not initialized")
-            
-        try:
+        
+        async def _submit_operation(client):
+            """Inner operation for RPC manager"""
             opts = TxOpts(skip_confirmation=False, skip_preflight=False)
-            response = await self.rpc_client.send_transaction(
-                signed_tx,
-                opts=opts
-            )
+            response = await client.send_transaction(signed_tx, opts=opts)
             
             if response.value:
                 return str(response.value)
             else:
                 raise RuntimeError("Transaction submission failed - no signature returned")
+        
+        try:
+            # Use RPC manager for intelligent fallback
+            if hasattr(self, 'rpc_manager') and self.rpc_manager:
+                result = await self.rpc_manager.execute_with_fallback(_submit_operation)
+                return result
+            else:
+                # Fallback to direct RPC client
+                return await _submit_operation(self.rpc_client)
                 
         except Exception as e:
-            logger.error(f"Error submitting transaction: {str(e)}")
+            logger.error(f"Error submitting transaction with fallback: {str(e)}")
             raise
     
     async def submit_versioned_transaction(self, versioned_tx: VersionedTransaction) -> str:
         """
-        Submit a versioned transaction to the network
+        Submit a versioned transaction to the network with RPC fallback
         
         Args:
             versioned_tx: VersionedTransaction from Jupiter (already contains message)
@@ -495,14 +557,25 @@ class PhantomWallet:
         """
         if not self.rpc_client:
             raise RuntimeError("RPC client not initialized")
-            
+        
+        # Extract the message and create a properly signed VersionedTransaction
+        from solders.transaction import VersionedTransaction
+        
+        # Create a new signed VersionedTransaction using the message and our keypair
+        signed_tx = VersionedTransaction(versioned_tx.message, [self.keypair])
+        
+        # Track transaction attempt and signature
+        self.transaction_stats['total_attempted'] += 1
+        
         try:
-            # Extract the message and create a properly signed VersionedTransaction
-            from solders.transaction import VersionedTransaction
-            
-            # Create a new signed VersionedTransaction using the message and our keypair
-            signed_tx = VersionedTransaction(versioned_tx.message, [self.keypair])
-            
+            if signed_tx.signatures and len(signed_tx.signatures) > 0:
+                self.last_signature = str(signed_tx.signatures[0])
+                logger.debug(f"Tracking transaction signature: {self.last_signature}")
+        except Exception as sig_error:
+            logger.debug(f"Could not extract signature for tracking: {sig_error}")
+        
+        async def _submit_versioned_operation(client):
+            """Inner operation for RPC manager"""
             # Serialize and send as raw transaction
             tx_bytes = bytes(signed_tx)
             
@@ -513,7 +586,7 @@ class PhantomWallet:
                 max_retries=0  # We handle retries manually
             )
             
-            response = await self.rpc_client.send_raw_transaction(tx_bytes, opts=opts)
+            response = await client.send_raw_transaction(tx_bytes, opts=opts)
             
             logger.debug(f"RPC response type: {type(response)}")
             logger.debug(f"RPC response: {response}")
@@ -521,6 +594,7 @@ class PhantomWallet:
             if response and hasattr(response, 'value') and response.value:
                 signature = str(response.value)
                 logger.info(f"Transaction submitted successfully with signature: {signature}")
+                self.processed_signatures.add(signature)
                 return signature
             elif response is None:
                 raise RuntimeError("RPC client returned None response - connection issue")
@@ -529,48 +603,173 @@ class PhantomWallet:
                 if hasattr(response, 'result'):
                     signature = str(response.result)
                     logger.info(f"Transaction submitted successfully (via result field): {signature}")
+                    self.processed_signatures.add(signature)
                     return signature
                 else:
                     logger.error(f"Unexpected response structure: {dir(response)}")
                     raise RuntimeError(f"VersionedTransaction submission failed - response: {response}")
+        
+        try:
+            # Use RPC manager for intelligent fallback
+            if hasattr(self, 'rpc_manager') and self.rpc_manager:
+                result = await self.rpc_manager.execute_with_fallback(_submit_versioned_operation)
+                return result
+            else:
+                # Fallback to direct RPC client
+                return await _submit_versioned_operation(self.rpc_client)
                 
         except Exception as e:
             error_msg = str(e) if str(e) else "Unknown RPC error"
             logger.error(f"Error submitting versioned transaction: {error_msg}")
             logger.error(f"Error type: {type(e).__name__}")
             logger.error(f"Error details: {repr(e)}")
-            raise
+            
+            # Log signature for debugging regardless of outcome
+            if hasattr(self, 'last_signature') and self.last_signature:
+                logger.error(f"Transaction signature for debugging: {self.last_signature}")
+            
+            # Try to extract signature from logs if transaction actually succeeded
+            if hasattr(self, 'last_signature') and self.last_signature:
+                logger.info(f"Checking if transaction {self.last_signature} succeeded despite RPC error...")
+                try:
+                    status = await self.get_transaction_status(self.last_signature)
+                    if 'finalized' in status.lower() or 'confirmed' in status.lower():
+                        logger.info(f"Transaction actually succeeded with status '{status}': {self.last_signature}")
+                        self.processed_signatures.add(self.last_signature)
+                        
+                        # Update success metrics
+                        self.transaction_stats['rpc_errors'] += 1
+                        self.transaction_stats['confirmed_despite_errors'] += 1
+                        self._update_success_rate()
+                        
+                        return self.last_signature
+                    else:
+                        logger.error(f"Transaction status check failed: {status} for {self.last_signature}")
+                except Exception as status_error:
+                    logger.error(f"Could not check transaction status: {status_error} for {self.last_signature}")
+            
+            # Check if we can extract signature from error logs/messages
+            import re
+            log_text = str(e) + error_msg
+            signature_match = re.search(r'([1-9A-HJ-NP-Za-km-z]{87,88})', log_text)
+            if signature_match:
+                potential_signature = signature_match.group(1)
+                logger.info(f"Found potential signature in logs: {potential_signature}")
+                try:
+                    status = await self.get_transaction_status(potential_signature)
+                    if 'finalized' in status.lower() or 'confirmed' in status.lower():
+                        logger.info(f"Extracted signature is valid and confirmed with status '{status}': {potential_signature}")
+                        self.processed_signatures.add(potential_signature)
+                        return potential_signature
+                    else:
+                        logger.warning(f"Extracted signature status: {status} for {potential_signature}")
+                except Exception as extract_error:
+                    logger.warning(f"Could not verify extracted signature: {extract_error} for {potential_signature}")
+            
+            # Final signature logging before raising exception
+            if hasattr(self, 'last_signature') and self.last_signature:
+                logger.error(f"FINAL DEBUG: Transaction {self.last_signature} failed with: {error_msg}")
+            
+            raise RuntimeError(f"Transaction submission failed: {error_msg}")
     
     async def get_transaction_status(self, signature: str) -> str:
         """
-        Get the status of a transaction
+        Enhanced transaction status checking with retries and detailed logging
         
         Args:
             signature: Transaction signature to check
             
         Returns:
-            str: Transaction status ('confirmed', 'finalized', 'failed', 'pending')
+            str: Transaction status ('confirmed', 'finalized', 'failed', 'pending', 'unknown')
         """
         if not self.rpc_client:
             raise RuntimeError("RPC client not initialized")
+        
+        logger.debug(f"Checking status for transaction: {signature}")
+        
+        for attempt in range(6):  # Try 6 times over 30-60 seconds
+            try:
+                from solders.signature import Signature
+                sig_obj = Signature.from_string(signature)
+                response = await self.rpc_client.get_signature_statuses([sig_obj])
+                
+                if not response or not response.value:
+                    logger.debug(f"No response for {signature} (attempt {attempt + 1}/6)")
+                    if attempt < 5:
+                        await asyncio.sleep(5 + attempt)  # Progressive delay: 5, 6, 7, 8, 9 seconds
+                        continue
+                    logger.warning(f"No status response after 6 attempts for {signature}")
+                    return "pending"
+                    
+                status = response.value[0]
+                if not status:
+                    logger.debug(f"Empty status for {signature} (attempt {attempt + 1}/6)")
+                    if attempt < 5:
+                        await asyncio.sleep(5 + attempt)  # Progressive delay
+                        continue
+                    logger.warning(f"Empty status after 6 attempts for {signature}")
+                    return "pending"
+                    
+                if status.err:
+                    logger.error(f"Transaction failed on-chain: {signature}, error: {status.err}")
+                    return "failed"
+                elif hasattr(status, 'confirmation_status') and status.confirmation_status:
+                    # Convert enum to string representation
+                    status_value = str(status.confirmation_status).lower()
+                    logger.debug(f"Transaction {signature} status: {status_value}")
+                    return status_value
+                else:
+                    logger.debug(f"Transaction {signature} confirmed (no specific confirmation status)")
+                    return "confirmed"
+                    
+            except Exception as e:
+                logger.warning(f"Transaction status check attempt {attempt + 1}/6 failed for {signature}: {e}")
+                if attempt < 5:
+                    await asyncio.sleep(5 + attempt)  # Progressive delay
+                    continue
+                logger.error(f"All status check attempts failed for {signature}: {e}")
+                return "unknown"
+    
+    def is_signature_processed(self, signature: str) -> bool:
+        """Check if a signature was already processed successfully"""
+        return signature in self.processed_signatures
+    
+    def is_signature_failed(self, signature: str) -> bool:
+        """Check if a signature was marked as failed"""
+        return signature in self.failed_signatures
+    
+    def mark_signature_failed(self, signature: str) -> None:
+        """Mark a signature as failed"""
+        self.failed_signatures.add(signature)
+        self.transaction_stats['genuine_failures'] += 1
+        self._update_success_rate()
+    
+    def _update_success_rate(self) -> None:
+        """Update transaction success rate metrics"""
+        total = self.transaction_stats['total_attempted']
+        if total > 0:
+            successes = self.transaction_stats['confirmed_despite_errors'] + (total - self.transaction_stats['rpc_errors'] - self.transaction_stats['genuine_failures'])
+            self.transaction_stats['success_rate'] = successes / total
             
-        try:
-            response = await self.rpc_client.get_signature_statuses([signature])
-            
-            if not response.value:
-                return "pending"
-                
-            status = response.value[0]  # get_signature_statuses returns [status]
-            if not status:
-                return "pending"
-                
-            if status.err:
-                return "failed"
-            elif hasattr(status, 'confirmation_status') and status.confirmation_status:
-                return status.confirmation_status.value
-            else:
-                return "confirmed"
-                
-        except Exception as e:
-            logger.error(f"Error getting transaction status: {str(e)}")
-            return "unknown"
+            # Log metrics periodically (every 10 transactions)
+            if total % 10 == 0:
+                logger.info(f"[METRICS] Transaction Success Rate: {self.transaction_stats['success_rate']:.2%}")
+                logger.info(f"[METRICS] Total: {total}, RPC Errors: {self.transaction_stats['rpc_errors']}, "
+                          f"Confirmed Despite Errors: {self.transaction_stats['confirmed_despite_errors']}, "
+                          f"Genuine Failures: {self.transaction_stats['genuine_failures']}")
+    
+    def get_transaction_metrics(self) -> Dict[str, Any]:
+        """Get current transaction success metrics"""
+        return self.transaction_stats.copy()
+    
+    def get_rpc_performance_stats(self) -> Dict[str, Dict[str, Any]]:
+        """Get RPC provider performance statistics"""
+        if hasattr(self, 'rpc_manager') and self.rpc_manager:
+            return self.rpc_manager.get_stats()
+        else:
+            return {}
+    
+    async def log_rpc_performance_summary(self):
+        """Log RPC performance summary"""
+        if hasattr(self, 'rpc_manager') and self.rpc_manager:
+            self.rpc_manager.log_performance_summary()

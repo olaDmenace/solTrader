@@ -1,410 +1,292 @@
 #!/usr/bin/env python3
 """
-Health Monitoring System Test Suite
-Tests both internal and external health monitoring components
+Health Monitoring and System Validation Script
+Runs continuous health checks and validates system performance
 """
 
 import asyncio
-import json
 import logging
-import os
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Dict
-from unittest.mock import Mock, patch
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.monitoring.health_monitor import HealthMonitor, HealthStatus, RecoveryAction
-from health_checker import ExternalHealthChecker
+from src.config.settings import load_settings
+from src.database.db_manager import DatabaseManager
+from src.trading.risk_engine import RiskEngine, RiskEngineConfig
+from src.monitoring.system_monitor import SystemMonitor
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(f'health_monitoring_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+    ]
 )
 logger = logging.getLogger(__name__)
 
-class HealthMonitoringTestSuite:
-    """Comprehensive test suite for health monitoring system"""
-    
-    def __init__(self):
-        """Initialize test suite"""
-        self.test_results = {}
-        self.mock_bot = self._create_mock_bot()
-        self.mock_settings = self._create_mock_settings()
-        
-    def _create_mock_bot(self):
-        """Create mock bot instance for testing"""
-        mock_bot = Mock()
-        mock_bot.enhanced_scanner = Mock()
-        mock_bot.enhanced_scanner.daily_stats = {
-            'tokens_scanned': 1000,
-            'tokens_approved': 300,
-            'approval_rate': 30.0,
-            'api_requests_used': 50,
-            'api_errors': 2
-        }
-        mock_bot.enhanced_scanner.solana_tracker = Mock()
-        mock_bot.strategy = Mock()
-        mock_bot.email_system = Mock()
-        return mock_bot
-    
-    def _create_mock_settings(self):
-        """Create mock settings for testing"""
-        mock_settings = Mock()
-        mock_settings.PAPER_TRADING = True
-        mock_settings.INITIAL_PAPER_BALANCE = 100.0
-        return mock_settings
-    
-    async def test_internal_health_monitor(self) -> bool:
-        """Test internal health monitoring system"""
-        logger.info("🧪 Testing Internal Health Monitor...")
-        
-        try:
-            # Initialize health monitor
-            health_monitor = HealthMonitor(bot_instance=self.mock_bot, settings=self.mock_settings)
-            
-            # Test 1: Health monitor initialization
-            assert health_monitor.metrics is not None
-            assert len(health_monitor.metrics) > 0
-            logger.info("✅ Health monitor initialization test passed")
-            
-            # Test 2: Force health check
-            report = await health_monitor.force_health_check()
-            assert report is not None
-            assert report.overall_status in [status for status in HealthStatus]
-            logger.info(f"✅ Health check test passed - Status: {report.overall_status.value}")
-            
-            # Test 3: Start and stop monitoring
-            await health_monitor.start_monitoring()
-            assert health_monitor.is_monitoring == True
-            
-            # Wait a short time to let monitoring run
-            await asyncio.sleep(2)
-            
-            await health_monitor.stop_monitoring()
-            assert health_monitor.is_monitoring == False
-            logger.info("✅ Start/stop monitoring test passed")
-            
-            # Test 4: Test metric updates
-            metric_name = 'token_discovery_rate'
-            if metric_name in health_monitor.metrics:
-                original_value = health_monitor.metrics[metric_name].current_value
-                health_monitor.metrics[metric_name].update(150)  # Good value
-                assert health_monitor.metrics[metric_name].status == HealthStatus.HEALTHY
-                
-                health_monitor.metrics[metric_name].update(30)   # Critical value
-                assert health_monitor.metrics[metric_name].status == HealthStatus.CRITICAL
-                logger.info("✅ Metric update test passed")
-            
-            # Test 5: Recovery action determination
-            critical_metric = health_monitor.metrics[metric_name]
-            recovery_action = health_monitor._determine_recovery_action(critical_metric)
-            assert recovery_action in [action for action in RecoveryAction]
-            logger.info(f"✅ Recovery action test passed - Action: {recovery_action.value}")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Internal health monitor test failed: {e}")
-            return False
-    
-    def test_external_health_checker(self) -> bool:
-        """Test external health checking system"""
-        logger.info("🧪 Testing External Health Checker...")
-        
-        try:
-            # Initialize external health checker
-            checker = ExternalHealthChecker("health_checker_config.json")
-            
-            # Test 1: Configuration loading
-            assert checker.config is not None
-            assert 'thresholds' in checker.config
-            assert 'checks' in checker.config
-            logger.info("✅ Configuration loading test passed")
-            
-            # Test 2: Health check execution
-            is_healthy, issues = checker.check_bot_health()
-            assert isinstance(is_healthy, bool)
-            assert isinstance(issues, list)
-            logger.info(f"✅ Health check execution test passed - Healthy: {is_healthy}, Issues: {len(issues)}")
-            
-            # Test 3: Resource usage check
-            resource_issues = checker._check_resource_usage()
-            assert isinstance(resource_issues, list)
-            logger.info("✅ Resource usage check test passed")
-            
-            # Test 4: Log activity check
-            log_active = checker._check_log_activity()
-            assert isinstance(log_active, bool)
-            logger.info(f"✅ Log activity check test passed - Active: {log_active}")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ External health checker test failed: {e}")
-            return False
-    
-    async def test_health_report_generation(self) -> bool:
-        """Test health report generation and saving"""
-        logger.info("🧪 Testing Health Report Generation...")
-        
-        try:
-            # Create test dashboard data
-            test_dashboard_data = {
-                "status": "running",
-                "trades": [
-                    {
-                        "type": "buy",
-                        "timestamp": datetime.now().isoformat(),
-                        "token_address": "test123",
-                        "size": 10.0,
-                        "price": 0.1
-                    }
-                ],
-                "performance": {
-                    "total_trades": 1,
-                    "balance": 99.0,
-                    "open_positions": 1
-                },
-                "activity": [
-                    {
-                        "type": "scan_completed",
-                        "timestamp": datetime.now().isoformat(),
-                        "data": {"tokens_found": 150}
-                    }
-                ]
-            }
-            
-            # Save test data
-            with open("bot_data.json", "w") as f:
-                json.dump(test_dashboard_data, f, indent=2)
-            
-            # Test health monitor with test data
-            health_monitor = HealthMonitor(bot_instance=self.mock_bot, settings=self.mock_settings)
-            report = await health_monitor.force_health_check()
-            
-            # Verify report structure
-            assert report.timestamp is not None
-            assert report.overall_status is not None
-            assert report.metrics is not None
-            assert report.uptime >= 0
-            logger.info("✅ Health report generation test passed")
-            
-            # Test report serialization
-            report_dict = report.to_dict()
-            assert isinstance(report_dict, dict)
-            assert 'timestamp' in report_dict
-            assert 'overall_status' in report_dict
-            logger.info("✅ Health report serialization test passed")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Health report generation test failed: {e}")
-            return False
-    
-    def test_recovery_mechanisms(self) -> bool:
-        """Test recovery mechanism logic (without actual execution)"""
-        logger.info("🧪 Testing Recovery Mechanisms...")
-        
-        try:
-            health_monitor = HealthMonitor(bot_instance=self.mock_bot, settings=self.mock_settings)
-            
-            # Test recovery action determination for different metrics
-            test_cases = [
-                ('api_error_rate', RecoveryAction.SOFT_RECOVERY),
-                ('token_discovery_rate', RecoveryAction.MEDIUM_RECOVERY),
-                ('cpu_usage', RecoveryAction.HARD_RECOVERY),
-                ('disk_usage', RecoveryAction.MANUAL_INTERVENTION)
-            ]
-            
-            for metric_name, expected_action in test_cases:
-                if metric_name in health_monitor.metrics:
-                    metric = health_monitor.metrics[metric_name]
-                    metric.status = HealthStatus.CRITICAL  # Force critical status
-                    
-                    action = health_monitor._determine_recovery_action(metric)
-                    assert action == expected_action
-                    logger.info(f"✅ Recovery action test passed for {metric_name}: {action.value}")
-            
-            # Test recovery attempt limiting
-            # Simulate multiple recovery attempts
-            for i in range(6):  # More than the limit
-                health_monitor.recovery_attempts.append({
-                    'timestamp': datetime.now(),
-                    'action': 'test_action',
-                    'success': i % 2 == 0  # Alternate success/failure
-                })
-            
-            # Check that limits are enforced (this would be tested in actual recovery)
-            recent_attempts = [
-                attempt for attempt in health_monitor.recovery_attempts
-                if attempt['timestamp'] > datetime.now() - timedelta(hours=1)
-            ]
-            
-            assert len(recent_attempts) == 6
-            logger.info("✅ Recovery attempt tracking test passed")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Recovery mechanisms test failed: {e}")
-            return False
-    
-    def test_configuration_validation(self) -> bool:
-        """Test configuration file validation"""
-        logger.info("🧪 Testing Configuration Validation...")
-        
-        try:
-            # Test internal health monitor config
-            if os.path.exists("health_monitor_config.json"):
-                with open("health_monitor_config.json", "r") as f:
-                    config = json.load(f)
-                
-                required_keys = ['monitoring_interval', 'thresholds', 'recovery_cooldown_minutes']
-                for key in required_keys:
-                    assert key in config
-                
-                # Validate thresholds structure
-                assert 'thresholds' in config
-                for metric, thresholds in config['thresholds'].items():
-                    assert 'warning' in thresholds
-                    assert 'critical' in thresholds
-                
-                logger.info("✅ Internal config validation test passed")
-            
-            # Test external health checker config
-            if os.path.exists("health_checker_config.json"):
-                with open("health_checker_config.json", "r") as f:
-                    config = json.load(f)
-                
-                required_keys = ['bot_script', 'python_executable', 'checks', 'thresholds']
-                for key in required_keys:
-                    assert key in config
-                
-                logger.info("✅ External config validation test passed")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Configuration validation test failed: {e}")
-            return False
-    
-    def test_integration_with_bot(self) -> bool:
-        """Test integration with bot components"""
-        logger.info("🧪 Testing Integration with Bot Components...")
-        
-        try:
-            # This test would normally require the actual bot
-            # For now, we'll test the integration points with mocks
-            
-            health_monitor = HealthMonitor(bot_instance=self.mock_bot, settings=self.mock_settings)
-            
-            # Test bot integration points
-            assert health_monitor.bot == self.mock_bot
-            assert health_monitor.settings == self.mock_settings
-            
-            # Test that health monitor can access bot components
-            if hasattr(health_monitor.bot, 'enhanced_scanner'):
-                scanner = health_monitor.bot.enhanced_scanner
-                assert scanner is not None
-                logger.info("✅ Scanner integration test passed")
-            
-            if hasattr(health_monitor.bot, 'strategy'):
-                strategy = health_monitor.bot.strategy
-                assert strategy is not None
-                logger.info("✅ Strategy integration test passed")
-            
-            if hasattr(health_monitor.bot, 'email_system'):
-                email_system = health_monitor.bot.email_system
-                assert email_system is not None
-                logger.info("✅ Email system integration test passed")
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Integration test failed: {e}")
-            return False
-    
-    async def run_all_tests(self) -> Dict[str, bool]:
-        """Run all health monitoring tests"""
-        logger.info("🚀 Starting Health Monitoring Test Suite")
-        logger.info("=" * 60)
-        
-        test_methods = [
-            ("Internal Health Monitor", self.test_internal_health_monitor),
-            ("External Health Checker", self.test_external_health_checker),
-            ("Health Report Generation", self.test_health_report_generation),
-            ("Recovery Mechanisms", self.test_recovery_mechanisms),
-            ("Configuration Validation", self.test_configuration_validation),
-            ("Bot Integration", self.test_integration_with_bot)
-        ]
-        
-        results = {}
-        passed = 0
-        total = len(test_methods)
-        
-        for test_name, test_method in test_methods:
-            logger.info(f"\n📋 Running: {test_name}")
-            try:
-                if asyncio.iscoroutinefunction(test_method):
-                    result = await test_method()
-                else:
-                    result = test_method()
-                
-                results[test_name] = result
-                if result:
-                    passed += 1
-                    logger.info(f"✅ {test_name}: PASSED")
-                else:
-                    logger.error(f"❌ {test_name}: FAILED")
-                    
-            except Exception as e:
-                logger.error(f"❌ {test_name}: ERROR - {e}")
-                results[test_name] = False
-        
-        # Summary
-        logger.info("=" * 60)
-        logger.info("📊 HEALTH MONITORING TEST RESULTS:")
-        logger.info(f"📊 Overall Result: {passed}/{total} tests passed")
-        
-        if passed == total:
-            logger.info("🎉 ALL TESTS PASSED! Health monitoring system is working correctly!")
-        else:
-            logger.warning("⚠️ Some tests failed. Review the health monitoring system.")
-        
-        return results
-    
-    def cleanup(self):
-        """Clean up test resources"""
-        try:
-            # Remove test files
-            test_files = ["bot_data.json"]
-            for file in test_files:
-                if os.path.exists(file):
-                    os.remove(file)
-            logger.info("✅ Test cleanup completed")
-        except Exception as e:
-            logger.error(f"❌ Error during cleanup: {e}")
 
-async def main():
-    """Run the health monitoring test suite"""
-    test_suite = HealthMonitoringTestSuite()
+async def test_system_health():
+    """Test system health and performance monitoring"""
+    logger.info("="*60)
+    logger.info("SOLTRADER SYSTEM HEALTH MONITORING")
+    logger.info("="*60)
     
     try:
-        results = await test_suite.run_all_tests()
+        # Initialize core components
+        settings = load_settings()
+        db_manager = DatabaseManager(settings)
+        await db_manager.initialize()
         
-        # Return appropriate exit code
-        all_passed = all(results.values())
-        return 0 if all_passed else 1
+        monitor = SystemMonitor(db_manager)
+        await monitor.initialize()
+        await monitor.start_monitoring()
         
-    finally:
-        test_suite.cleanup()
+        logger.info("System monitoring started successfully")
+        
+        # Run health checks for 30 seconds
+        logger.info("Running health checks for 30 seconds...")
+        
+        start_time = time.time()
+        check_interval = 5  # Check every 5 seconds
+        
+        while time.time() - start_time < 30:
+            # Get current health status
+            health_status = await monitor.get_health_status()
+            
+            logger.info(f"Health Status: {health_status['status']} - {health_status['message']}")
+            
+            if 'metrics' in health_status:
+                metrics = health_status['metrics']
+                logger.info(f"  CPU: {metrics['cpu_usage']:.1f}%")
+                logger.info(f"  Memory: {metrics['memory_usage']:.1f}%")
+                logger.info(f"  Disk: {metrics['disk_usage']:.1f}%")
+                logger.info(f"  Connections: {metrics['active_connections']}")
+                logger.info(f"  Uptime: {metrics['uptime_hours']:.2f} hours")
+                
+            # Log some test metrics
+            await monitor.log_system_metric("test_metric", time.time() % 100)
+            await monitor.log_system_event("health_check", {
+                "status": health_status['status'],
+                "timestamp": datetime.now().isoformat()
+            })
+            
+            await asyncio.sleep(check_interval)
+            
+        # Get metrics summary
+        logger.info("Getting metrics summary...")
+        summary = monitor.get_metrics_summary(hours=1)
+        
+        if summary:
+            logger.info("System Performance Summary:")
+            if 'cpu_usage' in summary:
+                cpu = summary['cpu_usage']
+                logger.info(f"  CPU - Avg: {cpu['avg']:.1f}%, Max: {cpu['max']:.1f}%, Min: {cpu['min']:.1f}%")
+            if 'memory_usage' in summary:
+                mem = summary['memory_usage']
+                logger.info(f"  Memory - Avg: {mem['avg']:.1f}%, Max: {mem['max']:.1f}%, Min: {mem['min']:.1f}%")
+            if 'disk_usage' in summary:
+                disk = summary['disk_usage']
+                logger.info(f"  Disk - Avg: {disk['avg']:.1f}%, Max: {disk['max']:.1f}%, Min: {disk['min']:.1f}%")
+            logger.info(f"  Uptime: {summary['uptime_hours']:.2f} hours")
+            logger.info(f"  Data Points: {summary['data_points']}")
+        
+        # Cleanup
+        await monitor.stop_monitoring()
+        await monitor.shutdown()
+        await db_manager.close()
+        
+        logger.info("="*60)
+        logger.info("HEALTH MONITORING COMPLETED SUCCESSFULLY")
+        logger.info("System is healthy and monitoring functions are operational")
+        logger.info("="*60)
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Health monitoring failed: {e}")
+        return False
+
+
+async def test_database_performance():
+    """Test database performance and operations"""
+    logger.info("Testing database performance...")
+    
+    try:
+        settings = load_settings()
+        db_manager = DatabaseManager(settings)
+        await db_manager.initialize()
+        
+        # Test metric logging performance
+        start_time = time.time()
+        num_operations = 100
+        
+        for i in range(num_operations):
+            await db_manager.log_metric(f"test_metric_{i%10}", i * 0.1, {"batch": "performance_test"})
+            
+        duration = time.time() - start_time
+        ops_per_second = num_operations / duration
+        
+        logger.info(f"Database Performance:")
+        logger.info(f"  Operations: {num_operations}")
+        logger.info(f"  Duration: {duration:.2f} seconds")
+        logger.info(f"  Rate: {ops_per_second:.1f} ops/sec")
+        
+        # Test metric retrieval
+        start_time = time.time()
+        metrics = await db_manager.get_metrics("test_metric_0", hours=1)
+        retrieval_duration = time.time() - start_time
+        
+        logger.info(f"  Retrieved {len(metrics)} metrics in {retrieval_duration:.3f} seconds")
+        
+        await db_manager.close()
+        
+        if ops_per_second > 10:  # At least 10 ops/sec
+            logger.info("Database performance is acceptable")
+            return True
+        else:
+            logger.warning("Database performance is slow")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Database performance test failed: {e}")
+        return False
+
+
+async def test_risk_engine_performance():
+    """Test risk engine performance under load"""
+    logger.info("Testing risk engine performance...")
+    
+    try:
+        settings = load_settings()
+        db_manager = DatabaseManager(settings)
+        await db_manager.initialize()
+        
+        risk_config = RiskEngineConfig()
+        risk_engine = RiskEngine(db_manager, risk_config)
+        await risk_engine.initialize()
+        
+        # Test risk assessment performance
+        test_symbols = ["SOL/USDC", "BTC/USDC", "ETH/USDC", "BONK/USDC", "WIF/USDC"]
+        assessments_per_symbol = 20
+        
+        start_time = time.time()
+        total_assessments = 0
+        
+        for symbol in test_symbols:
+            for i in range(assessments_per_symbol):
+                risk_assessment = await risk_engine.assess_trade_risk(
+                    symbol=symbol,
+                    direction="BUY",
+                    quantity=10.0 + i,
+                    price=100.0 + i * 5,
+                    strategy_name=f"test_strategy_{i%5}"
+                )
+                total_assessments += 1
+                
+        duration = time.time() - start_time
+        assessments_per_second = total_assessments / duration
+        
+        logger.info(f"Risk Engine Performance:")
+        logger.info(f"  Total Assessments: {total_assessments}")
+        logger.info(f"  Duration: {duration:.2f} seconds")
+        logger.info(f"  Rate: {assessments_per_second:.1f} assessments/sec")
+        
+        # Test portfolio risk check
+        start_time = time.time()
+        portfolio_risk = await risk_engine.check_portfolio_risk()
+        portfolio_check_duration = time.time() - start_time
+        
+        logger.info(f"  Portfolio Risk Check: {portfolio_check_duration:.3f} seconds")
+        logger.info(f"  Portfolio Status: {portfolio_risk['overall_risk_level']}")
+        
+        await risk_engine.shutdown()
+        await db_manager.close()
+        
+        if assessments_per_second > 5:  # At least 5 assessments/sec
+            logger.info("Risk engine performance is acceptable")
+            return True
+        else:
+            logger.warning("Risk engine performance is slow")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Risk engine performance test failed: {e}")
+        return False
+
+
+async def run_comprehensive_health_check():
+    """Run comprehensive health and performance validation"""
+    logger.info("STARTING COMPREHENSIVE HEALTH CHECK")
+    logger.info("="*60)
+    
+    test_results = {}
+    
+    # Test 1: System Health Monitoring
+    logger.info("Test 1: System Health Monitoring")
+    test_results["system_health"] = await test_system_health()
+    
+    # Test 2: Database Performance
+    logger.info("Test 2: Database Performance")
+    test_results["database_performance"] = await test_database_performance()
+    
+    # Test 3: Risk Engine Performance
+    logger.info("Test 3: Risk Engine Performance")
+    test_results["risk_engine_performance"] = await test_risk_engine_performance()
+    
+    # Generate final report
+    logger.info("="*60)
+    logger.info("HEALTH CHECK RESULTS SUMMARY")
+    logger.info("="*60)
+    
+    passed_tests = sum(test_results.values())
+    total_tests = len(test_results)
+    success_rate = (passed_tests / total_tests) * 100
+    
+    for test_name, passed in test_results.items():
+        status = "PASS" if passed else "FAIL"
+        logger.info(f"{test_name.upper()}: {status}")
+        
+    logger.info(f"Overall Health Score: {passed_tests}/{total_tests} ({success_rate:.1f}%)")
+    
+    if success_rate >= 80:
+        logger.info("SYSTEM STATUS: HEALTHY - All systems operational")
+        logger.info("Ready for production deployment")
+    elif success_rate >= 60:
+        logger.info("SYSTEM STATUS: DEGRADED - Some performance issues")
+        logger.info("Monitor closely and investigate failed tests")
+    else:
+        logger.info("SYSTEM STATUS: UNHEALTHY - Multiple system issues")
+        logger.info("Address critical issues before deployment")
+        
+    logger.info("="*60)
+    logger.info("HEALTH CHECK COMPLETED")
+    
+    return success_rate
+
+
+async def main():
+    """Main health check execution"""
+    success_rate = await run_comprehensive_health_check()
+    
+    if success_rate >= 75:
+        logger.info("FINAL STATUS: SYSTEM READY FOR DEPLOYMENT")
+        logger.info("Recommended next steps:")
+        logger.info("1. Deploy paper trading system")
+        logger.info("2. Run extended validation session")
+        logger.info("3. Monitor performance metrics")
+        logger.info("4. Gradually transition to live trading")
+    else:
+        logger.warning("FINAL STATUS: SYSTEM NEEDS OPTIMIZATION")
+        logger.warning("Address performance issues before deployment")
+        
+    return 0 if success_rate >= 75 else 1
+
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())

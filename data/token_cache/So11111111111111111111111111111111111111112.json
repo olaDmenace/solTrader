@@ -1,0 +1,17 @@
+{
+  "address": "So11111111111111111111111111111111111111112",
+  "symbol": "SOL",
+  "name": "Wrapped SOL",
+  "decimals": 9,
+  "verified": false,
+  "logo_uri": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+  "price_usd": null,
+  "market_cap_usd": null,
+  "volume_24h_usd": null,
+  "jupiter_verified": false,
+  "birdeye_verified": false,
+  "warnings": [],
+  "cached_at": "2025-08-29T22:49:22.320521",
+  "expires_at": "2025-08-30T22:49:22.320521",
+  "source": "jupiter"
+}

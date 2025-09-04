@@ -12,10 +12,18 @@ from src.api.solana_tracker import SolanaTrackerClient
 from src.enhanced_token_scanner import EnhancedTokenScanner
 from src.phantom_wallet import PhantomWallet
 from src.trading.strategy import TradingStrategy, TradingMode
+from src.trading.grid_trading_strategy import GridTradingStrategy
+from src.trading.mean_reversion_strategy import MeanReversionStrategy
+from src.coordination.strategy_coordinator import StrategyCoordinator
+from src.trading.arbitrage_system import ArbitrageSystem
 from src.analytics.performance_analytics import PerformanceAnalytics
 from src.notifications.email_system import EmailNotificationSystem
-from src.dashboard.enhanced_dashboard import EnhancedDashboard
+from src.dashboard.unified_web_dashboard import UnifiedWebDashboard
 from src.monitoring.health_monitor import HealthMonitor
+from src.logging.trade_logger import CentralizedTradeLogger
+from src.portfolio.dynamic_capital_allocator import DynamicCapitalAllocator
+from src.portfolio.allocator_integration import PortfolioManager
+from src.portfolio.portfolio_risk_manager import PortfolioRiskManager
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -72,21 +80,60 @@ class TradingBot:
         self.analytics = PerformanceAnalytics(self.settings)
         self.enhanced_scanner = EnhancedTokenScanner(self.settings, self.analytics)
         self.email_system = EmailNotificationSystem(self.settings)
-        self.dashboard = EnhancedDashboard(
+        self.dashboard = UnifiedWebDashboard(
             self.settings, 
             self.analytics, 
             self.email_system, 
             self.solana_tracker
         )
 
-        # Initialize trading strategy with enhanced scanner
+        # Initialize Phase 2 components (Grid Trading & Strategy Coordination)
         mode = TradingMode.PAPER if self.settings.PAPER_TRADING else TradingMode.LIVE
+        self.grid_trading = GridTradingStrategy(
+            settings=self.settings,
+            jupiter_client=self.jupiter,
+            wallet=self.wallet,
+            mode=mode,
+            analytics=self.analytics  # Pass analytics for trade recording
+        )
+        
+        self.mean_reversion = MeanReversionStrategy(
+            settings=self.settings
+        )
+        
+        self.strategy_coordinator = StrategyCoordinator(
+            settings=self.settings,
+            analytics=self.analytics
+        )
+        
+        self.arbitrage_system = ArbitrageSystem(
+            settings=self.settings,
+            jupiter_client=self.jupiter,
+            analytics=self.analytics  # Pass analytics for trade recording
+        )
+        
+        # Connect dashboard to arbitrage system for live data
+        self.dashboard.set_arbitrage_system(self.arbitrage_system)
+        
+        # Initialize centralized trade logger
+        self.trade_logger = CentralizedTradeLogger(self.settings)
+
+        # Initialize Phase 3 components (Dynamic Capital Allocation & Portfolio Management)
+        self.capital_allocator = DynamicCapitalAllocator(self.settings)
+        self.portfolio_risk_manager = PortfolioRiskManager(self.settings)
+        self.portfolio_manager = PortfolioManager(self.settings, self.capital_allocator, self.portfolio_risk_manager)
+
+        # Initialize trading strategy with enhanced scanner and Phase 2 integration
         self.strategy = TradingStrategy(
             jupiter_client=self.jupiter,
             wallet=self.wallet,
             settings=self.settings,
             scanner=self.enhanced_scanner,  # Use enhanced scanner
-            mode=mode
+            mode=mode,
+            grid_trading=self.grid_trading,
+            strategy_coordinator=self.strategy_coordinator,
+            arbitrage_system=self.arbitrage_system,
+            trade_logger=self.trade_logger
         )
 
         # Initialize health monitoring system
@@ -94,6 +141,63 @@ class TradingBot:
         
         self.telegram_bot: Optional[Any] = None
         logger.info("[OK] Bot components initialized")
+    
+    async def _integrate_strategies_with_portfolio(self):
+        """Integrate all trading strategies with the portfolio management system"""
+        try:
+            from src.portfolio.allocator_integration import integrate_existing_strategy
+            
+            # Integration configurations for each strategy
+            strategy_configs = [
+                {
+                    'instance': self.strategy,
+                    'name': 'momentum_strategy',
+                    'allocation': 0.30
+                },
+                {
+                    'instance': self.grid_trading,
+                    'name': 'grid_trading_strategy', 
+                    'allocation': 0.25
+                },
+                {
+                    'instance': self.mean_reversion,
+                    'name': 'mean_reversion_strategy',
+                    'allocation': 0.20
+                },
+                {
+                    'instance': self.arbitrage_system,
+                    'name': 'arbitrage_strategy',
+                    'allocation': 0.25
+                }
+            ]
+            
+            # Integrate each strategy
+            for config in strategy_configs:
+                success = await integrate_existing_strategy(
+                    config['instance'],
+                    self.capital_allocator,
+                    config['name']
+                )
+                
+                if success:
+                    # Also integrate with portfolio manager
+                    await self.portfolio_manager.integrate_strategy(
+                        config['instance'],
+                        config['name']
+                    )
+                    
+                    logger.info(f"[PORTFOLIO] Integrated {config['name']} with {config['allocation']:.1%} allocation")
+                else:
+                    logger.warning(f"[PORTFOLIO] Failed to integrate {config['name']}")
+            
+            # Perform initial portfolio rebalancing
+            rebalance_result = await self.portfolio_manager.force_rebalance()
+            if rebalance_result.get('status') == 'completed':
+                logger.info(f"[PORTFOLIO] Initial rebalancing completed: {rebalance_result.get('rebalanced_strategies', 0)} strategies")
+            
+        except Exception as e:
+            logger.error(f"[PORTFOLIO] Error integrating strategies with portfolio: {e}")
+            # Continue without portfolio integration rather than failing startup
 
     async def startup(self) -> bool:
         """Initialize all bot components"""
@@ -122,10 +226,13 @@ class TradingBot:
             logger.info("[OK] Wallet connected")
 
             # Test Solana Tracker API
-            if not await self.solana_tracker.test_connection():
-                logger.error("[ERROR] Solana Tracker API connection failed")
-                return False
-            logger.info("[OK] Solana Tracker API connection successful")
+            try:
+                if not await self.solana_tracker.test_connection():
+                    logger.warning("[WARNING] Solana Tracker API connection failed - continuing without it")
+                else:
+                    logger.info("[OK] Solana Tracker API connection successful")
+            except Exception as e:
+                logger.warning(f"[WARNING] Solana Tracker API test failed: {e} - continuing without it")
 
             # Start enhanced components
             logger.info("Starting enhanced systems...")
@@ -138,24 +245,58 @@ class TradingBot:
             await self.enhanced_scanner.start()
             logger.info("[OK] Enhanced token scanner started")
             
-            # Start dashboard
+            # Start unified web dashboard
             await self.dashboard.start()
-            logger.info("[OK] Enhanced dashboard started")
+            logger.info("[OK] Unified Web Dashboard started")
+            
+            # Start arbitrage system
+            await self.arbitrage_system.start()
+            logger.info("[OK] Arbitrage system started")
+            
+            # Start centralized trade logger
+            await self.trade_logger.start()
+            logger.info("[OK] Centralized trade logger started")
+            
+            # Start Phase 3 components (Dynamic Capital Allocation & Portfolio Management)
+            await self.capital_allocator.start()
+            logger.info("[OK] Dynamic Capital Allocator started")
+            
+            await self.portfolio_risk_manager.start()
+            logger.info("[OK] Portfolio Risk Manager started")
+            
+            await self.portfolio_manager.start()
+            logger.info("[OK] Portfolio Manager started")
+            
+            # Integrate strategies with portfolio manager
+            await self._integrate_strategies_with_portfolio()
+            logger.info("[OK] Strategies integrated with portfolio management")
 
             # Mode announcement
             mode = "Paper" if self.settings.PAPER_TRADING else "Live"
 
             # Send startup notification
             await self.email_system.send_critical_alert(
-                "SolTrader Bot Started",
-                f"Bot successfully started in {mode} mode with enhanced features:\n\n"
+                "SolTrader Bot Started - Phase 3 Active",
+                f"Bot successfully started in {mode} mode with Phase 3 Dynamic Portfolio Management:\n\n"
+                f"🚀 Phase 3 Dynamic Portfolio Management Active:\n"
+                f"- Dynamic Capital Allocator with real-time rebalancing\n"
+                f"- Market regime detection and tactical allocation\n"
+                f"- Portfolio-level risk management\n"
+                f"- Performance-based strategy rebalancing\n"
+                f"- Multi-strategy coordination with capital optimization\n\n"
+                f"🔥 Phase 2 Multi-Strategy System:\n"
+                f"- Grid Trading Strategy for ranging markets\n"
+                f"- Cross-Strategy Coordination system\n"
+                f"- Multi-DEX Arbitrage System\n"
+                f"- Centralized trade logging with execution metrics\n"
+                f"- Realistic market structure simulation\n\n"
+                f"📊 Enhanced Features:\n"
+                f"- Unified Web Dashboard (http://localhost:5000)\n"
                 f"- Solana Tracker API integrated\n"
                 f"- Optimized filters (100 SOL liquidity, 5% momentum)\n"
                 f"- High momentum bypass (>500% gains)\n"
-                f"- Medium momentum bypass (>100% gains)\n"
                 f"- Email notifications active\n"
-                f"- Analytics dashboard running\n"
-                f"- Performance tracking enabled\n\n"
+                f"- Real-time analytics and monitoring\n\n"
                 f"Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL"
             )
             logger.info(f"[MODE] Bot initialized in {mode} trading mode")
@@ -308,7 +449,28 @@ class TradingBot:
             
             if self.dashboard:
                 await self.dashboard.stop()
-                logger.info("[OK] Enhanced dashboard stopped")
+                logger.info("[OK] Unified Web Dashboard stopped")
+            
+            if self.arbitrage_system:
+                await self.arbitrage_system.stop()
+                logger.info("[OK] Arbitrage system stopped")
+            
+            if self.trade_logger:
+                await self.trade_logger.stop()
+                logger.info("[OK] Centralized trade logger stopped")
+            
+            # Stop Phase 3 components (Portfolio Management)
+            if hasattr(self, 'portfolio_manager') and self.portfolio_manager:
+                await self.portfolio_manager.stop()
+                logger.info("[OK] Portfolio Manager stopped")
+            
+            if hasattr(self, 'portfolio_risk_manager') and self.portfolio_risk_manager:
+                await self.portfolio_risk_manager.stop()
+                logger.info("[OK] Portfolio Risk Manager stopped")
+            
+            if hasattr(self, 'capital_allocator') and self.capital_allocator:
+                await self.capital_allocator.stop()
+                logger.info("[OK] Dynamic Capital Allocator stopped")
             
             if self.enhanced_scanner:
                 await self.enhanced_scanner.stop()

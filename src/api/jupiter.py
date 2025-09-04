@@ -17,10 +17,13 @@ class JupiterClient:
         self.base_url = "https://quote-api.jup.ag/v6"
         self.session: Optional[aiohttp.ClientSession] = None
         self.quote_cache = {}  # Cache for recent quotes
-        self.cache_duration = 45  # Cache quotes for 45 seconds
+        self.cache_duration = 60  # Cache quotes for 60 seconds (longer caching)
         self.last_request_time = 0
         self.request_count = 0
-        self.rate_limit_delay = 1.2  # Start with 1.2s delay
+        self.rate_limit_delay = 2.0  # Start with 2s delay (more conservative)
+        self.consecutive_failures = 0
+        self.max_consecutive_failures = 5
+        self.base_backoff_delay = 2.0
 
     async def ensure_session(self) -> None:
         """Ensure aiohttp session exists and is active"""
@@ -42,7 +45,7 @@ class JupiterClient:
         """Check if cached quote is still valid"""
         return (time.time() - cache_entry['timestamp']) < self.cache_duration
     
-    async def _smart_delay(self, success: bool = True):
+    async def _smart_delay(self, success: bool = True, is_rate_limited: bool = False):
         """Implement intelligent delay with exponential backoff"""
         current_time = time.time()
         
@@ -54,19 +57,29 @@ class JupiterClient:
         # Adjust delay based on success/failure pattern
         if success:
             # Gradually reduce delay on success (but keep minimum)
-            self.rate_limit_delay = max(1.0, self.rate_limit_delay * 0.95)
+            self.consecutive_failures = 0
+            self.rate_limit_delay = max(2.0, self.rate_limit_delay * 0.9)
         else:
-            # Exponential backoff on failure
-            self.rate_limit_delay = min(10.0, self.rate_limit_delay * 1.5)
-            logger.warning(f"Jupiter rate limited, increasing delay to {self.rate_limit_delay:.1f}s")
+            self.consecutive_failures += 1
+            if is_rate_limited:
+                # More aggressive backoff for rate limits
+                self.rate_limit_delay = min(30.0, self.rate_limit_delay * 2.0)
+                logger.warning(f"Jupiter rate limited, increasing delay to {self.rate_limit_delay:.1f}s")
+            else:
+                # Standard exponential backoff for other failures
+                self.rate_limit_delay = min(15.0, self.rate_limit_delay * 1.3)
+                logger.warning(f"Jupiter request failed, increasing delay to {self.rate_limit_delay:.1f}s")
         
         self.last_request_time = time.time()
         self.request_count += 1
 
     async def test_connection(self) -> bool:
-        """Test connection to Jupiter API"""
+        """Test connection to Jupiter API with rate limiting awareness"""
         try:
             await self.ensure_session()
+            
+            # Apply rate limiting to connection test
+            await self._smart_delay(success=True)
             
             # Test with a simple quote request for SOL/USDC
             params = {
@@ -74,14 +87,26 @@ class JupiterClient:
                 "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
                 "amount": "100000000"  # 0.1 SOL
             }
-            async with self.session.get(f"{self.base_url}/quote", params=params) as response:
+            async with self.session.get(f"{self.base_url}/quote", params=params, timeout=10) as response:
                 if response.status == 200:
                     logger.info("[OK] Jupiter API connection successful")
+                    await self._smart_delay(success=True)
                     return True
-                logger.error(f"Jupiter API failed: {response.status}")
-                return False
+                elif response.status == 429:
+                    logger.warning("Jupiter API rate limited during connection test")
+                    await self._smart_delay(success=False, is_rate_limited=True)
+                    return False
+                else:
+                    logger.error(f"Jupiter API failed: {response.status}")
+                    await self._smart_delay(success=False)
+                    return False
+        except asyncio.TimeoutError:
+            logger.error("Jupiter API connection test timed out")
+            await self._smart_delay(success=False)
+            return False
         except Exception as e:
             logger.error(f"Jupiter API error: {e}")
+            await self._smart_delay(success=False)
             return False
 
     async def get_tokens_list(self) -> List[Dict[str, Any]]:
@@ -201,7 +226,7 @@ class JupiterClient:
             logger.error(f"Error getting token info: {str(e)}")
             return None
 
-    async def get_quote(self, input_mint: str, output_mint: str, amount: str, slippageBps: int, max_retries: int = 3) -> Dict[str, Any]:
+    async def get_quote(self, input_mint: str, output_mint: str, amount: str, slippageBps: int, max_retries: int = 5) -> Dict[str, Any]:
         """
         Get a quote for a token swap with smart caching and retry
         
@@ -230,11 +255,19 @@ class JupiterClient:
             "slippageBps": slippageBps
         }
         
+        # Check if we've had too many consecutive failures
+        if self.consecutive_failures >= self.max_consecutive_failures:
+            logger.error(f"Too many consecutive failures ({self.consecutive_failures}), backing off for 60 seconds")
+            await asyncio.sleep(60)
+            self.consecutive_failures = 0
+            self.rate_limit_delay = self.base_backoff_delay
+        
         for attempt in range(max_retries):
             try:
+                # Pre-request delay based on current rate limiting state
                 await self._smart_delay(success=True)
                 
-                async with self.session.get(f"{self.base_url}/quote", params=params) as response:
+                async with self.session.get(f"{self.base_url}/quote", params=params, timeout=10) as response:
                     if response.status == 200:
                         data = await response.json()
                         
@@ -247,6 +280,7 @@ class JupiterClient:
                                 'data': data,
                                 'timestamp': time.time()
                             }
+                            await self._smart_delay(success=True)
                             return data
                         else:
                             logger.warning(f"Empty/invalid quote response (attempt {attempt + 1}/{max_retries})")
@@ -254,19 +288,34 @@ class JupiterClient:
                     
                     elif response.status == 429:
                         logger.warning(f"Rate limited (attempt {attempt + 1}/{max_retries})")
+                        await self._smart_delay(success=False, is_rate_limited=True)
+                        # Progressive exponential backoff for rate limits
+                        backoff_delay = min(60, (2 ** attempt) * 3)
+                        logger.info(f"Rate limit backoff: waiting {backoff_delay}s")
+                        await asyncio.sleep(backoff_delay)
+                    
+                    elif response.status == 400:
+                        logger.warning(f"Bad request (400) - invalid parameters (attempt {attempt + 1}/{max_retries})")
                         await self._smart_delay(success=False)
-                        # Exponential backoff for rate limits
-                        await asyncio.sleep(2 ** attempt)
+                        # Don't retry on 400 errors immediately
+                        await asyncio.sleep(1)
                     
                     else:
                         logger.warning(f"Quote failed with status {response.status} (attempt {attempt + 1}/{max_retries})")
                         await self._smart_delay(success=False)
+                        await asyncio.sleep(min(10, 2 ** attempt))
+                        
+            except asyncio.TimeoutError:
+                logger.warning(f"Quote request timeout (attempt {attempt + 1}/{max_retries})")
+                await self._smart_delay(success=False)
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(min(10, 2 ** attempt))
                         
             except Exception as e:
                 logger.warning(f"Quote request error (attempt {attempt + 1}/{max_retries}): {str(e)}")
                 await self._smart_delay(success=False)
                 if attempt < max_retries - 1:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(min(10, 2 ** attempt))
         
         logger.error(f"Failed to get quote after {max_retries} attempts")
         return {}

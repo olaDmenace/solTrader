@@ -299,3 +299,150 @@ class TechnicalIndicators:
                 'signal_strength': 0.0,
                 'combined_signal': 'neutral'
             }
+
+# Standalone Calculator Classes for Mean Reversion Strategy
+class RSICalculator:
+    """Dedicated RSI calculator for mean reversion strategy"""
+    
+    def __init__(self, period: int = 14):
+        self.period = period
+    
+    def calculate(self, prices: List[float]) -> Optional[float]:
+        """Calculate RSI for given prices"""
+        if len(prices) < self.period + 1:
+            return None
+            
+        try:
+            # Calculate price changes
+            price_changes = np.diff(prices)
+            
+            # Separate gains and losses
+            gains = np.where(price_changes > 0, price_changes, 0)
+            losses = np.where(price_changes < 0, -price_changes, 0)
+            
+            # Calculate average gains and losses using Wilder's smoothing
+            avg_gain = np.mean(gains[-self.period:])
+            avg_loss = np.mean(losses[-self.period:])
+            
+            if avg_loss == 0:
+                return 100.0
+            
+            rs = avg_gain / avg_loss
+            rsi = 100 - (100 / (1 + rs))
+            
+            return float(rsi)
+        except Exception as e:
+            logger.error(f"RSI calculation error: {e}")
+            return None
+
+class BollingerBands:
+    """Bollinger Bands calculator for mean reversion strategy"""
+    
+    def __init__(self, period: int = 20, std_dev: float = 2.0):
+        self.period = period
+        self.std_dev = std_dev
+    
+    def calculate(self, prices: List[float]) -> Optional[Dict[str, float]]:
+        """Calculate Bollinger Bands"""
+        if len(prices) < self.period:
+            return None
+            
+        try:
+            window_prices = prices[-self.period:]
+            
+            middle_band = float(np.mean(window_prices))
+            std_price = float(np.std(window_prices))
+            
+            upper_band = middle_band + (self.std_dev * std_price)
+            lower_band = middle_band - (self.std_dev * std_price)
+            
+            current_price = prices[-1]
+            
+            # Calculate position within bands (-1 to 1)
+            if upper_band != lower_band:
+                band_position = (current_price - middle_band) / (std_price * self.std_dev)
+            else:
+                band_position = 0.0
+            
+            return {
+                'upper': upper_band,
+                'middle': middle_band,
+                'lower': lower_band,
+                'position': max(-1.0, min(1.0, band_position)),
+                'bandwidth': (upper_band - lower_band) / middle_band if middle_band > 0 else 0
+            }
+        except Exception as e:
+            logger.error(f"Bollinger Bands calculation error: {e}")
+            return None
+
+class MovingAverage:
+    """Simple and Exponential Moving Average calculator"""
+    
+    def __init__(self, period: int = 20, ma_type: str = 'SMA'):
+        self.period = period
+        self.ma_type = ma_type.upper()
+    
+    def calculate_sma(self, prices: List[float]) -> Optional[float]:
+        """Calculate Simple Moving Average"""
+        if len(prices) < self.period:
+            return None
+        
+        try:
+            window_prices = prices[-self.period:]
+            return float(np.mean(window_prices))
+        except Exception as e:
+            logger.error(f"SMA calculation error: {e}")
+            return None
+    
+    def calculate_ema(self, prices: List[float]) -> Optional[float]:
+        """Calculate Exponential Moving Average"""
+        if len(prices) < self.period:
+            return None
+        
+        try:
+            multiplier = 2 / (self.period + 1)
+            ema = prices[0]
+            
+            for price in prices[1:]:
+                ema = (price * multiplier) + (ema * (1 - multiplier))
+            
+            return float(ema)
+        except Exception as e:
+            logger.error(f"EMA calculation error: {e}")
+            return None
+    
+    def calculate(self, prices: List[float]) -> Optional[float]:
+        """Calculate moving average based on type"""
+        if self.ma_type == 'EMA':
+            return self.calculate_ema(prices)
+        else:
+            return self.calculate_sma(prices)
+
+class ZScoreCalculator:
+    """Z-Score calculator for price deviation analysis"""
+    
+    def __init__(self, window: int = 20):
+        self.window = window
+    
+    def calculate(self, prices: List[float]) -> Optional[float]:
+        """Calculate Z-score for current price vs historical mean"""
+        if len(prices) < self.window:
+            return None
+            
+        try:
+            current_price = prices[-1]
+            window_prices = prices[-self.window:]
+            
+            # Calculate mean and std excluding current price
+            historical_prices = window_prices[:-1]
+            mean_price = np.mean(historical_prices)
+            std_price = np.std(historical_prices)
+            
+            if std_price == 0:
+                return 0.0
+            
+            z_score = (current_price - mean_price) / std_price
+            return float(z_score)
+        except Exception as e:
+            logger.error(f"Z-Score calculation error: {e}")
+            return None

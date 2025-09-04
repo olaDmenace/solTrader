@@ -67,6 +67,11 @@ class PerformanceAnalytics:
     def __init__(self, settings):
         self.settings = settings
         
+        # Balance tracking for paper trading
+        paper_balance = getattr(settings, 'INITIAL_PAPER_BALANCE', 200.0)
+        self.initial_balance = paper_balance
+        self.current_balance = paper_balance
+        
         # Trade tracking
         self.trades: List[TradeRecord] = []
         self.open_positions: Dict[str, TradeRecord] = {}
@@ -77,8 +82,8 @@ class PerformanceAnalytics:
         
         # Real-time metrics
         self.real_time_metrics = {
-            'portfolio_value': 100.0,  # Starting value
-            'available_balance': 100.0,
+            'portfolio_value': paper_balance,  # Use paper trading balance
+            'available_balance': paper_balance,
             'active_positions': 0,
             'todays_pnl': 0.0,
             'total_pnl': 0.0,
@@ -241,7 +246,7 @@ class PerformanceAnalytics:
         self.discovery_stats['hourly_performance'][hour]['trades'] += 1
         self.discovery_stats['hourly_performance'][hour]['pnl'] += trade.pnl
         
-        logger.info(f"Trade exit recorded: {trade.token_symbol} PnL: ${trade.pnl:.2f} ({trade.pnl_percentage:.1f}%)")
+        logger.info(f"Trade exit recorded: {trade.token_symbol} PnL: ${trade.pnl:.4f} ({trade.pnl_percentage:.1f}%)")
 
     def update_scanner_stats(self, tokens_scanned: int, tokens_approved: int, 
                            high_momentum_bypasses: int, api_requests_used: int):
@@ -290,6 +295,7 @@ class PerformanceAnalytics:
         return {
             'current_portfolio_value': self.real_time_metrics['portfolio_value'],
             'available_balance': self.real_time_metrics['available_balance'],
+            'current_balance': self.current_balance,  # Add this for dashboard compatibility
             'active_positions': self.real_time_metrics['active_positions'],
             'todays_pnl': self.real_time_metrics['todays_pnl'],
             'total_pnl': self.real_time_metrics['total_pnl'],
@@ -299,7 +305,8 @@ class PerformanceAnalytics:
             'win_rate_24h': self.real_time_metrics['win_rate_24h'],
             'approval_rate_24h': self.real_time_metrics['approval_rate_24h'],
             'current_drawdown': self.risk_metrics['current_drawdown'],
-            'risk_score': self.risk_metrics['risk_score']
+            'risk_score': self.risk_metrics['risk_score'],
+            'win_rate': self.real_time_metrics['win_rate_24h']  # Add win_rate alias for dashboard
         }
 
     def get_daily_breakdown(self) -> Dict[str, Any]:
@@ -626,4 +633,41 @@ class PerformanceAnalytics:
                 'data_points': len(self.recent_trades),
                 'last_update': datetime.now().isoformat()
             }
+        }
+    
+    def get_historical_analysis(self) -> Dict[str, Any]:
+        """Get historical analysis data for dashboard"""
+        return {
+            'total_trades': len(self.trades),
+            'win_rate': self.get_real_time_metrics().get('win_rate', 0.0),
+            'total_pnl': self.current_balance - self.initial_balance,
+            'avg_trade_pnl': sum(t.pnl for t in self.trades) / max(len(self.trades), 1),
+            'best_trade': max([t.pnl for t in self.trades], default=0.0),
+            'worst_trade': min([t.pnl for t in self.trades], default=0.0),
+            'trading_volume': sum(abs(t.quantity * t.price) for t in self.trades),
+            'daily_returns': self.get_daily_breakdown(),
+            'sharpe_ratio': self.risk_metrics.get('sharpe_ratio', 0.0),
+            'max_drawdown': self.risk_metrics.get('max_drawdown', 0.0)
+        }
+    
+    def get_current_positions(self) -> Dict[str, Any]:
+        """Get current positions data for dashboard"""
+        positions_data = {}
+        
+        for token, position in self.open_positions.items():
+            positions_data[token] = {
+                'quantity': position.get('quantity', 0.0),
+                'entry_price': position.get('entry_price', 0.0),
+                'current_value': position.get('current_value', 0.0),
+                'pnl': position.get('unrealized_pnl', 0.0),
+                'pnl_percentage': position.get('pnl_percentage', 0.0),
+                'entry_time': position.get('entry_time', datetime.now()).isoformat(),
+                'strategy': position.get('strategy', 'unknown')
+            }
+        
+        return {
+            'positions': positions_data,
+            'total_positions': len(self.open_positions),
+            'total_value': sum(pos.get('current_value', 0.0) for pos in self.open_positions.values()),
+            'total_unrealized_pnl': sum(pos.get('unrealized_pnl', 0.0) for pos in self.open_positions.values())
         }

@@ -114,6 +114,13 @@ class SignalGenerator:
         self.trend_analyzer = TrendAnalysis()
         self.volume_analyzer = VolumeAnalysis()
         self.analyzed_tokens: Dict[str, datetime] = {}
+        
+        # Initialize mean reversion strategy if enabled
+        self.mean_reversion = None
+        if hasattr(settings, 'ENABLE_MEAN_REVERSION') and settings.ENABLE_MEAN_REVERSION:
+            from .mean_reversion_strategy import MeanReversionStrategy
+            self.mean_reversion = MeanReversionStrategy(settings)
+            logger.info("[SIGNALS] Mean reversion strategy enabled")
 
     async def analyze_token(self, token_data) -> Optional[Signal]:
         try:
@@ -141,6 +148,43 @@ class SignalGenerator:
             if not market_condition:
                 return None
 
+            # Check for mean reversion signals first
+            mean_reversion_signal = None
+            if self.mean_reversion:
+                # Update price data for mean reversion analysis
+                token_address = token_dict['address']
+                current_price = float(token_dict['price'])
+                volume = float(token_dict.get('volume24h', 0))
+                
+                self.mean_reversion.update_price_data(
+                    token_address=token_address,
+                    timeframe='15m',  # Primary timeframe for mean reversion
+                    price=current_price,
+                    volume=volume
+                )
+                
+                # Analyze for mean reversion opportunities
+                mean_reversion_signal = self.mean_reversion.analyze_token(
+                    token_address=token_address,
+                    market_data={
+                        'liquidity_usd': float(token_dict.get('liquidity', 0)) * current_price,  # Approximate USD liquidity
+                        'volume_24h_usd': volume * current_price,  # Approximate USD volume
+                        'bid_ask_spread': 0.02,  # Default 2% spread (could be improved with real data)
+                        'recent_whale_activity': False  # Default no whale activity
+                    }
+                )
+            
+            # Use mean reversion signal if available and strong enough
+            if mean_reversion_signal and mean_reversion_signal.confidence >= 0.6:
+                logger.info(f"[MEAN_REVERSION] Strong signal for {token_dict['address'][:8]}... "
+                          f"Type: {mean_reversion_signal.signal_type.value}, "
+                          f"Confidence: {mean_reversion_signal.confidence:.3f}, "
+                          f"RSI: {mean_reversion_signal.rsi_value:.1f}, "
+                          f"Z-Score: {mean_reversion_signal.z_score:.2f}")
+                
+                return mean_reversion_signal.to_signal()
+            
+            # Fall back to momentum-based signal generation
             signal_strength = self._calculate_signal_strength(market_condition)
             
             # Validate signal strength is a valid number
@@ -151,7 +195,7 @@ class SignalGenerator:
             # Ensure signal strength is within valid range
             signal_strength = max(0.0, min(1.0, float(signal_strength)))
             
-            logger.info(f"[SIGNAL] Token {token_dict['address'][:8]}... signal strength: {signal_strength:.3f} (threshold: {self.signal_threshold})")
+            logger.info(f"[SIGNAL] Token {token_dict['address'][:8]}... momentum signal strength: {signal_strength:.3f} (threshold: {self.signal_threshold})")
             
             if signal_strength < self.signal_threshold:
                 logger.info(f"[SIGNAL] Signal too weak: {signal_strength:.3f} < {self.signal_threshold}")

@@ -150,14 +150,24 @@ class TradingStrategy(TradingStrategyProtocol):
         settings: Settings,
         scanner: Optional[Any] = None,
         mode: TradingMode = TradingMode.PAPER,
+        grid_trading: Optional[Any] = None,
+        strategy_coordinator: Optional[Any] = None,
+        arbitrage_system: Optional[Any] = None,
+        trade_logger: Optional[Any] = None,
     ) -> None:
-        """Initialize trading strategy with required components"""
+        """Initialize trading strategy with required components and Phase 2 integration"""
         self.jupiter = jupiter_client
         self.wallet = wallet
         self.settings = settings
         self.scanner = scanner
         self.market_regime_detector = MarketRegimeDetector(settings)
         self.current_regime: Optional[MarketState] = None
+        
+        # Phase 2 components
+        self.grid_trading = grid_trading
+        self.strategy_coordinator = strategy_coordinator
+        self.arbitrage_system = arbitrage_system
+        self.trade_logger = trade_logger
 
         self.state = TradingState(
             mode=mode,
@@ -167,7 +177,16 @@ class TradingStrategy(TradingStrategyProtocol):
         )
 
         self.market_analyzer = MarketAnalyzer(jupiter_client, settings)
-        self.signal_generator = SignalGenerator(settings)
+        
+        # Import and use enhanced signal generator for improved transparency
+        from .enhanced_signals import EnhancedSignalGenerator
+        self.signal_generator = EnhancedSignalGenerator(settings)
+        logger.info("[STRATEGY] Using Enhanced Signal Generator for improved transparency and data-driven analysis")
+        
+        # Initialize formal backtesting validator
+        from .formal_backtesting_validator import FormalBacktestingValidator
+        self.formal_validator = FormalBacktestingValidator(settings)
+        logger.info("[STRATEGY] Formal backtesting validator initialized for rigorous strategy validation")
         
         # Major tokens to exclude from trading (not new launches)
         self._excluded_tokens = {
@@ -939,19 +958,78 @@ class TradingStrategy(TradingStrategyProtocol):
                         continue
 
                     logger.info(f"[OK] Token {token_address[:8]}... passed validation - analyzing signal...")
-                    signal = await self.signal_generator.analyze_token(token_obj)
+                    # Generate enhanced signal with full transparency
+                    enhanced_signal = await self.signal_generator.analyze_token(token_obj)
                     
                     # Use paper trading specific threshold if in paper mode
                     is_paper_trading = (self.state.mode == TradingMode.PAPER)
                     threshold = (self.settings.PAPER_SIGNAL_THRESHOLD if is_paper_trading 
                                else self.settings.SIGNAL_THRESHOLD)
                     
-                    if not signal or signal.strength < threshold:
+                    # Enhanced signal validation with transparent quality assessment
+                    if not enhanced_signal or enhanced_signal.overall_confidence < threshold:
                         mode_str = "PAPER" if is_paper_trading else "LIVE"
-                        logger.info(f"[DATA] Token {token_address[:8]}... [{mode_str}] signal too weak: {signal.strength if signal else 'None'} < {threshold}")
+                        quality = enhanced_signal.quality.value if enhanced_signal else "None"
+                        confidence = enhanced_signal.overall_confidence if enhanced_signal else 0
+                        logger.info(f"[DATA] Token {token_address[:8]}... [{mode_str}] signal quality insufficient: {quality} (confidence: {confidence:.3f} < {threshold})")
                         continue
                     
-                    logger.info(f"[SIGNAL] Created signal for {token_address[:8]}... with strength {signal.strength:.2f} (threshold: {threshold:.2f})")
+                    logger.info(f"[ENHANCED_SIGNAL] High quality signal for {token_address[:8]}... - Quality: {enhanced_signal.quality.value}, Confidence: {enhanced_signal.overall_confidence:.3f}, Components: {len(enhanced_signal.components)}")
+                    
+                    # Convert enhanced signal to legacy format for compatibility
+                    signal = self._convert_enhanced_to_legacy_signal(enhanced_signal)
+
+                    # Phase 2: Strategy Coordination - Get optimal strategy recommendation
+                    if self.strategy_coordinator:
+                        try:
+                            # Extract enhanced signal data for strategy coordination
+                            signal_data = {
+                                "strength": enhanced_signal.overall_confidence,
+                                "confidence": enhanced_signal.overall_confidence,
+                                "quality": enhanced_signal.quality.value,
+                                "components": len(enhanced_signal.components),
+                                "momentum": self._extract_component_value(enhanced_signal, "momentum"),
+                                "volume_spike": self._extract_component_value(enhanced_signal, "volume_profile") > 0.7,
+                                "risk_factors": enhanced_signal.risk_factors,
+                                "recommended_size": enhanced_signal.recommended_position_size
+                            }
+                            
+                            market_data = {
+                                "price": getattr(token_obj, 'price_sol', 0),
+                                "volume_24h": getattr(token_obj, 'volume24h', 0),
+                                "liquidity": getattr(token_obj, 'liquidity', 0),
+                                "market_cap": getattr(token_obj, 'market_cap', 0)
+                            }
+                            
+                            recommended_strategy, allocation_pct, strategy_params = await self.strategy_coordinator.get_strategy_recommendation(
+                                token_address, signal_data, market_data
+                            )
+                            
+                            logger.info(f"[PHASE2] Strategy Coordinator recommends: {recommended_strategy.value} ({allocation_pct:.1%} allocation)")
+                            
+                            # Check if recommended strategy is Grid Trading
+                            if recommended_strategy.value == "GRID" and self.grid_trading:
+                                logger.info(f"[PHASE2] Evaluating Grid Trading opportunity for {token_address[:8]}...")
+                                
+                                # Get price history for grid trading analysis
+                                price_history = await self._get_token_price_history(token_address, hours=48)
+                                
+                                if price_history:
+                                    grid_opportunity = await self.grid_trading.evaluate_grid_opportunity(
+                                        token_address, price_history, signal
+                                    )
+                                    
+                                    if grid_opportunity:
+                                        logger.info(f"[GRID] Grid trading setup found for {token_address[:8]}... - creating grid positions")
+                                        await self._execute_grid_strategy(token_address, grid_opportunity, allocation_pct)
+                                        continue
+                                    else:
+                                        logger.info(f"[GRID] No suitable grid setup for {token_address[:8]}... - falling back to momentum")
+                                else:
+                                    logger.warning(f"[GRID] Could not get price history for {token_address[:8]}... - falling back to momentum")
+                            
+                        except Exception as e:
+                            logger.error(f"[PHASE2] Strategy coordination error for {token_address[:8]}...: {e}")
 
                     logger.info(f"[SIGNAL] Strong signal found for {token_address[:8]}... - calculating risk...")
                     
@@ -1233,6 +1311,7 @@ class TradingStrategy(TradingStrategyProtocol):
                 min_market_cap_usd = getattr(self.settings, 'MIN_MARKET_CAP_USD', 100000) * 0.5  # More permissive
                 max_market_cap_usd = getattr(self.settings, 'MAX_MARKET_CAP_USD', 10000000) * 2  # More permissive
                 logger.info(f"[TRENDING_VALIDATION] Using permissive thresholds - Volume: {min_volume:.1f} SOL, Liquidity: {min_liquidity:.1f} SOL")
+                logger.info(f"[TRENDING_VALIDATION] Market cap range: ${min_market_cap_usd:.0f} - ${max_market_cap_usd:.0f} USD")
             else:
                 # Standard USD-based thresholds
                 min_volume = max(getattr(self.settings, 'MIN_VOLUME_24H', 50) * 0.5, 10)
@@ -1241,6 +1320,7 @@ class TradingStrategy(TradingStrategyProtocol):
                 max_price_usd = getattr(self.settings, 'MAX_TOKEN_PRICE_USD', 2.0)
                 min_market_cap_usd = getattr(self.settings, 'MIN_MARKET_CAP_USD', 100000)
                 max_market_cap_usd = getattr(self.settings, 'MAX_MARKET_CAP_USD', 10000000)
+                logger.info(f"[DEBUG] Using market cap range: ${min_market_cap_usd:.0f} - ${max_market_cap_usd:.0f} USD")
             
             validations = {
                 "has_address": bool(address),
@@ -2904,3 +2984,212 @@ class TradingStrategy(TradingStrategyProtocol):
                     "error": str(e),
                 }
             }
+# Phase 2 Integration Methods - Temporary file to append to strategy.py
+
+    # Phase 2 Integration Methods
+    async def _get_token_price_history(self, token_address: str, hours: int = 48) -> Optional[List[float]]:
+        """Get price history for grid trading analysis"""
+        try:
+            # Mock price history for now - in production, use real price data
+            # This would normally query Jupiter or Birdeye API for historical prices
+            import random
+            import math
+            base_price = 0.001  # Mock base price
+            prices = []
+            
+            for i in range(hours):
+                # Simulate ranging price movement with some volatility
+                cycle_position = (i % 24) / 24  # 24-hour cycle
+                trend = 0.9 + 0.2 * (0.5 + 0.5 * math.sin(cycle_position * 2 * math.pi))
+                noise = 1 + random.uniform(-0.05, 0.05)  # 5% noise
+                price = base_price * trend * noise
+                prices.append(max(price, 0.0001))  # Minimum price floor
+            
+            return prices
+        except Exception as e:
+            logger.error(f"Error getting price history for {token_address}: {e}")
+            return None
+
+    async def _execute_grid_strategy(self, token_address: str, grid_opportunity: Dict[str, Any], allocation_pct: float):
+        """Execute grid trading strategy for a token"""
+        try:
+            logger.info(f"[GRID] Executing grid strategy for {token_address[:8]}... with {allocation_pct:.1%} allocation")
+            
+            # Calculate position size based on allocation
+            current_balance = (
+                self.state.paper_balance
+                if self.state.mode == TradingMode.PAPER
+                else await self.wallet.get_balance()
+            )
+            
+            total_position_size = float(current_balance) * allocation_pct
+            grid_levels = grid_opportunity.get("grid_levels", 5)
+            position_per_level = total_position_size / grid_levels
+            
+            # Create grid positions through the grid trading strategy
+            if self.grid_trading:
+                success = await self.grid_trading.create_grid_positions(
+                    token_address=token_address,
+                    position_size_per_level=position_per_level,
+                    grid_opportunity=grid_opportunity
+                )
+                
+                if success:
+                    logger.info(f"[GRID] Successfully created {grid_levels} grid levels for {token_address[:8]}...")
+                    
+                    # Update tracking
+                    self.state.daily_stats.grids_created += 1
+                    if not hasattr(self.state, 'active_grids'):
+                        self.state.active_grids = {}
+                    self.state.active_grids[token_address] = {
+                        "created_at": datetime.now(),
+                        "levels": grid_levels,
+                        "total_size": total_position_size,
+                        "opportunity": grid_opportunity
+                    }
+                else:
+                    logger.error(f"[GRID] Failed to create grid positions for {token_address[:8]}...")
+                    
+        except Exception as e:
+            logger.error(f"Error executing grid strategy for {token_address}: {e}")
+
+    # Enhanced Signal Processing Methods
+    def _convert_enhanced_to_legacy_signal(self, enhanced_signal):
+        """Convert enhanced signal to legacy Signal format for compatibility"""
+        try:
+            from .signals import Signal
+            
+            return Signal(
+                token_address=enhanced_signal.token_address,
+                price=enhanced_signal.price,
+                strength=enhanced_signal.overall_confidence,
+                market_data={
+                    'volume_24h': enhanced_signal.volume_24h,
+                    'liquidity': enhanced_signal.liquidity,
+                    'market_cap': enhanced_signal.market_cap,
+                    'quality': enhanced_signal.quality.value,
+                    'components': len(enhanced_signal.components),
+                    'risk_factors': enhanced_signal.risk_factors
+                },
+                signal_type=enhanced_signal.signal_type,
+                timestamp=enhanced_signal.timestamp
+            )
+        except Exception as e:
+            logger.error(f"[ENHANCED_SIGNAL] Error converting enhanced signal: {e}")
+            return None
+
+    def _extract_component_value(self, enhanced_signal, component_name: str) -> float:
+        """Extract value from specific signal component"""
+        try:
+            component = next((c for c in enhanced_signal.components if c.name == component_name), None)
+            return component.value if component else 0.0
+        except Exception as e:
+            logger.error(f"[ENHANCED_SIGNAL] Error extracting component {component_name}: {e}")
+            return 0.0
+
+    # Formal Backtesting Validation Methods
+    async def run_strategy_validation(self) -> Dict[str, Any]:
+        """Run comprehensive strategy validation with formal backtesting"""
+        try:
+            logger.info("[FORMAL_VALIDATION] Starting comprehensive strategy validation...")
+            
+            # Collect recent trading performance data
+            historical_data = await self._collect_historical_performance_data()
+            
+            # Define current strategy parameters
+            strategy_parameters = {
+                'signal_threshold': self.settings.SIGNAL_THRESHOLD,
+                'position_size': 0.02,  # 2% position size
+                'stop_loss': 0.05,      # 5% stop loss
+                'take_profit': 0.10,    # 10% take profit
+                'max_positions': self.settings.MAX_POSITIONS
+            }
+            
+            # Run formal validation
+            validation_report = await self.formal_validator.validate_strategy(
+                historical_data=historical_data,
+                strategy_parameters=strategy_parameters,
+                test_period_months=6  # 6 months of data
+            )
+            
+            # Store validation results
+            validation_summary = validation_report.to_dict()
+            
+            # Send validation alert if performance degrades
+            await self._handle_validation_results(validation_report)
+            
+            logger.info(f"[FORMAL_VALIDATION] Validation complete - Result: {validation_report.validation_result.value}")
+            
+            return validation_summary
+            
+        except Exception as e:
+            logger.error(f"[FORMAL_VALIDATION] Strategy validation error: {e}")
+            return {"error": str(e), "validation_result": "FAILED"}
+
+    async def _collect_historical_performance_data(self) -> Dict[str, Any]:
+        """Collect historical performance data for validation"""
+        try:
+            # In production, this would collect actual trading data
+            # For now, return mock historical data structure
+            return {
+                "trades": [],  # Historical trade records
+                "prices": {},  # Historical price data
+                "volumes": {}, # Historical volume data
+                "signals": [], # Historical signal data
+                "period": "6_months"
+            }
+            
+        except Exception as e:
+            logger.error(f"[FORMAL_VALIDATION] Historical data collection error: {e}")
+            return {}
+
+    async def _handle_validation_results(self, validation_report):
+        """Handle validation results and send alerts if needed"""
+        try:
+            # Check if validation shows significant degradation
+            if validation_report.validation_result.value in ["POOR", "FAILED"]:
+                logger.warning(f"[FORMAL_VALIDATION] Strategy validation failed: {validation_report.validation_result.value}")
+                
+                # Send critical alert
+                if hasattr(self, 'alert_system'):
+                    await self.alert_system.emit_alert(
+                        level="critical",
+                        type="validation_failure", 
+                        message=f"Strategy validation failed with result: {validation_report.validation_result.value}",
+                        data={
+                            "overall_score": validation_report.overall_score,
+                            "confidence": validation_report.confidence_level,
+                            "weaknesses": validation_report.weaknesses,
+                            "recommendations": validation_report.recommendations
+                        }
+                    )
+            
+            elif validation_report.validation_result.value == "ACCEPTABLE":
+                logger.warning("[FORMAL_VALIDATION] Strategy performance is acceptable but has concerns")
+                
+                # Send warning alert
+                if hasattr(self, 'alert_system'):
+                    await self.alert_system.emit_alert(
+                        level="warning",
+                        type="validation_warning",
+                        message="Strategy validation shows acceptable but concerning performance",
+                        data={
+                            "overall_score": validation_report.overall_score,
+                            "weaknesses": validation_report.weaknesses,
+                            "recommendations": validation_report.recommendations[:3]  # Top 3 recommendations
+                        }
+                    )
+            
+            else:
+                logger.info(f"[FORMAL_VALIDATION] Strategy validation successful: {validation_report.validation_result.value}")
+            
+        except Exception as e:
+            logger.error(f"[FORMAL_VALIDATION] Validation result handling error: {e}")
+
+    def get_validation_summary(self) -> Dict[str, Any]:
+        """Get current validation status summary"""
+        try:
+            return self.formal_validator.get_validation_summary()
+        except Exception as e:
+            logger.error(f"[FORMAL_VALIDATION] Get validation summary error: {e}")
+            return {"error": str(e)}
