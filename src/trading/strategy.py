@@ -28,6 +28,7 @@ from .risk import RiskManager, MarketCondition
 from .performance import PerformanceMonitor
 from .signals import Signal, SignalGenerator
 from .market_analyzer import MarketAnalyzer
+from ..arbitrage.real_dex_connector import RealDEXConnector, DEXType
 from .transaction_manager import TransactionManager, TransactionStatus
 from ..utils.performance_analytics import add_trade_to_analytics
 from ..utils.risk_management import update_risk_metrics
@@ -163,6 +164,11 @@ class TradingStrategy(TradingStrategyProtocol):
         self.market_regime_detector = MarketRegimeDetector(settings)
         self.current_regime: Optional[MarketState] = None
         
+        # Initialize DEX fallback system for when Jupiter is rate limited
+        self.dex_connector = None  # Will be initialized async
+        self.jupiter_failed_count = 0
+        self.use_dex_fallback = False
+        
         # Phase 2 components
         self.grid_trading = grid_trading
         self.strategy_coordinator = strategy_coordinator
@@ -209,7 +215,7 @@ class TradingStrategy(TradingStrategyProtocol):
         )
 
         self.alert_system = AlertSystem(settings)
-        self.swap_executor = SwapExecutor(jupiter_client, wallet)
+        self.swap_executor = SwapExecutor(jupiter_client, wallet, self)
         self.position_manager = PositionManager(self.swap_executor, settings)
         self.transaction_manager: Optional[TransactionManager] = None
         
@@ -340,11 +346,111 @@ class TradingStrategy(TradingStrategyProtocol):
                 },
             )
             return True
-
+            
         except Exception as e:
             self.state.last_error = str(e)
             logger.error(f"Error starting {self.state.mode.value} trading: {e}")
             return False
+
+    async def get_quote_with_fallback(
+        self,
+        input_token: str,
+        output_token: str, 
+        amount: float,
+        slippage: float = 1.0
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Intelligent quote system with DEX fallbacks when Jupiter is rate limited.
+        Try Jupiter first, then fall back to Raydium/Orca if rate limited.
+        """
+        
+        # Initialize DEX connector if needed
+        if not self.dex_connector:
+            try:
+                logger.info("[DEX] Initializing DEX fallback system...")
+                self.dex_connector = RealDEXConnector(self.settings)
+                await self.dex_connector.initialize()
+                logger.info("[DEX] ✅ DEX fallback system ready")
+            except Exception as e:
+                logger.warning(f"[DEX] Failed to initialize DEX fallback: {e}")
+                # Continue with Jupiter-only mode
+        
+        # Try Jupiter first if not in fallback mode
+        if not self.use_dex_fallback:
+            try:
+                logger.info(f"[QUOTE] Trying Jupiter for {input_token[:8]}... -> {output_token[:8]}...")
+                jupiter_quote = await self.jupiter.get_quote(input_token, output_token, amount, int(slippage * 100))
+                
+                if jupiter_quote:
+                    # Reset failure count on success
+                    self.jupiter_failed_count = 0
+                    self.use_dex_fallback = False
+                    logger.info(f"[QUOTE] ✅ Jupiter quote successful: {jupiter_quote.get('outAmount', 'N/A')}")
+                    return jupiter_quote
+                    
+            except Exception as jupiter_error:
+                self.jupiter_failed_count += 1
+                logger.warning(f"[QUOTE] Jupiter failed (attempt {self.jupiter_failed_count}): {jupiter_error}")
+                
+                # Switch to DEX fallback after 3 consecutive failures
+                if self.jupiter_failed_count >= 3:
+                    self.use_dex_fallback = True
+                    logger.info(f"[QUOTE] 🔄 Switching to DEX fallback mode after {self.jupiter_failed_count} failures")
+        
+        # Use DEX fallback system
+        logger.info(f"[QUOTE] 🚀 Using DEX fallback for {input_token[:8]}... -> {output_token[:8]}...")
+        
+        try:
+            # Try Raydium first (lower fees, good liquidity)
+            raydium_quote = await self.dex_connector.get_quote(
+                DEXType.RAYDIUM, input_token, output_token, amount
+            )
+            
+            if raydium_quote:
+                logger.info(f"[QUOTE] ✅ Raydium quote: {raydium_quote.amount_out:.6f} (fee: {raydium_quote.fee:.2%})")
+                # Convert DEX quote to Jupiter-compatible format
+                return {
+                    'inputMint': input_token,
+                    'outputMint': output_token,
+                    'inAmount': str(int(amount * 1e9)),  # Convert to lamports
+                    'outAmount': str(int(raydium_quote.amount_out * 1e9)),
+                    'otherAmountThreshold': str(int(raydium_quote.amount_out * (1 - slippage/100) * 1e9)),
+                    'swapMode': 'ExactIn',
+                    'slippageBps': int(slippage * 100),
+                    'platformFee': None,
+                    'priceImpactPct': raydium_quote.impact,
+                    'routePlan': [{'swapInfo': {'ammKey': 'raydium', 'label': 'Raydium AMM'}}]
+                }
+                
+        except Exception as raydium_error:
+            logger.warning(f"[QUOTE] Raydium failed: {raydium_error}")
+        
+        try:
+            # Fallback to Orca
+            orca_quote = await self.dex_connector.get_quote(
+                DEXType.ORCA, input_token, output_token, amount
+            )
+            
+            if orca_quote:
+                logger.info(f"[QUOTE] ✅ Orca quote: {orca_quote.amount_out:.6f} (fee: {orca_quote.fee:.2%})")
+                return {
+                    'inputMint': input_token,
+                    'outputMint': output_token,
+                    'inAmount': str(int(amount * 1e9)),
+                    'outAmount': str(int(orca_quote.amount_out * 1e9)),
+                    'otherAmountThreshold': str(int(orca_quote.amount_out * (1 - slippage/100) * 1e9)),
+                    'swapMode': 'ExactIn',
+                    'slippageBps': int(slippage * 100),
+                    'platformFee': None,
+                    'priceImpactPct': orca_quote.impact,
+                    'routePlan': [{'swapInfo': {'ammKey': 'orca', 'label': 'Orca Whirlpool'}}]
+                }
+                
+        except Exception as orca_error:
+            logger.warning(f"[QUOTE] Orca failed: {orca_error}")
+        
+        logger.error(f"[QUOTE] ❌ All DEX options failed for {input_token[:8]}... -> {output_token[:8]}...")
+        return None
 
     async def stop_trading(self) -> bool:
         """Stop trading and cleanup resources"""
@@ -1677,12 +1783,23 @@ class TradingStrategy(TradingStrategyProtocol):
                         price_deviation = abs(current_price - signal.price) / signal.price
                         logger.info(f"[PRICE] Current price: {current_price}, Signal price: {signal.price}, Deviation: {price_deviation:.2%}")
                         
-                        if price_deviation > signal.slippage:
+                        # PHASE 1 FIX: Dynamic slippage tolerance for high-momentum tokens
+                        # For high-momentum tokens (>100%), allow much higher price deviations
+                        # as they're experiencing explosive price movements
+                        max_slippage = signal.slippage
+                        if hasattr(signal, 'entry_type') and signal.entry_type == 'ENHANCED_MOMENTUM':
+                            # High-momentum tokens can have 20x normal slippage tolerance
+                            max_slippage = min(signal.slippage * 20, 10.0)  # Cap at 1000% slippage
+                            logger.info(f"[MOMENTUM_TOLERANCE] High-momentum token - expanded slippage tolerance to {max_slippage:.1%}")
+                        
+                        if price_deviation > max_slippage:
                             logger.warning(
-                                f"[SLIPPAGE] Price deviation too high for {signal.token_address[:8]}...: {price_deviation:.2%} > {signal.slippage:.2%}"
+                                f"[SLIPPAGE] Price deviation too high for {signal.token_address[:8]}...: {price_deviation:.2%} > {max_slippage:.2%}"
                             )
                             self.state.pending_orders.remove(signal)
                             continue
+                        else:
+                            logger.info(f"[SLIPPAGE_OK] Price deviation acceptable: {price_deviation:.2%} <= {max_slippage:.2%}")
 
                     logger.info(f"[VALIDATE] Validating price conditions for {signal.token_address[:8]}...")
                     
@@ -1917,7 +2034,7 @@ class TradingStrategy(TradingStrategyProtocol):
             
             # Smart pre-validation with fallback - saves gas and time while allowing edge cases
             logger.info(f"[MEME_VALIDATE] Smart validation for {signal.token_address[:8]}...")
-            test_quote = await self.jupiter.get_quote(
+            test_quote = await self.get_quote_with_fallback(
                 "So11111111111111111111111111111111111111112",  # SOL
                 signal.token_address,
                 "1000000",  # 0.001 SOL test amount  
@@ -2507,7 +2624,7 @@ class TradingStrategy(TradingStrategyProtocol):
             # Method 1: Try Jupiter quote API first
             try:
                 logger.debug(f"[PRICE] Trying Jupiter quote API for {token_address[:8]}...")
-                price_data = await self.jupiter.get_quote(
+                price_data = await self.get_quote_with_fallback(
                     token_address,
                     "So11111111111111111111111111111111111111112",  # SOL
                     "1000000000",  # 1 token (adjust for decimals)

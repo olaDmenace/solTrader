@@ -52,9 +52,10 @@ class PrivateSwapConfig:
 class SwapExecutor:
     """Enhanced swap executor with MEV protection"""
 
-    def __init__(self, jupiter_client: Any, wallet: Any):
+    def __init__(self, jupiter_client: Any, wallet: Any, strategy: Any = None):
         self.jupiter = jupiter_client
         self.wallet = wallet
+        self.strategy = strategy  # Reference to Strategy for real DEX fallbacks
         self.private_rpcs: List[str] = []
         self.recent_swaps: List[Dict[str, Any]] = []
         self.max_retries: int = 3
@@ -240,12 +241,12 @@ class SwapExecutor:
             logger.info(f"[ROUTE] Jupiter response: {routes}")
 
             if not routes:
-                logger.warning(f"[ROUTE] No routes from Jupiter - trying fallback quote method")
-                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+                logger.warning(f"[ROUTE] No routes from Jupiter - trying REAL DEX fallback")
+                return await self._use_strategy_fallback(input_token, output_token, amount, slippage)
                 
             if not isinstance(routes, dict):
-                logger.warning(f"[ROUTE] Non-dict response - trying fallback quote method")
-                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+                logger.warning(f"[ROUTE] Non-dict response - trying REAL DEX fallback")
+                return await self._use_strategy_fallback(input_token, output_token, amount, slippage)
                 
             # Jupiter quote API returns the quote directly, not wrapped in 'data'
             # Check if this is a direct quote response (has outAmount) or a routes response (has data)
@@ -263,9 +264,9 @@ class SwapExecutor:
                 logger.info(f"[ROUTE] SUCCESS - Direct quote route created")
                 return route
             elif 'data' not in routes:
-                logger.warning(f"[ROUTE] No 'data' field and no 'outAmount' - trying fallback quote method")
+                logger.warning(f"[ROUTE] No 'data' field and no 'outAmount' - trying REAL DEX fallback")
                 logger.info(f"[ROUTE] Available keys: {list(routes.keys()) if isinstance(routes, dict) else 'N/A'}")
-                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+                return await self._use_strategy_fallback(input_token, output_token, amount, slippage)
             else:
                 # This is a routes response with 'data' field
                 routes_data = routes['data']
@@ -300,6 +301,62 @@ class SwapExecutor:
             logger.error(f"[ROUTE] EXCEPTION - Error getting optimal route: {str(e)}")
             import traceback
             logger.error(f"[ROUTE] Traceback: {traceback.format_exc()}")
+            return None
+
+    async def _use_strategy_fallback(
+        self,
+        input_token: str,
+        output_token: str,
+        amount: Decimal,
+        slippage: float
+    ) -> Optional[SwapRoute]:
+        """Use the Strategy's real DEX fallback system (Raydium/Orca)"""
+        try:
+            if not self.strategy:
+                logger.warning(f"[REAL_FALLBACK] No strategy reference - cannot use DEX fallbacks")
+                return await self._fallback_route_creation(input_token, output_token, amount, slippage)
+            
+            logger.info(f"[REAL_FALLBACK] Using Strategy's get_quote_with_fallback for REAL DEX routing")
+            logger.info(f"[REAL_FALLBACK] Token: {input_token[:8]}... -> {output_token[:8]}...")
+            logger.info(f"[REAL_FALLBACK] Amount: {amount} SOL")
+            
+            # Convert Decimal amount to string (lamports)
+            amount_lamports = str(int(amount * Decimal("1e9")))
+            slippage_percent = slippage * 100  # Strategy expects percentage
+            
+            # Call the Strategy's REAL DEX fallback system
+            quote = await self.strategy.get_quote_with_fallback(
+                input_token,
+                output_token,
+                amount_lamports,
+                slippage_percent
+            )
+            
+            if quote and isinstance(quote, dict) and "outAmount" in quote:
+                logger.info(f"[REAL_FALLBACK] ✅ SUCCESS - Got quote from REAL DEX fallbacks!")
+                logger.info(f"[REAL_FALLBACK] Output: {quote.get('outAmount', 'N/A')} lamports")
+                
+                # Create route from the REAL DEX quote
+                route = SwapRoute(
+                    input_mint=input_token,
+                    output_mint=output_token,
+                    amount=amount,
+                    slippage=slippage,
+                    platforms=["Real DEX Fallback"],  # Indicate this came from real DEX
+                    expected_output=Decimal(str(quote.get('outAmount', 0))) / Decimal("1e9")
+                )
+                
+                logger.info(f"[REAL_FALLBACK] Route created with expected output: {route.expected_output}")
+                return route
+            else:
+                logger.error(f"[REAL_FALLBACK] FAILED - No valid quote from real DEX fallbacks")
+                logger.error(f"[REAL_FALLBACK] Quote response: {quote}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"[REAL_FALLBACK] EXCEPTION - Error using strategy fallback: {str(e)}")
+            import traceback
+            logger.error(f"[REAL_FALLBACK] Traceback: {traceback.format_exc()}")
             return None
 
     async def _fallback_route_creation(
@@ -454,17 +511,40 @@ class SwapExecutor:
     ) -> SwapResult:
         """Execute swap with protection measures"""
         try:
-            # Build transaction using Jupiter v6 API
+            # Build transaction using Jupiter v6 API with rate limiting
             logger.info(f"[SWAP] Creating transaction with Jupiter for quote: {quote.get('outAmount', 'unknown')}")
-            swap_tx = await self.jupiter.create_swap_transaction(quote, str(self.wallet.wallet_address))
+            
+            # Try Jupiter swap transaction creation with retries
+            swap_tx = None
+            max_retries = 5
+            base_delay = 2.0  # Start with 2 seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    swap_tx = await self.jupiter.create_swap_transaction(quote, str(self.wallet.wallet_address))
+                    if swap_tx:
+                        logger.info(f"[SWAP] ✅ Jupiter transaction created successfully on attempt {attempt + 1}")
+                        break
+                    else:
+                        logger.warning(f"[SWAP] Jupiter returned None on attempt {attempt + 1}")
+                        
+                except Exception as e:
+                    if "429" in str(e) or "Too Many Requests" in str(e):
+                        delay = base_delay * (2 ** attempt)  # Exponential backoff
+                        logger.warning(f"[SWAP] Rate limited on attempt {attempt + 1}, waiting {delay}s...")
+                        await asyncio.sleep(delay)
+                    else:
+                        logger.error(f"[SWAP] Jupiter error on attempt {attempt + 1}: {e}")
+                        break
+            
             if not swap_tx:
-                logger.error(f"[SWAP] Jupiter transaction creation returned None - no transaction created")
+                logger.error(f"[SWAP] All Jupiter attempts failed - no transaction created after {max_retries} tries")
                 return SwapResult(
                     success=False,
                     signature=None,
                     output_amount=None,
                     execution_time=0.0,
-                    error="Failed to get swap transaction from Jupiter"
+                    error="Failed to get swap transaction from Jupiter after retries"
                 )
 
             # Deserialize transaction from Jupiter

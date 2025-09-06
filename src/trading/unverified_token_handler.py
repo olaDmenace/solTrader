@@ -26,6 +26,12 @@ class UnverifiedTokenHandler:
         self.failed_tokens = set()  # Tokens that consistently fail
         self.jupiter_base_url = "https://quote-api.jup.ag/v6"
         
+        # CRITICAL FIX: Ensure SOL is never in failed cache
+        SOL_MINT = "So11111111111111111111111111111111111111112"
+        if SOL_MINT in self.failed_tokens:
+            self.failed_tokens.remove(SOL_MINT)
+            logger.info(f"[UNVERIFIED] Removed SOL from failed tokens cache")
+        
     async def validate_unverified_token_trade(
         self, 
         token_mint: str, 
@@ -38,6 +44,12 @@ class UnverifiedTokenHandler:
         Returns: (is_safe, reason, token_metadata)
         """
         try:
+            # CRITICAL FIX: Never fail SOL token - it's the base currency
+            SOL_MINT = "So11111111111111111111111111111111111111112"
+            if token_mint == SOL_MINT or output_mint == SOL_MINT:
+                logger.info(f"[UNVERIFIED] SOL token whitelisted - always safe")
+                return True, "SOL is always safe", {"symbol": "SOL", "decimals": 9}
+            
             # Check if token is in failed cache
             if token_mint in self.failed_tokens:
                 return False, "Token in failed cache", None

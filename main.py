@@ -12,10 +12,12 @@ from src.api.solana_tracker import SolanaTrackerClient
 from src.enhanced_token_scanner import EnhancedTokenScanner
 from src.phantom_wallet import PhantomWallet
 from src.trading.strategy import TradingStrategy, TradingMode
-from src.trading.grid_trading_strategy import GridTradingStrategy
-from src.trading.mean_reversion_strategy import MeanReversionStrategy
-from src.coordination.strategy_coordinator import StrategyCoordinator
-from src.trading.arbitrage_system import ArbitrageSystem
+# PHASE 1 FIX: Disable additional strategies to focus on momentum trading only
+# from src.trading.grid_trading_strategy import GridTradingStrategy
+# from src.trading.mean_reversion_strategy import MeanReversionStrategy  
+# from src.coordination.strategy_coordinator import StrategyCoordinator
+# DISABLED FOR TESTING: Testing momentum strategy in isolation
+# from src.trading.arbitrage_system import ArbitrageSystem
 from src.analytics.performance_analytics import PerformanceAnalytics
 from src.notifications.email_system import EmailNotificationSystem
 from src.dashboard.unified_web_dashboard import UnifiedWebDashboard
@@ -87,33 +89,34 @@ class TradingBot:
             self.solana_tracker
         )
 
-        # Initialize Phase 2 components (Grid Trading & Strategy Coordination)
+        # PHASE 1 FIX: Disable additional strategies to focus on momentum trading only
         mode = TradingMode.PAPER if self.settings.PAPER_TRADING else TradingMode.LIVE
-        self.grid_trading = GridTradingStrategy(
-            settings=self.settings,
-            jupiter_client=self.jupiter,
-            wallet=self.wallet,
-            mode=mode,
-            analytics=self.analytics  # Pass analytics for trade recording
-        )
+        # self.grid_trading = GridTradingStrategy(
+        #     settings=self.settings,
+        #     jupiter_client=self.jupiter,
+        #     wallet=self.wallet,
+        #     mode=mode,
+        #     analytics=self.analytics  # Pass analytics for trade recording
+        # )
+        # 
+        # self.mean_reversion = MeanReversionStrategy(
+        #     settings=self.settings
+        # )
+        # 
+        # self.strategy_coordinator = StrategyCoordinator(
+        #     settings=self.settings,
+        #     analytics=self.analytics
+        # )
         
-        self.mean_reversion = MeanReversionStrategy(
-            settings=self.settings
-        )
-        
-        self.strategy_coordinator = StrategyCoordinator(
-            settings=self.settings,
-            analytics=self.analytics
-        )
-        
-        self.arbitrage_system = ArbitrageSystem(
-            settings=self.settings,
-            jupiter_client=self.jupiter,
-            analytics=self.analytics  # Pass analytics for trade recording
-        )
-        
-        # Connect dashboard to arbitrage system for live data
-        self.dashboard.set_arbitrage_system(self.arbitrage_system)
+        # DISABLED FOR TESTING: Testing momentum strategy in isolation
+        # self.arbitrage_system = ArbitrageSystem(
+        #     settings=self.settings,
+        #     jupiter_client=self.jupiter,
+        #     analytics=self.analytics  # Pass analytics for trade recording
+        # )
+        # 
+        # # Connect dashboard to arbitrage system for live data
+        # self.dashboard.set_arbitrage_system(self.arbitrage_system)
         
         # Initialize centralized trade logger
         self.trade_logger = CentralizedTradeLogger(self.settings)
@@ -123,16 +126,17 @@ class TradingBot:
         self.portfolio_risk_manager = PortfolioRiskManager(self.settings)
         self.portfolio_manager = PortfolioManager(self.settings, self.capital_allocator, self.portfolio_risk_manager)
 
-        # Initialize trading strategy with enhanced scanner and Phase 2 integration
+        # PHASE 1 FIX: Initialize trading strategy with ONLY momentum trading (like successful commit)
         self.strategy = TradingStrategy(
             jupiter_client=self.jupiter,
             wallet=self.wallet,
             settings=self.settings,
             scanner=self.enhanced_scanner,  # Use enhanced scanner
             mode=mode,
-            grid_trading=self.grid_trading,
-            strategy_coordinator=self.strategy_coordinator,
-            arbitrage_system=self.arbitrage_system,
+            # PHASE 1: Disable all additional strategies
+            # grid_trading=self.grid_trading,
+            # strategy_coordinator=self.strategy_coordinator,
+            # DISABLED: arbitrage_system=self.arbitrage_system,
             trade_logger=self.trade_logger
         )
 
@@ -147,28 +151,30 @@ class TradingBot:
         try:
             from src.portfolio.allocator_integration import integrate_existing_strategy
             
-            # Integration configurations for each strategy
+            # PHASE 1 FIX: Only integrate momentum strategy (like successful commit)
             strategy_configs = [
                 {
                     'instance': self.strategy,
                     'name': 'momentum_strategy',
-                    'allocation': 0.30
-                },
-                {
-                    'instance': self.grid_trading,
-                    'name': 'grid_trading_strategy', 
-                    'allocation': 0.25
-                },
-                {
-                    'instance': self.mean_reversion,
-                    'name': 'mean_reversion_strategy',
-                    'allocation': 0.20
-                },
-                {
-                    'instance': self.arbitrage_system,
-                    'name': 'arbitrage_strategy',
-                    'allocation': 0.25
+                    'allocation': 1.00  # 100% allocation to momentum only
                 }
+                # PHASE 1: All other strategies disabled
+                # {
+                #     'instance': self.grid_trading,
+                #     'name': 'grid_trading_strategy', 
+                #     'allocation': 0.25
+                # },
+                # {
+                #     'instance': self.mean_reversion,
+                #     'name': 'mean_reversion_strategy',
+                #     'allocation': 0.20
+                # },
+                # DISABLED FOR TESTING
+                # {
+                #     'instance': self.arbitrage_system,
+                #     'name': 'arbitrage_strategy',
+                #     'allocation': 0.25
+                # }
             ]
             
             # Integrate each strategy
@@ -249,9 +255,10 @@ class TradingBot:
             await self.dashboard.start()
             logger.info("[OK] Unified Web Dashboard started")
             
-            # Start arbitrage system
-            await self.arbitrage_system.start()
-            logger.info("[OK] Arbitrage system started")
+            # DISABLED FOR TESTING: Testing momentum strategy in isolation
+            # # Start arbitrage system
+            # await self.arbitrage_system.start()
+            # logger.info("[OK] Arbitrage system started")
             
             # Start centralized trade logger
             await self.trade_logger.start()
@@ -300,7 +307,12 @@ class TradingBot:
                 f"Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL"
             )
             logger.info(f"[MODE] Bot initialized in {mode} trading mode")
-            logger.info(f"[BALANCE] Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
+            if self.settings.PAPER_TRADING:
+                logger.info(f"[BALANCE] Initial balance: {self.settings.INITIAL_PAPER_BALANCE} SOL (paper)")
+            else:
+                # Live trading - show actual wallet balance
+                wallet_balance = await self.wallet.get_balance()
+                logger.info(f"[BALANCE] Live wallet balance: {wallet_balance:.6f} SOL")
             logger.info("[ENHANCED] All enhanced features activated successfully")
             
             # TEMPORARY: Skip health monitoring to fix core trading
@@ -451,9 +463,10 @@ class TradingBot:
                 await self.dashboard.stop()
                 logger.info("[OK] Unified Web Dashboard stopped")
             
-            if self.arbitrage_system:
-                await self.arbitrage_system.stop()
-                logger.info("[OK] Arbitrage system stopped")
+            # DISABLED FOR TESTING: Testing momentum strategy in isolation
+            # if self.arbitrage_system:
+            #     await self.arbitrage_system.stop()
+            #     logger.info("[OK] Arbitrage system stopped")
             
             if self.trade_logger:
                 await self.trade_logger.stop()
