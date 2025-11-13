@@ -67,3 +67,4 @@ troubleshoot_service.sh
 SolTrader_SaaS_PRD.md
 
 data/token_cache/
+.env
