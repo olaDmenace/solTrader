@@ -1,0 +1,630 @@
+"""
+Signal Models - MIGRATED from src/trading/signals.py
+
+MIGRATION NOTE: Extracted from src/trading/signals.py for Day 3 data model consolidation
+CRITICAL: All signal generation logic PRESERVED 100% - no algorithm modifications
+Enhanced with Sentry error tracking and Prometheus metrics for professional monitoring
+"""
+
+import asyncio
+import logging
+import time
+import numpy as np
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Set, Any, Tuple, Union, Mapping, TypedDict
+from dataclasses import dataclass, field
+from enum import Enum
+
+# Sentry integration for professional error tracking
+from utils.sentry_config import capture_api_error
+
+# Prometheus metrics for professional monitoring
+try:
+    from utils.prometheus_metrics import get_metrics
+except ImportError:
+    # Fallback during development
+    def get_metrics():
+        return None
+
+logger = logging.getLogger(__name__)
+
+@dataclass
+class Signal:
+    """Trading signal with comprehensive market data"""
+    token_address: str
+    price: float
+    strength: float
+    market_data: Dict[str, Any]
+    signal_type: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    # Enhanced signal metadata
+    source: str = "momentum"
+    confidence: float = 0.0
+    rsi_value: Optional[float] = None
+    z_score: Optional[float] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert signal to dictionary format"""
+        return {
+            "token_address": self.token_address,
+            "price": self.price,
+            "strength": self.strength,
+            "signal_type": self.signal_type,
+            "timestamp": self.timestamp,
+            "source": self.source,
+            "confidence": self.confidence,
+            "rsi_value": self.rsi_value,
+            "z_score": self.z_score,
+            "market_data": self.market_data
+        }
+
+@dataclass
+class MarketCondition:
+    """Market condition analysis for signal generation"""
+    volume_24h: float
+    liquidity: float
+    price_change_24h: float
+    volatility: float
+    momentum_score: float
+    
+    # Enhanced market data
+    trending_token: Optional[bool] = None
+    trending_score: Optional[float] = None
+    bid_ask_spread: float = 0.02
+    recent_whale_activity: bool = False
+
+class TrendData(TypedDict):
+    """Trend analysis data structure"""
+    momentum: float
+    volatility: float
+    trend_strength: float
+
+class SignalType(Enum):
+    """Signal type enumeration"""
+    STRONG_BUY = "strong_buy"
+    BUY = "buy"
+    NEUTRAL = "neutral"
+    SELL = "sell"
+    STRONG_SELL = "strong_sell"
+    MEAN_REVERSION_BUY = "mean_reversion_buy"
+    MEAN_REVERSION_SELL = "mean_reversion_sell"
+
+class TrendAnalysis:
+    """Technical trend analysis for multiple timeframes"""
+    
+    def __init__(self):
+        self.timeframes = ['5m', '15m', '1h', '4h']
+        self.window_sizes = {'5m': 12, '15m': 24, '1h': 24, '4h': 24}
+
+    def analyze(self, price_history: Dict[str, List[float]]) -> Dict[str, TrendData]:
+        """Analyze trends across multiple timeframes"""
+        try:
+            trends = {}
+            for timeframe in self.timeframes:
+                if timeframe in price_history and len(price_history[timeframe]) >= 2:
+                    prices = price_history[timeframe]
+                    trends[timeframe] = {
+                        'momentum': self._calculate_momentum(prices),
+                        'volatility': self._calculate_volatility(prices),
+                        'trend_strength': self._calculate_trend_strength(prices)
+                    }
+            return trends
+            
+        except Exception as e:
+            # Capture error with Sentry for professional error tracking
+            capture_api_error(
+                error=e,
+                api_name="trend_analysis",
+                endpoint="analyze",
+                context={"timeframes": len(price_history)}
+            )
+            logger.error(f"[TREND] Error analyzing trends: {e}")
+            return {}
+
+    def _calculate_momentum(self, prices: List[float]) -> float:
+        """Calculate momentum from price series"""
+        try:
+            if not prices or len(prices) < 2:
+                return 0.0
+            changes = np.diff(prices)
+            if len(changes) == 0:
+                return 0.0
+            result = float(np.mean(changes))
+            return result if not np.isnan(result) and np.isfinite(result) else 0.0
+        except Exception:
+            return 0.0
+
+    def _calculate_volatility(self, prices: List[float]) -> float:
+        """Calculate volatility from price series"""
+        try:
+            if not prices or len(prices) == 0:
+                return 0.0
+            mean_price = np.mean(prices)
+            if mean_price == 0:
+                return 0.0
+            std_price = np.std(prices)
+            result = float(std_price / mean_price)
+            return result if not np.isnan(result) and np.isfinite(result) else 0.0
+        except Exception:
+            return 0.0
+
+    def _calculate_trend_strength(self, prices: List[float]) -> float:
+        """Calculate trend strength using linear regression"""
+        try:
+            if not prices or len(prices) < 2:
+                return 0.0
+            linear_reg = np.polyfit(range(len(prices)), prices, 1)
+            if len(linear_reg) == 0:
+                return 0.0
+            result = float(abs(linear_reg[0]))
+            return result if not np.isnan(result) and np.isfinite(result) else 0.0
+        except Exception:
+            return 0.0
+
+class VolumeAnalysis:
+    """Volume analysis for market condition assessment"""
+    
+    def analyze(self, volume_data: List[float]) -> Dict[str, float]:
+        """Analyze volume trends and consistency"""
+        try:
+            if not volume_data:
+                return {'volume_trend': 0.0, 'volume_consistency': 0.0}
+
+            return {
+                'volume_trend': self._calculate_volume_trend(volume_data),
+                'volume_consistency': self._calculate_volume_consistency(volume_data)
+            }
+            
+        except Exception as e:
+            # Capture error with Sentry for professional error tracking
+            capture_api_error(
+                error=e,
+                api_name="volume_analysis",
+                endpoint="analyze",
+                context={"volume_data_points": len(volume_data)}
+            )
+            logger.error(f"[VOLUME] Error analyzing volume: {e}")
+            return {'volume_trend': 0.0, 'volume_consistency': 0.0}
+
+    def _calculate_volume_trend(self, volumes: List[float]) -> float:
+        """Calculate volume trend"""
+        if len(volumes) < 2:
+            return 0.0
+        return float(volumes[-1] / np.mean(volumes) if volumes else 0)
+
+    def _calculate_volume_consistency(self, volumes: List[float]) -> float:
+        """Calculate volume consistency"""
+        if not volumes:
+            return 0.0
+        return 1.0 - float(np.std(volumes) / np.mean(volumes) if volumes else 0)
+
+class SignalGenerator:
+    """Advanced signal generator with momentum and mean reversion strategies"""
+    
+    def __init__(self, settings: Any):
+        self.settings = settings
+        self.min_volume = settings.MIN_VOLUME_24H
+        self.min_liquidity = settings.MIN_LIQUIDITY
+        self.signal_threshold = settings.SIGNAL_THRESHOLD
+        self.trend_analyzer = TrendAnalysis()
+        self.volume_analyzer = VolumeAnalysis()
+        self.analyzed_tokens: Dict[str, datetime] = {}
+        
+        # Initialize mean reversion strategy if enabled
+        self.mean_reversion = None
+        if hasattr(settings, 'ENABLE_MEAN_REVERSION') and settings.ENABLE_MEAN_REVERSION:
+            try:
+                from src.trading.mean_reversion_strategy import MeanReversionStrategy
+                self.mean_reversion = MeanReversionStrategy(settings)
+                logger.info("[SIGNALS] Mean reversion strategy enabled")
+            except ImportError as e:
+                logger.warning(f"[SIGNALS] Could not import mean reversion strategy: {e}")
+
+    async def analyze_token(self, token_data) -> Optional[Signal]:
+        """Analyze token for trading signals"""
+        try:
+            # Convert TokenObject to dict if needed
+            if hasattr(token_data, 'address'):
+                # It's a TokenObject, convert to dict format
+                token_dict = {
+                    'address': getattr(token_data, 'address', ''),
+                    'price': getattr(token_data, 'price_sol', 0),
+                    'volume24h': getattr(token_data, 'volume24h', 0),
+                    'liquidity': getattr(token_data, 'liquidity', 0),
+                    'market_cap': getattr(token_data, 'market_cap', 0),
+                    'created_at': getattr(token_data, 'created_at', None),
+                    'scan_id': getattr(token_data, 'scan_id', 0),
+                    'source': getattr(token_data, 'source', 'unknown')
+                }
+            else:
+                # It's already a dict - normalize field names
+                token_dict = self._normalize_token_fields(token_data)
+
+            if not self._validate_token_data(token_dict):
+                return None
+
+            market_condition = await self._analyze_market_condition(token_dict)
+            if not market_condition:
+                return None
+
+            # Check for mean reversion signals first
+            mean_reversion_signal = None
+            if self.mean_reversion:
+                mean_reversion_signal = await self._analyze_mean_reversion(token_dict)
+            
+            # Use mean reversion signal if available and strong enough
+            if mean_reversion_signal and mean_reversion_signal.confidence >= 0.6:
+                logger.info(f"[MEAN_REVERSION] Strong signal for {token_dict['address'][:8]}... "
+                          f"Type: {mean_reversion_signal.signal_type}, "
+                          f"Confidence: {mean_reversion_signal.confidence:.3f}, "
+                          f"RSI: {mean_reversion_signal.rsi_value:.1f}, "
+                          f"Z-Score: {mean_reversion_signal.z_score:.2f}")
+                
+                return mean_reversion_signal
+            
+            # Fall back to momentum-based signal generation
+            signal_strength = self._calculate_signal_strength(market_condition)
+            
+            # Validate signal strength
+            if signal_strength is None or not isinstance(signal_strength, (int, float)) or signal_strength != signal_strength:
+                logger.warning(f"[SIGNAL] Invalid signal strength returned: {signal_strength}, using fallback (0.1)")
+                signal_strength = 0.1
+            
+            # Ensure signal strength is within valid range
+            signal_strength = max(0.0, min(1.0, float(signal_strength)))
+            
+            logger.info(f"[SIGNAL] Token {token_dict['address'][:8]}... momentum signal strength: {signal_strength:.3f} (threshold: {self.signal_threshold})")
+            
+            if signal_strength < self.signal_threshold:
+                logger.info(f"[SIGNAL] Signal too weak: {signal_strength:.3f} < {self.signal_threshold}")
+                return None
+
+            signal = Signal(
+                token_address=token_dict['address'],
+                price=float(token_dict['price']),
+                strength=signal_strength,
+                market_data=token_dict,
+                signal_type=self._determine_signal_type(market_condition),
+                source="momentum",
+                confidence=signal_strength
+            )
+
+            # Record signal generation metrics with Prometheus
+            try:
+                metrics = get_metrics()
+                if metrics:
+                    metrics.record_signal_generated(token_dict['address'], signal_strength, signal.signal_type)
+            except Exception as e:
+                logger.debug(f"[METRICS] Signal generation recording failed (non-critical): {e}")
+
+            return signal
+
+        except Exception as e:
+            # Capture error with Sentry for professional error tracking
+            capture_api_error(
+                error=e,
+                api_name="signal_generator",
+                endpoint="analyze_token",
+                context={
+                    "token_address": getattr(token_data, 'address', 'unknown') if hasattr(token_data, 'address') else token_data.get('address', 'unknown')
+                }
+            )
+            logger.error(f"Error analyzing token: {str(e)}")
+            return None
+    
+    async def _analyze_mean_reversion(self, token_dict: Dict[str, Any]) -> Optional[Signal]:
+        """Analyze token for mean reversion opportunities"""
+        try:
+            if not self.mean_reversion:
+                return None
+                
+            token_address = token_dict['address']
+            current_price = float(token_dict['price'])
+            volume = float(token_dict.get('volume24h', 0))
+            
+            # Update price data for mean reversion analysis
+            self.mean_reversion.update_price_data(
+                token_address=token_address,
+                timeframe='15m',  # Primary timeframe for mean reversion
+                price=current_price,
+                volume=volume
+            )
+            
+            # Analyze for mean reversion opportunities
+            mean_reversion_signal = self.mean_reversion.analyze_token(
+                token_address=token_address,
+                market_data={
+                    'liquidity_usd': float(token_dict.get('liquidity', 0)) * current_price,
+                    'volume_24h_usd': volume * current_price,
+                    'bid_ask_spread': 0.02,
+                    'recent_whale_activity': False
+                }
+            )
+            
+            if mean_reversion_signal:
+                # Convert mean reversion signal to standard Signal format
+                return Signal(
+                    token_address=token_address,
+                    price=current_price,
+                    strength=mean_reversion_signal.confidence,
+                    market_data=token_dict,
+                    signal_type=mean_reversion_signal.signal_type.value,
+                    source="mean_reversion",
+                    confidence=mean_reversion_signal.confidence,
+                    rsi_value=mean_reversion_signal.rsi_value,
+                    z_score=mean_reversion_signal.z_score
+                )
+                
+            return None
+            
+        except Exception as e:
+            logger.error(f"[MEAN_REVERSION] Error analyzing token {token_dict.get('address', 'unknown')}: {e}")
+            return None
+    
+    def _normalize_token_fields(self, token_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize field names from scanner format to signal generator format"""
+        normalized = token_data.copy()
+        
+        # Map scanner fields to expected signal generator fields
+        field_mappings = {
+            'price_sol': 'price',
+            'volume_24h_sol': 'volume24h', 
+            'liquidity_sol': 'liquidity',
+            'market_cap_sol': 'market_cap'
+        }
+        
+        for scanner_field, signal_field in field_mappings.items():
+            if scanner_field in token_data and signal_field not in token_data:
+                normalized[signal_field] = token_data[scanner_field]
+                logger.debug(f"[NORMALIZE] Mapped {scanner_field} -> {signal_field}: {token_data[scanner_field]}")
+        
+        # Copy trending data if available
+        if 'trending_token' in token_data:
+            normalized['trending_token'] = token_data['trending_token']
+        if 'trending_score' in token_data:
+            normalized['trending_score'] = token_data['trending_score']
+            
+        return normalized
+
+    def _validate_token_data(self, token_data: Dict[str, Any]) -> bool:
+        """Validate token data has required fields"""
+        # Check for scanner format fields
+        scanner_fields = ['address', 'price_sol', 'volume_24h_sol', 'liquidity_sol']
+        legacy_fields = ['address', 'price', 'volume24h', 'liquidity']
+        
+        # Accept either scanner format or legacy format
+        has_scanner_fields = all(field in token_data for field in scanner_fields)
+        has_legacy_fields = all(field in token_data for field in legacy_fields)
+        
+        return has_scanner_fields or has_legacy_fields
+
+    async def _analyze_market_condition(self, token_data: Dict[str, Any]) -> Optional[MarketCondition]:
+        """Analyze market conditions for token"""
+        try:
+            volume_24h = float(token_data.get('volume24h', 0))
+            liquidity = float(token_data.get('liquidity', 0))
+            
+            # Check if this is a trending token (apply permissive thresholds)
+            is_trending = token_data.get('source') == 'birdeye_trending'
+            
+            if is_trending:
+                # More permissive thresholds for trending tokens
+                min_volume = max(self.min_volume * 0.2, 5)
+                min_liquidity = max(self.min_liquidity * 0.5, 200)
+                logger.info(f"[SIGNALS] Trending token detected - using permissive thresholds")
+                logger.info(f"[SIGNALS] Volume: {volume_24h:.1f} SOL (trending threshold: {min_volume:.1f})")
+                logger.info(f"[SIGNALS] Liquidity: {liquidity:.1f} SOL (trending threshold: {min_liquidity:.1f})")
+            else:
+                # Standard thresholds for non-trending tokens
+                min_volume = self.min_volume
+                min_liquidity = self.min_liquidity
+                logger.debug(f"[MARKET] Analyzing: volume={volume_24h}, liquidity={liquidity}")
+                logger.debug(f"[MARKET] Thresholds: min_volume={min_volume}, min_liquidity={min_liquidity}")
+            
+            if volume_24h < min_volume or liquidity < min_liquidity:
+                logger.info(f"[MARKET] Token failed volume/liquidity check: vol={volume_24h:.1f} (min={min_volume:.1f}), liq={liquidity:.1f} (min={min_liquidity:.1f})")
+                return None
+
+            price_history = token_data.get('price_history', {})
+            volume_data = token_data.get('volume_history', [])
+            
+            trend_analysis = self.trend_analyzer.analyze(price_history)
+            volume_analysis = self.volume_analyzer.analyze(volume_data)
+            
+            momentum_score = self._aggregate_momentum(trend_analysis)
+            volatility = self._aggregate_volatility(trend_analysis)
+            
+            # Validate calculated values
+            if momentum_score is None or not isinstance(momentum_score, (int, float)):
+                logger.warning(f"[MARKET] Invalid momentum_score: {momentum_score}, using neutral (0.5)")
+                momentum_score = 0.5
+                
+            if volatility is None or not isinstance(volatility, (int, float)):
+                logger.warning(f"[MARKET] Invalid volatility: {volatility}, using moderate (25.0)")
+                volatility = 25.0
+            
+            logger.debug(f"[MARKET] Creating market condition with momentum={momentum_score:.3f}, volatility={volatility:.3f}")
+            
+            market_condition = MarketCondition(
+                volume_24h=volume_24h,
+                liquidity=liquidity,
+                price_change_24h=self._calculate_price_change(price_history),
+                volatility=float(volatility),
+                momentum_score=float(momentum_score),
+                trending_token=token_data.get('trending_token'),
+                trending_score=token_data.get('trending_score')
+            )
+                
+            return market_condition
+
+        except Exception as e:
+            # Capture error with Sentry for professional error tracking
+            capture_api_error(
+                error=e,
+                api_name="signal_generator",
+                endpoint="analyze_market_condition",
+                context={"token_address": token_data.get('address', 'unknown')}
+            )
+            logger.error(f"Error analyzing market condition: {str(e)}")
+            return None
+
+    def _calculate_signal_strength(self, market_condition: MarketCondition) -> float:
+        """Calculate signal strength with robust error handling and validation"""
+        try:
+            # Validate all inputs with safe defaults
+            volume_24h = float(market_condition.volume_24h) if market_condition.volume_24h is not None else 0.0
+            liquidity = float(market_condition.liquidity) if market_condition.liquidity is not None else 0.0
+            momentum_score = float(market_condition.momentum_score) if market_condition.momentum_score is not None else 0.5
+            volatility = float(market_condition.volatility) if market_condition.volatility is not None else 25.0
+            
+            logger.debug(f"[SIGNAL_CALC] Inputs - Volume: {volume_24h}, Liquidity: {liquidity}, Momentum: {momentum_score:.3f}, Volatility: {volatility:.3f}")
+            
+            # Volume weight: 30% - normalize against expected volume
+            min_vol_threshold = max(self.min_volume, 1.0)
+            volume_score = min(volume_24h / (min_vol_threshold * 10), 1.0) * 0.3
+            
+            # Liquidity weight: 30% - normalize against expected liquidity  
+            min_liq_threshold = max(self.min_liquidity, 1.0)
+            liquidity_score = min(liquidity / (min_liq_threshold * 10), 1.0) * 0.3
+            
+            # Momentum weight: 20%
+            momentum_component = max(0.0, min(1.0, momentum_score)) * 0.2
+            
+            # Volatility weight: 20% (inverse - lower volatility is better)
+            normalized_volatility = min(volatility / 100.0, 1.0)
+            volatility_component = (1.0 - normalized_volatility) * 0.2
+            
+            # Calculate base signal
+            base_signal = volume_score + liquidity_score + momentum_component + volatility_component
+            
+            logger.debug(f"[SIGNAL_CALC] Components - Vol: {volume_score:.3f}, Liq: {liquidity_score:.3f}, Mom: {momentum_component:.3f}, Vol: {volatility_component:.3f}")
+            logger.debug(f"[SIGNAL_CALC] Base signal: {base_signal:.3f}")
+            
+            # Ensure base signal is within valid range
+            base_signal = max(0.0, min(1.0, base_signal))
+            
+            # Apply trending signal enhancement if available
+            enhanced_signal = self._apply_trending_boost(base_signal, market_condition)
+            
+            # Final validation
+            final_signal = max(0.0, min(1.0, float(enhanced_signal)))
+            
+            logger.debug(f"[SIGNAL_CALC] Final signal strength: {final_signal:.3f}")
+            return final_signal
+
+        except Exception as e:
+            # Capture error with Sentry for professional error tracking
+            capture_api_error(
+                error=e,
+                api_name="signal_generator",
+                endpoint="calculate_signal_strength",
+                context={"market_condition": str(market_condition)}
+            )
+            logger.error(f"Error calculating signal strength: {str(e)}")
+            return 0.1
+    
+    def _apply_trending_boost(self, base_signal: float, market_condition: MarketCondition) -> float:
+        """Apply trending signal boost if token has trending data"""
+        try:
+            # Check if token has trending information
+            trending_token = market_condition.trending_token
+            trending_score = market_condition.trending_score
+            
+            if not trending_token or trending_score is None:
+                logger.debug("No trending data available for signal boost")
+                return base_signal
+            
+            # Apply trending boost based on score
+            trending_boost = min(trending_score * 0.2, 0.3)  # Max 0.3 boost
+            enhanced_signal = min(base_signal + trending_boost, 1.0)
+            
+            if enhanced_signal != base_signal:
+                logger.info(f"[TRENDING] Signal enhanced: {base_signal:.3f} → {enhanced_signal:.3f} (boost: +{trending_boost:.3f})")
+            
+            return enhanced_signal
+            
+        except Exception as e:
+            logger.error(f"Error applying trending boost: {e}")
+            return base_signal
+
+    def _aggregate_momentum(self, trend_analysis: Mapping[str, TrendData]) -> float:
+        """Aggregate momentum across timeframes with safe defaults"""
+        if not trend_analysis:
+            logger.debug("[MOMENTUM] No trend analysis data - returning neutral momentum (0.5)")
+            return 0.5
+            
+        weights = {'5m': 0.1, '15m': 0.2, '1h': 0.3, '4h': 0.4}
+        weighted_momentum = 0.0
+        total_weight_used = 0.0
+        
+        for timeframe, weight in weights.items():
+            if timeframe in trend_analysis:
+                momentum_val = trend_analysis[timeframe].get('momentum', 0.0)
+                if momentum_val is not None:
+                    weighted_momentum += float(momentum_val) * weight
+                    total_weight_used += weight
+        
+        # If no valid momentum data was found, return neutral
+        if total_weight_used == 0.0:
+            logger.debug("[MOMENTUM] No valid momentum data found - returning neutral (0.5)")
+            return 0.5
+            
+        # Normalize by actual weights used and convert to 0-1 scale
+        normalized_momentum = weighted_momentum / total_weight_used if total_weight_used > 0 else 0.0
+        result = max(0.0, min(1.0, (normalized_momentum + 1.0) / 2.0))
+        
+        logger.debug(f"[MOMENTUM] Calculated momentum: {result:.3f} from {len(trend_analysis)} timeframes")
+        return float(result)
+
+    def _aggregate_volatility(self, trend_analysis: Mapping[str, TrendData]) -> float:
+        """Aggregate volatility across timeframes with safe defaults"""
+        if not trend_analysis:
+            logger.debug("[VOLATILITY] No trend analysis data - returning moderate volatility (25.0)")
+            return 25.0
+            
+        weights = {'5m': 0.1, '15m': 0.2, '1h': 0.3, '4h': 0.4}
+        weighted_volatility = 0.0
+        total_weight_used = 0.0
+        
+        for timeframe, weight in weights.items():
+            if timeframe in trend_analysis:
+                volatility_val = trend_analysis[timeframe].get('volatility', 0.0)
+                if volatility_val is not None:
+                    weighted_volatility += float(volatility_val) * weight
+                    total_weight_used += weight
+        
+        # If no valid volatility data was found, return moderate volatility
+        if total_weight_used == 0.0:
+            logger.debug("[VOLATILITY] No valid volatility data found - returning moderate (25.0)")
+            return 25.0
+            
+        # Normalize by actual weights used
+        result = weighted_volatility / total_weight_used if total_weight_used > 0 else 25.0
+        
+        logger.debug(f"[VOLATILITY] Calculated volatility: {result:.3f} from {len(trend_analysis)} timeframes")
+        return float(result)
+
+    def _calculate_price_change(self, price_history: Dict[str, List[float]]) -> float:
+        """Calculate 24h price change"""
+        if '1h' not in price_history or not price_history['1h']:
+            return 0.0
+        prices = price_history['1h']
+        if len(prices) < 2:
+            return 0.0
+        return float((prices[-1] - prices[0]) / prices[0] * 100)
+
+    def _determine_signal_type(self, market_condition: MarketCondition) -> str:
+        """Determine signal type based on market conditions"""
+        momentum = market_condition.momentum_score
+        price_change = market_condition.price_change_24h
+        volatility = market_condition.volatility
+
+        if momentum > 0.7 and price_change > 0 and volatility < 50:
+            return SignalType.STRONG_BUY.value
+        elif momentum > 0.5 and price_change > 0:
+            return SignalType.BUY.value
+        elif momentum < 0.3 and price_change < 0:
+            return SignalType.SELL.value
+        else:
+            return SignalType.NEUTRAL.value

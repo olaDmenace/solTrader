@@ -182,14 +182,14 @@ async def demo_quick_functionality_test():
         prices = df['price'].tolist()
         if len(prices) > 20:
             # Test RSI calculation
-            from src.trading.technical_indicators import RSICalculator
+            from utils.technical_indicators import RSICalculator
             rsi_calc = RSICalculator()
             rsi = rsi_calc.calculate(prices)
             if rsi is not None:
                 logger.info(f"   ✅ RSI calculation working: {rsi:.2f}")
             
             # Test Z-score calculation  
-            from src.trading.technical_indicators import ZScoreCalculator
+            from utils.technical_indicators import ZScoreCalculator
             zscore_calc = ZScoreCalculator()
             zscore = zscore_calc.calculate(prices)
             if zscore is not None:

@@ -1,0 +1,413 @@
+{
+  "start_time": "2025-09-10T22:32:50.967416",
+  "end_time": "2025-09-10T22:33:03.508689",
+  "total_tests": 8,
+  "successful_tests": 7,
+  "success_rate": 87.5,
+  "test_results": {
+    "order_manager_initialization": {
+      "success": true,
+      "initialization_complete": true,
+      "database_initialized": true,
+      "component_integrations": {
+        "swap_executor": true,
+        "multi_wallet_manager": true,
+        "risk_manager": true,
+        "portfolio_manager": true
+      },
+      "configuration": {
+        "max_orders_per_minute": 10,
+        "default_slippage": 0.01,
+        "max_slippage": 0.05,
+        "wallet_routing_enabled": true,
+        "mev_protection_default": true
+      },
+      "details": {
+        "status": {
+          "timestamp": "2025-09-10T22:32:50.972411",
+          "status": {
+            "emergency_stop": false,
+            "active_orders": 0,
+            "max_concurrent_orders": 20
+          },
+          "performance": {
+            "orders_last_hour": 20,
+            "success_rate": 0.0,
+            "average_slippage": 0.0,
+            "average_execution_time": 197.24557134840222,
+            "quality_score": 30.0
+          },
+          "configuration": {
+            "max_orders_per_minute": 10,
+            "default_slippage": 0.01,
+            "max_slippage": 0.05,
+            "wallet_routing_enabled": true,
+            "mev_protection_default": true
+          },
+          "integrations": {
+            "swap_executor": true,
+            "multi_wallet_manager": true,
+            "risk_manager": true,
+            "portfolio_manager": true
+          }
+        }
+      }
+    },
+    "basic_order_submission": {
+      "success": true,
+      "order_id_generated": true,
+      "order_accepted": true,
+      "order_processed": true,
+      "final_status": "filled",
+      "execution_details": {
+        "filled_amount": 0.297,
+        "execution_time_ms": 181.11515045166016,
+        "transaction_hash": "mock_tx_0"
+      },
+      "details": {
+        "order_id": "order_1757539970973_0",
+        "order_request": {
+          "token_address": "test_token_123456789",
+          "strategy_name": "momentum",
+          "side": "buy",
+          "amount": 0.3,
+          "order_type": "market"
+        },
+        "order_result": {
+          "order_id": "order_1757539970973_0",
+          "client_order_id": null,
+          "status": "OrderStatus.FILLED",
+          "filled_amount": "0.297",
+          "average_price": 0.0,
+          "total_cost": "0",
+          "fees_paid": "0",
+          "transaction_hash": "mock_tx_0",
+          "execution_time_ms": 181.11515045166016,
+          "slippage_realized": 0.0,
+          "route_used": "route_1757539971",
+          "wallet_used": "momentum_wallet",
+          "error_message": null,
+          "retry_count": 0,
+          "price_improvement": 0.0,
+          "execution_quality_score": 85.0
+        }
+      }
+    },
+    "swap_executor_integration": {
+      "success": true,
+      "order_executed": true,
+      "swap_executor_called": true,
+      "mev_protection_enabled": true,
+      "execution_successful": true,
+      "slippage_within_tolerance": true,
+      "details": {
+        "order_id": "order_1757539972004_0",
+        "swap_executions": 2,
+        "last_execution": {
+          "token_address": "mev_test_token_123",
+          "side": "buy",
+          "amount": 0.4,
+          "result": "SwapResult(success=True, signature='mock_tx_1', output_amount=Decimal('0.396'), execution_time=0.1, error=None, route_info={'route': 'mock_route', 'mev_protected': True})",
+          "timestamp": "2025-09-10 22:32:52.193185"
+        },
+        "order_result": {
+          "order_id": "order_1757539972004_0",
+          "client_order_id": null,
+          "status": "OrderStatus.FILLED",
+          "filled_amount": "0.396",
+          "average_price": 0.0,
+          "total_cost": "0",
+          "fees_paid": "0",
+          "transaction_hash": "mock_tx_1",
+          "execution_time_ms": 169.6920394897461,
+          "slippage_realized": 0.0,
+          "route_used": "route_1757539972",
+          "wallet_used": "arbitrage_wallet",
+          "error_message": null,
+          "retry_count": 0,
+          "price_improvement": 0.0,
+          "execution_quality_score": 85.0
+        }
+      }
+    },
+    "multi_wallet_routing": {
+      "success": true,
+      "orders_submitted": 3,
+      "orders_processed": 3,
+      "wallet_routing_working": true,
+      "wallet_isolation_maintained": true,
+      "wallet_usage": {
+        "momentum_wallet": 1,
+        "mean_reversion_wallet": 1,
+        "grid_trading_wallet": 1
+      },
+      "strategy_distribution": {
+        "momentum": 1,
+        "mean_reversion": 1,
+        "grid_trading": 1
+      },
+      "details": {
+        "order_ids": [
+          "order_1757539973531_0",
+          "order_1757539973638_1",
+          "order_1757539973745_2"
+        ],
+        "order_results": [
+          {
+            "order_id": "order_1757539973531_0",
+            "client_order_id": null,
+            "status": "OrderStatus.FILLED",
+            "filled_amount": "0.198",
+            "average_price": 0.0,
+            "total_cost": "0",
+            "fees_paid": "0",
+            "transaction_hash": "mock_tx_2",
+            "execution_time_ms": 184.42034721374512,
+            "slippage_realized": 0.0,
+            "route_used": "route_1757539973",
+            "wallet_used": "momentum_wallet",
+            "error_message": null,
+            "retry_count": 0,
+            "price_improvement": 0.0,
+            "execution_quality_score": 85.0
+          },
+          {
+            "order_id": "order_1757539973638_1",
+            "client_order_id": null,
+            "status": "OrderStatus.FILLED",
+            "filled_amount": "0.297",
+            "average_price": 0.0,
+            "total_cost": "0",
+            "fees_paid": "0",
+            "transaction_hash": "mock_tx_3",
+            "execution_time_ms": 184.51619148254395,
+            "slippage_realized": 0.0,
+            "route_used": "route_1757539973",
+            "wallet_used": "mean_reversion_wallet",
+            "error_message": null,
+            "retry_count": 0,
+            "price_improvement": 0.0,
+            "execution_quality_score": 85.0
+          },
+          {
+            "order_id": "order_1757539973745_2",
+            "client_order_id": null,
+            "status": "OrderStatus.FILLED",
+            "filled_amount": "0.2475",
+            "average_price": 0.0,
+            "total_cost": "0",
+            "fees_paid": "0",
+            "transaction_hash": "mock_tx_4",
+            "execution_time_ms": 216.97211265563965,
+            "slippage_realized": 0.0,
+            "route_used": "route_1757539973",
+            "wallet_used": "grid_trading_wallet",
+            "error_message": null,
+            "retry_count": 0,
+            "price_improvement": 0.0,
+            "execution_quality_score": 85.0
+          }
+        ],
+        "wallet_usage": {
+          "momentum_wallet": 1,
+          "mean_reversion_wallet": 1,
+          "grid_trading_wallet": 1
+        }
+      }
+    },
+    "risk_manager_integration": {
+      "success": true,
+      "risk_integration_active": true,
+      "normal_order_processed": true,
+      "high_risk_order_handled": true,
+      "risk_controls_applied": true,
+      "emergency_stop_functional": true,
+      "details": {
+        "normal_order_id": "order_1757539975871_0",
+        "high_risk_order_id": null,
+        "normal_result": {
+          "order_id": "order_1757539975871_0",
+          "client_order_id": null,
+          "status": "OrderStatus.FILLED",
+          "filled_amount": "0.396",
+          "average_price": 0.0,
+          "total_cost": "0",
+          "fees_paid": "0",
+          "transaction_hash": "mock_tx_5",
+          "execution_time_ms": 140.92540740966797,
+          "slippage_realized": 0.0,
+          "route_used": "route_1757539975",
+          "wallet_used": "momentum_wallet",
+          "error_message": null,
+          "retry_count": 0,
+          "price_improvement": 0.0,
+          "execution_quality_score": 85.0
+        },
+        "high_risk_result": null,
+        "risk_summary": {
+          "timestamp": "2025-09-10T22:32:56.889862",
+          "emergency_stop_active": false,
+          "overall_risk_level": "unknown",
+          "daily_metrics": {
+            "pnl": 0.0,
+            "trade_count": 0,
+            "remaining_trades": 20
+          },
+          "portfolio": {
+            "total_positions": 0,
+            "max_positions": 5,
+            "total_value_usd": 0,
+            "current_drawdown": 0,
+            "max_drawdown": 0,
+            "risk_score": 0
+          },
+          "risk_metrics": {
+            "var_95_1d": 0,
+            "total_volatility": 0,
+            "sharpe_ratio": 0,
+            "diversification_ratio": 0,
+            "used_risk_budget": 0,
+            "available_risk_budget": 1.0
+          },
+          "alerts": {
+            "active_count": 0,
+            "by_level": {
+              "low": 0,
+              "moderate": 0,
+              "high": 0,
+              "critical": 0,
+              "emergency": 0
+            },
+            "recent_alerts": []
+          },
+          "positions": [],
+          "strategy_correlations": {},
+          "limits": {
+            "max_position_size": 0.5,
+            "max_daily_loss": 10.0,
+            "max_portfolio_risk": 0.15,
+            "max_drawdown": 0.2,
+            "risk_budget": 0.15,
+            "correlation_alert_threshold": 0.75
+          }
+        }
+      }
+    },
+    "execution_analytics": {
+      "success": true,
+      "analytics_generated": true,
+      "orders_tracked": true,
+      "performance_metrics_available": true,
+      "success_rate_calculated": true,
+      "quality_score_calculated": true,
+      "strategy_breakdown_available": false,
+      "analytics_data": {
+        "total_orders": 6,
+        "successful_orders": 0,
+        "success_rate": 0.0,
+        "average_slippage": 0.0,
+        "quality_score": 30.0
+      },
+      "details": {
+        "submitted_orders": 0,
+        "analytics": {
+          "period_start": "2025-09-10 22:32:00.933421",
+          "period_end": "2025-09-10 22:33:00.933421",
+          "total_orders": 6,
+          "successful_orders": 0,
+          "failed_orders": 6,
+          "total_volume": "1.8315000000000001",
+          "average_slippage": 0.0,
+          "average_execution_time": 179.60687478383383,
+          "average_fees": "0",
+          "total_price_improvement": "0",
+          "success_rate": 0.0,
+          "quality_score": 30.0,
+          "mev_protection_rate": 0.0,
+          "strategy_performance": {},
+          "wallet_performance": {}
+        },
+        "comprehensive_status": {
+          "timestamp": "2025-09-10T22:33:00.941322",
+          "status": {
+            "emergency_stop": false,
+            "active_orders": 0,
+            "max_concurrent_orders": 20
+          },
+          "performance": {
+            "orders_last_hour": 26,
+            "success_rate": 0.0,
+            "average_slippage": 0.0,
+            "average_execution_time": 192.83589720726013,
+            "quality_score": 30.0
+          },
+          "configuration": {
+            "max_orders_per_minute": 10,
+            "default_slippage": 0.01,
+            "max_slippage": 0.05,
+            "wallet_routing_enabled": true,
+            "mev_protection_default": true
+          },
+          "integrations": {
+            "swap_executor": true,
+            "multi_wallet_manager": true,
+            "risk_manager": true,
+            "portfolio_manager": true
+          }
+        }
+      }
+    },
+    "order_lifecycle_management": {
+      "success": false,
+      "order_lifecycle_tracked": true,
+      "status_transitions_recorded": false,
+      "order_completion_handled": true,
+      "cancellation_working": false,
+      "cancelled_order_status": "filled",
+      "details": {
+        "original_order_id": "order_1757539980942_0",
+        "cancel_order_id": "order_1757539981960_0",
+        "status_history": [
+          {
+            "timestamp": "2025-09-10T22:33:01.960467",
+            "status": "filled",
+            "filled_amount": 0.297
+          }
+        ],
+        "cancel_success": false,
+        "final_cancel_status": {
+          "order_id": "order_1757539981960_0",
+          "client_order_id": null,
+          "status": "OrderStatus.FILLED",
+          "filled_amount": "0.396",
+          "average_price": 0.0,
+          "total_cost": "0",
+          "fees_paid": "0",
+          "transaction_hash": "mock_tx_7",
+          "execution_time_ms": 164.65353965759277,
+          "slippage_realized": 0.0,
+          "route_used": "route_1757539982",
+          "wallet_used": "momentum_wallet",
+          "error_message": null,
+          "retry_count": 0,
+          "price_improvement": 0.0,
+          "execution_quality_score": 85.0
+        }
+      },
+      "error": "Order lifecycle management issues"
+    },
+    "emergency_controls": {
+      "success": true,
+      "normal_operation_working": true,
+      "emergency_stop_blocks_orders": true,
+      "emergency_stop_can_be_cleared": true,
+      "recovery_after_emergency": true,
+      "details": {
+        "normal_order_id": "order_1757539982474_0",
+        "emergency_order_id": null,
+        "recovery_order_id": "order_1757539982487_1",
+        "final_emergency_state": false
+      }
+    }
+  }
+}

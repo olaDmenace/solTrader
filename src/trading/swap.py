@@ -770,6 +770,64 @@ class SwapExecutor:
         if len(self.recent_swaps) > 100:
             self.recent_swaps = self.recent_swaps[-100:]
 
+    async def execute_swap_with_result(
+        self,
+        input_token: str,
+        output_token: str,
+        amount: float,
+        slippage: float = 0.01,
+        config: Optional[PrivateSwapConfig] = None,
+        current_balance: Optional[float] = None
+    ) -> SwapResult:
+        """Execute swap and return full SwapResult with output_amount - CRITICAL for position management"""
+        try:
+            logger.info(f"[SWAP_RESULT] Executing swap: {amount} {input_token[:8]}... -> {output_token[:8]}...")
+            
+            # Create SwapRoute for protected quote method  
+            route = SwapRoute(
+                input_mint=input_token,
+                output_mint=output_token,
+                amount=Decimal(str(amount)),
+                slippage=slippage,
+                platforms=["Jupiter"],  # Default to Jupiter
+                expected_output=Decimal("0")  # Will be calculated by quote
+            )
+            
+            # Get quote with protected quote method
+            config = config or self.default_config
+            quote = await self._get_protected_quote(route, config)
+            
+            if not quote or not isinstance(quote, dict) or not quote.get('outAmount'):
+                logger.error(f"[SWAP_RESULT] Failed to get valid quote")
+                return SwapResult(
+                    success=False,
+                    signature=None,
+                    output_amount=None,
+                    execution_time=0.0,
+                    error="Failed to get quote"
+                )
+            
+            # Execute protected swap
+            config = config or self.default_config
+            result = await self._execute_protected_swap(quote, config)
+            
+            if result.success:
+                logger.info(f"[SWAP_RESULT] SUCCESS: {result.signature} - Output: {result.output_amount} tokens")
+            else:
+                logger.error(f"[SWAP_RESULT] FAILED: {result.error}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"[SWAP_RESULT] Exception in execute_swap_with_result: {str(e)}")
+            return SwapResult(
+                success=False,
+                signature=None,
+                output_amount=None,
+                execution_time=0.0,
+                error=str(e)
+            )
+
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get swap executor performance metrics"""
         return {

@@ -10,9 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path.cwd()))
 
 from src.config.settings import load_settings
-from src.enhanced_token_scanner import EnhancedTokenScanner
+from core.token_scanner import EnhancedTokenScanner
 from src.phantom_wallet import PhantomWallet
-from src.trading.strategy import TradingStrategy
+from strategies.momentum import MomentumStrategy
 
 async def verify_real_trades():
     """Verify trades are real, not simulated"""

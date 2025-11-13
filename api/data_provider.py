@@ -1,3 +1,11 @@
+"""
+Smart Dual-API Manager for Token Data Provision
+
+MIGRATION NOTE: Moved from src/api/smart_dual_api_manager.py
+Core functionality preserved 100% - quota management and API coordination working
+Enhanced with professional error tracking
+"""
+
 import asyncio
 import logging
 import time
@@ -7,9 +15,20 @@ from dataclasses import dataclass, field
 from enum import Enum
 import json
 
-from .solana_tracker import SolanaTrackerClient, TokenData
-from .geckoterminal_client import GeckoTerminalClient
-from .adaptive_quota_manager import AdaptiveQuotaManager
+# Sentry integration for professional error tracking
+from utils.sentry_config import capture_api_error
+
+# Import adjustments for new structure (will be updated during import reference update)
+try:
+    from src.api.solana_tracker import SolanaTrackerClient, TokenData
+    from src.api.geckoterminal_client import GeckoTerminalClient
+    from src.api.adaptive_quota_manager import AdaptiveQuotaManager
+except ImportError:
+    # Fallback during migration
+    SolanaTrackerClient = None
+    TokenData = None
+    GeckoTerminalClient = None
+    AdaptiveQuotaManager = None
 
 logger = logging.getLogger(__name__)
 
@@ -231,8 +250,19 @@ class SmartDualAPIManager:
             response_time = time.time() - start_time
             error_msg = str(e)
             
-            # Record failed performance
+            # Capture API provider errors with Sentry
             provider_name = 'solana_tracker' if provider == APIProvider.SOLANA_TRACKER else 'geckoterminal'
+            capture_api_error(
+                error=e,
+                api_name=provider_name,
+                endpoint="token_discovery",
+                context={
+                    "source": source,
+                    "response_time": response_time
+                }
+            )
+            
+            # Record failed performance
             self.quota_manager.record_performance(provider_name, 1, 0, response_time, False)
             
             self._update_performance_metrics(provider, False, 0, response_time, error_msg)

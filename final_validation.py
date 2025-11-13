@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path.cwd()))
 
 from src.config.settings import load_settings
-from src.enhanced_token_scanner import EnhancedTokenScanner
+from core.token_scanner import EnhancedTokenScanner
 
 async def validation_test():
     print('=== SOLTRADER VALIDATION TEST ===')

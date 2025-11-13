@@ -2065,12 +2065,14 @@ class TradingStrategy(TradingStrategyProtocol):
                 logger.info(f"[MEME_TRADE] Signal slippage value: {signal.slippage} (type: {type(signal.slippage)})")
                 logger.info(f"[MEME_TRADE] Using slippage: {signal.slippage}% for volatile meme token")
                 
-                signature = await self.swap_executor.execute_swap(
+                # CRITICAL FIX: Use execute_swap_with_result to get actual token amount
+                swap_result = await self.swap_executor.execute_swap_with_result(
                     input_token="So11111111111111111111111111111111111111112",  # SOL
                     output_token=signal.token_address,
                     amount=signal.size,
                     slippage=signal.slippage
                 )
+                signature = swap_result.signature if swap_result.success else None
             else:
                 logger.error(f"[MEME_VALIDATE] Skipping trade for {signal.token_address[:8]}... - failed validation")
                 signature = None
@@ -2079,12 +2081,14 @@ class TradingStrategy(TradingStrategyProtocol):
             if not signature and signal.size > 0.0001:
                 fallback_size = signal.size * 0.1  # Try 10% of original size
                 logger.warning(f"[MEME_FALLBACK] Retrying with smaller size: {fallback_size} SOL")
-                signature = await self.swap_executor.execute_swap(
+                # CRITICAL FIX: Use execute_swap_with_result to get actual token amount  
+                swap_result = await self.swap_executor.execute_swap_with_result(
                     input_token="So11111111111111111111111111111111111111112",  # SOL
                     output_token=signal.token_address,
                     amount=fallback_size,
                     slippage=signal.slippage
                 )
+                signature = swap_result.signature if swap_result.success else None
             
             if not signature:
                 logger.error(f"Failed to execute swap for {signal.token_address}")
@@ -2108,6 +2112,17 @@ class TradingStrategy(TradingStrategyProtocol):
                 stop_loss=signal.stop_loss,
                 take_profit=signal.take_profit
             )
+            
+            # CRITICAL FIX: Update token balance with actual tokens received from swap
+            if position and swap_result.success and swap_result.output_amount:
+                success = self.position_manager.update_token_balance(
+                    signal.token_address, 
+                    float(swap_result.output_amount)
+                )
+                if success:
+                    logger.info(f"[TOKEN_BALANCE] Updated position token_balance: {swap_result.output_amount} tokens")
+                else:
+                    logger.error(f"[TOKEN_BALANCE] FAILED to update token_balance for {signal.token_address}")
             
             if position:
                 self.state.daily_stats.trade_count += 1

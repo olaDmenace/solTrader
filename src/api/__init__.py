@@ -1,5 +1,5 @@
 # src/api/__init__.py
 from .alchemy import AlchemyClient
-from .jupiter import JupiterClient
+from .enhanced_jupiter import EnhancedJupiterClient
 
-__all__ = ['AlchemyClient', 'JupiterClient']
+__all__ = ['AlchemyClient', 'EnhancedJupiterClient']

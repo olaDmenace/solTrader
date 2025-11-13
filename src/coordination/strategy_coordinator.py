@@ -73,6 +73,7 @@ class StrategyPerformance:
     current_exposure: float
     last_updated: datetime
     performance_trend: str  # 'improving', 'stable', 'declining'
+    performance_score: float = 1.0  # Overall performance score (0.1-2.0)
 
 class StrategyCoordinator:
     """Advanced cross-strategy coordination system"""

@@ -11,6 +11,7 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 import json
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

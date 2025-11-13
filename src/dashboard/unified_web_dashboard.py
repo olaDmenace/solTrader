@@ -206,8 +206,44 @@ class UnifiedWebDashboard:
         """Update real-time trading metrics"""
         try:
             metrics = self.analytics.get_real_time_metrics()
+            
+            # Get actual wallet balance if in live trading mode
+            current_balance = metrics.get('current_balance', 0)
+            if not self.settings.PAPER_TRADING:
+                # Live trading mode - get real wallet balance
+                try:
+                    from ..phantom_wallet import PhantomWallet
+                    from ..api.alchemy import AlchemyClient
+                    
+                    # Get wallet address from settings
+                    wallet_address = self.settings.WALLET_ADDRESS
+                    if wallet_address:                        
+                        # Initialize wallet client with RPC URL
+                        alchemy_client = AlchemyClient(
+                            rpc_url=self.settings.ALCHEMY_RPC_URL
+                        )
+                        wallet = PhantomWallet(alchemy_client)
+                        
+                        # Connect to wallet and get real balance
+                        connected = await wallet.connect(wallet_address)
+                        if connected:
+                            real_balance_sol = await wallet.get_balance()
+                            if real_balance_sol is not None:
+                                # Convert SOL to USD (approximate SOL price)
+                                sol_price_usd = 204  # Approximate SOL price - in production, fetch from API
+                                current_balance = real_balance_sol * sol_price_usd
+                                logger.debug(f"[DASHBOARD] Using real wallet balance: {real_balance_sol} SOL (${current_balance:.2f})")
+                            else:
+                                logger.warning("[DASHBOARD] Could not fetch real wallet balance, using analytics balance")
+                        else:
+                            logger.warning(f"[DASHBOARD] Could not connect to wallet {wallet_address}")
+                    
+                except Exception as wallet_error:
+                    logger.error(f"[DASHBOARD] Error fetching real wallet balance: {wallet_error}")
+                    # Fallback to analytics balance
+            
             self.dashboard_data['real_time_metrics'] = {
-                'current_balance': metrics.get('current_balance', 0),
+                'current_balance': current_balance,
                 'total_pnl': metrics.get('total_pnl', 0),
                 'daily_pnl': metrics.get('daily_pnl', 0),
                 'active_positions': metrics.get('active_positions', 0),
@@ -496,7 +532,12 @@ class UnifiedWebDashboard:
 
     def get_dashboard_html(self) -> str:
         """Get beautiful dashboard HTML with enhanced features"""
-        return '''
+        # Detect trading mode
+        is_live_trading = not self.settings.PAPER_TRADING
+        trading_mode = "🔴 LIVE TRADING" if is_live_trading else "📋 PAPER MODE"
+        trading_mode_class = "live-mode" if is_live_trading else "paper-mode"
+        
+        return f'''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -505,48 +546,48 @@ class UnifiedWebDashboard:
     <title>SolTrader Phase 3 Dynamic Portfolio Management Dashboard</title>
     <style>
         /* Modern CSS with Phase 2 styling */
-        * {
+        * {{
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
+        }}
         
-        body {
+        body {{
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
-        }
+        }}
         
-        .container {
+        .container {{
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
-        }
+        }}
         
-        .header {
+        .header {{
             text-align: center;
             color: white;
             margin-bottom: 30px;
-        }
+        }}
         
-        .header h1 {
+        .header h1 {{
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
+        }}
         
-        .header .subtitle {
+        .header .subtitle {{
             font-size: 1.1rem;
             opacity: 0.9;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-        }
+        }}
         
-        .phase-badge {
+        .phase-badge {{
             background: linear-gradient(45deg, #ff6b6b, #ffd93d);
             color: #333;
             padding: 5px 15px;
@@ -554,21 +595,55 @@ class UnifiedWebDashboard:
             font-weight: 600;
             font-size: 0.9rem;
             animation: pulse 2s infinite;
-        }
+        }}
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
+        @keyframes pulse {{
+            0%, 100% {{ transform: scale(1); }}
+            50% {{ transform: scale(1.05); }}
+        }}
         
-        .dashboard-grid {
+        .trading-mode-badge {{
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 8px;
+        }}
+        
+        .live-mode {{
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.5);
+            animation: pulse-red 1.5s infinite;
+        }}
+        
+        .paper-mode {{
+            background: linear-gradient(45deg, #3742fa, #2f3542);
+            color: white;
+            box-shadow: 0 0 10px rgba(55, 66, 250, 0.3);
+        }}
+        
+        @keyframes pulse-red {{
+            0%, 100% {{ 
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(255, 71, 87, 0.5);
+            }}
+            50% {{ 
+                transform: scale(1.05);
+                box-shadow: 0 0 25px rgba(255, 71, 87, 0.8);
+            }}
+        }}
+        
+        .dashboard-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
-        }
+        }}
         
-        .card {
+        .card {{
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 15px;
@@ -576,73 +651,73 @@ class UnifiedWebDashboard:
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             transition: all 0.3s ease;
-        }
+        }}
         
-        .card:hover {
+        .card:hover {{
             transform: translateY(-5px);
             box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
+        }}
         
-        .card-header {
+        .card-header {{
             display: flex;
             align-items: center;
             justify-content: between;
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #f0f0f0;
-        }
+        }}
         
-        .card-title {
+        .card-title {{
             font-size: 1.3rem;
             font-weight: 600;
             color: #2d3748;
             display: flex;
             align-items: center;
             gap: 10px;
-        }
+        }}
         
-        .status-indicator {
+        .status-indicator {{
             width: 10px;
             height: 10px;
             border-radius: 50%;
             background: #10b981;
             animation: blink 1.5s infinite;
-        }
+        }}
         
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
+        @keyframes blink {{
+            0%, 50% {{ opacity: 1; }}
+            51%, 100% {{ opacity: 0.3; }}
+        }}
         
-        .metric-grid {
+        .metric-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 15px;
-        }
+        }}
         
-        .metric {
+        .metric {{
             text-align: center;
             padding: 15px;
             background: linear-gradient(135deg, #f7fafc, #edf2f7);
             border-radius: 10px;
             border: 1px solid #e2e8f0;
-        }
+        }}
         
-        .metric-value {
+        .metric-value {{
             font-size: 1.5rem;
             font-weight: 700;
             color: #2d3748;
             margin-bottom: 5px;
-        }
+        }}
         
-        .metric-label {
+        .metric-label {{
             font-size: 0.85rem;
             color: #718096;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
+        }}
         
-        .strategy-row {
+        .strategy-row {{
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -652,29 +727,29 @@ class UnifiedWebDashboard:
             border-radius: 8px;
             border-left: 4px solid #4299e1;
             transition: all 0.2s ease;
-        }
+        }}
         
-        .strategy-row:hover {
+        .strategy-row:hover {{
             background: linear-gradient(90deg, #e6f3ff, #f0f8ff);
             border-left-color: #3182ce;
-        }
+        }}
         
-        .strategy-name {
+        .strategy-name {{
             font-weight: 600;
             color: #2d3748;
-        }
+        }}
         
-        .strategy-stats {
+        .strategy-stats {{
             display: flex;
             gap: 20px;
             font-size: 0.9rem;
-        }
+        }}
         
-        .positive { color: #10b981; }
-        .negative { color: #f56565; }
-        .neutral { color: #718096; }
+        .positive {{ color: #10b981; }}
+        .negative {{ color: #f56565; }}
+        .neutral {{ color: #718096; }}
         
-        .regime-indicator {
+        .regime-indicator {{
             display: inline-block;
             padding: 6px 12px;
             border-radius: 20px;
@@ -682,35 +757,35 @@ class UnifiedWebDashboard:
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
+        }}
         
-        .regime-trending-up { background: #c6f6d5; color: #22543d; }
-        .regime-trending-down { background: #fed7d7; color: #742a2a; }
-        .regime-ranging { background: #bee3f8; color: #2a4365; }
-        .regime-volatile { background: #fbb6ce; color: #702459; }
+        .regime-trending-up {{ background: #c6f6d5; color: #22543d; }}
+        .regime-trending-down {{ background: #fed7d7; color: #742a2a; }}
+        .regime-ranging {{ background: #bee3f8; color: #2a4365; }}
+        .regime-volatile {{ background: #fbb6ce; color: #702459; }}
         
-        .update-time {
+        .update-time {{
             text-align: center;
             color: rgba(255,255,255,0.8);
             margin-top: 20px;
             font-size: 0.9rem;
-        }
+        }}
         
-        .loading {
+        .loading {{
             text-align: center;
             padding: 20px;
             color: #718096;
-        }
+        }}
         
         /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .header h1 { font-size: 2rem; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .card { padding: 20px; }
-            .metric-grid { grid-template-columns: repeat(2, 1fr); }
-            .strategy-row { flex-direction: column; align-items: flex-start; gap: 10px; }
-        }
+        @media (max-width: 768px) {{
+            .container {{ padding: 10px; }}
+            .header h1 {{ font-size: 2rem; }}
+            .dashboard-grid {{ grid-template-columns: 1fr; }}
+            .card {{ padding: 20px; }}
+            .metric-grid {{ grid-template-columns: repeat(2, 1fr); }}
+            .strategy-row {{ flex-direction: column; align-items: flex-start; gap: 10px; }}
+        }}
     </style>
 </head>
 <body>
@@ -719,6 +794,7 @@ class UnifiedWebDashboard:
             <h1>🚀 SolTrader Dashboard</h1>
             <div class="subtitle">
                 <span class="phase-badge">PHASE 3</span>
+                <span class="trading-mode-badge {trading_mode_class}">{trading_mode}</span>
                 <span>Multi-Strategy Trading System</span>
                 <div class="status-indicator"></div>
             </div>
@@ -852,26 +928,26 @@ class UnifiedWebDashboard:
         // Enhanced JavaScript with Phase 2 features
         let updateInterval;
         
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('en-US', {
+        function formatCurrency(value) {{
+            return new Intl.NumberFormat('en-US', {{
                 style: 'currency',
                 currency: 'USD',
                 minimumFractionDigits: 2
-            }).format(value);
-        }
+            }}).format(value);
+        }}
         
-        function formatPercentage(value) {
-            return `${(value * 100).toFixed(1)}%`;
-        }
+        function formatPercentage(value) {{
+            return `${{(value * 100).toFixed(1)}}%`;
+        }}
         
-        function updateDashboard() {
+        function updateDashboard() {{
             fetch('/api/data')
                 .then(response => response.json())
-                .then(data => {
+                .then(data => {{
                     console.log('Dashboard data received:', data);
                     
                     // Update real-time metrics
-                    const rtMetrics = data.real_time_metrics || {};
+                    const rtMetrics = data.real_time_metrics || {{}};
                     document.getElementById('current-balance').textContent = formatCurrency(rtMetrics.current_balance || 0);
                     document.getElementById('total-pnl').textContent = formatCurrency(rtMetrics.total_pnl || 0);
                     document.getElementById('daily-pnl').textContent = formatCurrency(rtMetrics.daily_pnl || 0);
@@ -879,83 +955,83 @@ class UnifiedWebDashboard:
                     document.getElementById('active-positions').textContent = rtMetrics.active_positions || 0;
                     
                     // Update multi-strategy stats
-                    const strategyStats = data.multi_strategy_stats || {};
-                    const activeStrategies = strategyStats.active_strategies || {};
+                    const strategyStats = data.multi_strategy_stats || {{}};
+                    const activeStrategies = strategyStats.active_strategies || {{}};
                     
                     // Momentum strategy
-                    const momentum = activeStrategies.momentum || {};
+                    const momentum = activeStrategies.momentum || {{}};
                     document.getElementById('momentum-positions').textContent = momentum.active_positions || 0;
                     document.getElementById('momentum-pnl').textContent = formatCurrency(momentum.pnl_today || 0);
                     document.getElementById('momentum-score').textContent = (strategyStats.performance_scores?.momentum || 1.2).toFixed(1);
                     
                     // Grid trading
-                    const grid = activeStrategies.grid || {};
-                    const gridStatus = data.grid_trading_status || {};
+                    const grid = activeStrategies.grid || {{}};
+                    const gridStatus = data.grid_trading_status || {{}};
                     document.getElementById('grid-active').textContent = gridStatus.active_grids || 0;
                     document.getElementById('grid-pnl').textContent = formatCurrency(grid.pnl_today || 0);
                     document.getElementById('grid-score').textContent = (strategyStats.performance_scores?.grid || 1.0).toFixed(1);
                     
                     // Mean reversion
-                    const mr = activeStrategies.mean_reversion || {};
+                    const mr = activeStrategies.mean_reversion || {{}};
                     document.getElementById('mr-positions').textContent = mr.active_positions || 0;
                     document.getElementById('mr-pnl').textContent = formatCurrency(mr.pnl_today || 0);
                     document.getElementById('mr-score').textContent = (strategyStats.performance_scores?.mean_reversion || 0.8).toFixed(1);
                     
                     // Arbitrage
-                    const arb = activeStrategies.arbitrage || {};
+                    const arb = activeStrategies.arbitrage || {{}};
                     document.getElementById('arb-ops').textContent = arb.active_positions || 0;
                     document.getElementById('arb-pnl').textContent = formatCurrency(arb.pnl_today || 0);
                     document.getElementById('arb-score').textContent = (strategyStats.performance_scores?.arbitrage || 1.5).toFixed(1);
                     
                     // Update market regime
-                    const regimeData = data.market_regime_analysis || {};
+                    const regimeData = data.market_regime_analysis || {{}};
                     const regimeElement = document.getElementById('current-regime');
                     const currentRegime = regimeData.current_regime || 'TRENDING_UP';
                     regimeElement.textContent = currentRegime;
-                    regimeElement.className = `regime-indicator regime-${currentRegime.toLowerCase().replace('_', '-')}`;
+                    regimeElement.className = `regime-indicator regime-${{currentRegime.toLowerCase().replace('_', '-')}}`;
                     
                     document.getElementById('regime-confidence').textContent = formatPercentage(regimeData.regime_confidence || 0.85);
                     document.getElementById('regime-duration').textContent = regimeData.regime_duration || '0h 0m';
                     document.getElementById('regime-changes').textContent = regimeData.regime_changes_today || 0;
                     
                     // Update coordination efficiency
-                    const coordData = data.strategy_coordination || {};
+                    const coordData = data.strategy_coordination || {{}};
                     document.getElementById('coordination-efficiency').textContent = formatPercentage(coordData.coordination_efficiency || 0.95);
                     
                     // Update system health
-                    const healthData = data.system_health || {};
+                    const healthData = data.system_health || {{}};
                     document.getElementById('system-status').textContent = healthData.status || 'HEALTHY';
                     
                     // Update API usage
-                    const apiData = data.api_status || {};
-                    const trackerData = apiData.solana_tracker || {};
+                    const apiData = data.api_status || {{}};
+                    const trackerData = apiData.solana_tracker || {{}};
                     document.getElementById('api-usage').textContent = formatPercentage(trackerData.usage_percentage / 100 || 0.15);
                     
                     // Update uptime
                     const uptimeHours = Math.floor((healthData.uptime || 0) / 3600);
-                    document.getElementById('uptime').textContent = `${uptimeHours}h`;
+                    document.getElementById('uptime').textContent = `${{uptimeHours}}h`;
                     
                     // Update timestamp
                     document.getElementById('last-update').textContent = new Date(data.timestamp).toLocaleTimeString();
-                })
-                .catch(error => {
+                }})
+                .catch(error => {{
                     console.error('Error fetching dashboard data:', error);
                     document.getElementById('last-update').textContent = 'Error - ' + new Date().toLocaleTimeString();
-                });
-        }
+                }});
+        }}
         
         // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {{
             updateDashboard();
             updateInterval = setInterval(updateDashboard, 5000); // Update every 5 seconds
-        });
+        }});
         
         // Clean up on page unload
-        window.addEventListener('beforeunload', function() {
-            if (updateInterval) {
+        window.addEventListener('beforeunload', function() {{
+            if (updateInterval) {{
                 clearInterval(updateInterval);
-            }
-        });
+            }}
+        }});
     </script>
 </body>
 </html>

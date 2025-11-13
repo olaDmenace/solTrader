@@ -62,8 +62,9 @@ class TrailingStop:
 class Position:
     """Trading position with dynamic momentum-based exit management"""
     token_address: str
-    size: float
+    size: float  # SOL amount invested
     entry_price: float
+    token_balance: float = 0.0  # Actual tokens received from swap - CRITICAL for proper exit
     stop_loss: Optional[float] = None
     take_profit: Optional[float] = None
     high_water_mark: float = field(init=False)
@@ -418,11 +419,16 @@ class PositionManager:
             if not position or position.status != "open":
                 return False
 
-            # Execute closing swap
+            # Execute closing swap - CRITICAL FIX: Use token_balance not size
+            # position.size = SOL invested, position.token_balance = actual tokens to sell
+            if position.token_balance <= 0:
+                logger.error(f"No token balance to sell for {token_address}: {position.token_balance}")
+                return False
+                
             success = await self.swap_executor.execute_swap(
                 input_token=token_address,
                 output_token="So11111111111111111111111111111111111111112",  # SOL
-                amount=position.size,
+                amount=position.token_balance,  # FIXED: sell all tokens, not SOL amount
                 slippage=self.settings.SLIPPAGE_TOLERANCE
             )
 
@@ -436,6 +442,23 @@ class PositionManager:
 
         except Exception as e:
             logger.error(f"Error closing position: {str(e)}")
+            return False
+    
+    def update_token_balance(self, token_address: str, token_balance: float) -> bool:
+        """Update the token balance for a position - CRITICAL for proper exits"""
+        try:
+            position = self.positions.get(token_address)
+            if not position:
+                logger.error(f"Cannot update token balance - position not found: {token_address}")
+                return False
+            
+            old_balance = position.token_balance
+            position.token_balance = token_balance
+            logger.info(f"Updated token balance for {token_address}: {old_balance} -> {token_balance}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating token balance: {str(e)}")
             return False
 
     def get_open_positions(self) -> Dict[str, Position]:

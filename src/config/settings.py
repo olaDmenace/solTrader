@@ -15,32 +15,32 @@ class Settings:
 
     # Paper Trading settings - RISK MITIGATION APPLIED
     position_manager: Any = None
-    PAPER_TRADING: bool = True
+    PAPER_TRADING: bool = False  # FIXED: Default to live trading, override via .env
     INITIAL_PAPER_BALANCE: float = 100.0
     MAX_POSITION_SIZE: float = 0.05  # CRITICAL FIX: 5% max position (was suicide 35%)
     MAX_SLIPPAGE: float = 3.0  # CRITICAL FIX: 3% slippage (was destroying profits at 10%)
     MAX_TRADES_PER_DAY: int = 15  # Reduced for better quality trades
     
-    # Paper Trading Specific Parameters - RISK MITIGATION
-    PAPER_MIN_MOMENTUM_THRESHOLD: float = 3.0  # Lower momentum threshold for paper trading
-    PAPER_MIN_LIQUIDITY: float = 50.0  # Lower liquidity requirement for paper trading
-    PAPER_TRADING_SLIPPAGE: float = 0.03  # CRITICAL FIX: 3% slippage (was destroying 50%)
-    PAPER_BASE_POSITION_SIZE: float = 0.02  # CRITICAL FIX: 2% base position (was risky 10%)
-    PAPER_MAX_POSITION_SIZE: float = 0.05  # CRITICAL FIX: 5% max position (was suicide 50%)
-    PAPER_SIGNAL_THRESHOLD: float = 0.25  # Lower threshold for paper trading to allow more signal execution
+    # Paper Trading Specific Parameters - MICRO-CAPITAL OPTIMIZED
+    PAPER_MIN_MOMENTUM_THRESHOLD: float = 1.5  # MICRO-CAPITAL: Very low threshold for more trades
+    PAPER_MIN_LIQUIDITY: float = 2.0  # MICRO-CAPITAL: Extremely low liquidity requirement
+    PAPER_TRADING_SLIPPAGE: float = 0.05  # MICRO-CAPITAL: 5% slippage tolerance for micro trades
+    PAPER_BASE_POSITION_SIZE: float = 0.5  # MICRO-CAPITAL: 50% of $2.79 = $1.40 per trade
+    PAPER_MAX_POSITION_SIZE: float = 0.8  # MICRO-CAPITAL: 80% max position = $2.23 max trade
+    PAPER_SIGNAL_THRESHOLD: float = 0.05  # MICRO-CAPITAL: Very low threshold for maximum trade frequency
     
     # Trading pause (disable while fixing scanner)
     TRADING_PAUSED: bool = False  # Trading enabled with new scanner
 
     # Trading parameters - RISK MITIGATION APPLIED
-    MIN_BALANCE: float = 0.1  # Minimum SOL balance to maintain
-    MAX_TRADE_SIZE: float = 0.5  # CRITICAL FIX: Max 0.5 SOL per trade (was risky 2.0)
+    MIN_BALANCE: float = 0.005  # Minimum SOL balance to maintain (for micro-capital)
+    MAX_TRADE_SIZE: float = 0.02  # CRITICAL FIX: Max 0.02 SOL per trade for micro-capital
     SLIPPAGE_TOLERANCE: float = 0.03  # CRITICAL FIX: 3% slippage (was too high 25%)
 
     # Position Management - OPTIMIZED
-    MAX_POSITIONS: int = 3  # Maximum number of open positions
-    MAX_SIMULTANEOUS_POSITIONS: int = 3  # Aligned with MAX_POSITIONS
-    MIN_TRADE_SIZE: float = 0.1  # Minimum trade size  
+    MAX_POSITIONS: int = 1  # Maximum number of open positions (micro-capital)
+    MAX_SIMULTANEOUS_POSITIONS: int = 1  # Aligned with MAX_POSITIONS
+    MIN_TRADE_SIZE: float = 0.005  # Minimum trade size (micro-capital)  
     INITIAL_CAPITAL: float = 100.0  # Starting capital
     PORTFOLIO_VALUE: float = 100.0  # Current portfolio value
     MIN_PORTFOLIO_VALUE: float = 10.0  # Minimum portfolio value threshold
@@ -50,13 +50,13 @@ class Settings:
     POSITION_MONITOR_INTERVAL: float = 3.0  # Very fast position monitoring
     STALE_THRESHOLD: int = 300  # Consider data stale after 5 minutes
 
-    # Scanner settings - OPTIMIZED FOR 40-60% APPROVAL RATE
+    # Scanner settings - OPTIMIZED FOR MICRO-CAPITAL ($2.79)
     SCAN_INTERVAL: int = 5  # Very fast scanning for new tokens
-    MIN_LIQUIDITY: float = 100.0  # FURTHER REDUCED from 250 to 100 SOL for higher approval
-    MIN_VOLUME_24H: float = 50.0  # Lower volume requirement for new launches
-    VOLUME_THRESHOLD: float = 50.0  # Lower volume threshold
+    MIN_LIQUIDITY: float = 5.0  # MICRO-CAPITAL: Reduced from 100 to 5 SOL for tiny trades
+    MIN_VOLUME_24H: float = 10.0  # MICRO-CAPITAL: Very low volume for micro trades
+    VOLUME_THRESHOLD: float = 10.0  # MICRO-CAPITAL: Very low volume threshold
     MIN_VOLUME_GROWTH: float = 0.0  # REMOVED volume growth requirement
-    MIN_MOMENTUM_PERCENTAGE: float = 5.0  # REDUCED from 10% to 5% for more opportunities
+    MIN_MOMENTUM_PERCENTAGE: float = 2.0  # MICRO-CAPITAL: Reduced from 5% to 2% for more opportunities
     MAX_TOKEN_AGE_HOURS: float = 24.0  # EXTENDED from 12 to 24 hours for more tokens
     HIGH_MOMENTUM_BYPASS: float = 500.0  # LOWERED from 1000% to 500% for more bypasses  
     MEDIUM_MOMENTUM_BYPASS: float = 100.0  # NEW: Medium momentum bypass at 100%
@@ -121,21 +121,21 @@ class Settings:
     TELEGRAM_CHAT_ID: Optional[str] = None
 
     # Risk management - CRITICAL RISK MITIGATION APPLIED
-    MAX_DAILY_TRADES: int = 10  # Reduced for better quality
-    MAX_DAILY_LOSS: float = 0.05  # CRITICAL FIX: 5% daily loss limit (was 2.0 SOL)
-    STOP_LOSS_PERCENTAGE: float = 0.10  # CRITICAL FIX: 10% stop loss (tighter control)
-    TAKE_PROFIT_PERCENTAGE: float = 0.25  # More conservative 25% take profit
-    MAX_DRAWDOWN: float = 5.0  # CRITICAL FIX: 5% max drawdown (was risky 10%)
-    MAX_PORTFOLIO_RISK: float = 5.0  # CRITICAL FIX: 5% portfolio risk (was 10%)
+    MAX_DAILY_TRADES: int = 5  # Reduced for micro-capital
+    MAX_DAILY_LOSS: float = 0.005  # CRITICAL FIX: 0.005 SOL daily loss limit for micro-capital
+    STOP_LOSS_PERCENTAGE: float = 0.15  # CRITICAL FIX: 15% stop loss (from .env)
+    TAKE_PROFIT_PERCENTAGE: float = 0.25  # 25% take profit (from .env)
+    MAX_DRAWDOWN: float = 15.0  # CRITICAL FIX: 15% max drawdown (from .env)
+    MAX_PORTFOLIO_RISK: float = 10.0  # CRITICAL FIX: 10% portfolio risk (from .env)
     ERROR_THRESHOLD: int = 5  # Stricter error tolerance
-    MAX_VOLATILITY: float = 0.5  # Lower volatility tolerance for safety
+    MAX_VOLATILITY: float = 0.4  # From .env: 40% volatility limit
     
     # Position management - RISK MITIGATION
-    MAX_POSITION_PER_TOKEN: float = 0.5  # CRITICAL FIX: Max 0.5 SOL per token (was 1.0)
-    MAX_SIMULTANEOUS_POSITIONS: int = 3  # CRITICAL FIX: Max 3 positions (was risky 5)
+    MAX_POSITION_PER_TOKEN: float = 0.003  # CRITICAL FIX: Max 0.003 SOL per token (from .env)
+    MAX_SIMULTANEOUS_POSITIONS: int = 1  # CRITICAL FIX: Max 1 position for micro-capital
 
     # Signal settings (optimized for new token detection)
-    SIGNAL_THRESHOLD: float = 0.5  # Lower threshold for faster entries
+    SIGNAL_THRESHOLD: float = 0.1   # TEST: Ultra-low threshold for maximum trade opportunities
     MIN_SIGNAL_INTERVAL: int = 60  # Faster signal processing
     MAX_SIGNALS_PER_HOUR: int = 15  # More signals per hour
 

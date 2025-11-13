@@ -294,6 +294,14 @@ class RealDEXConnector:
             logger.error(f"[DEX_CONNECTOR] Error fetching {dex.value} quote: {e}")
             return None
     
+    def _safe_float(self, val):
+        """Safely convert value to float"""
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            logger.warning(f"[DEX_CONNECTOR] Failed to convert {val} to float, using 0.0")
+            return 0.0
+
     async def _fetch_jupiter_quote(
         self, 
         input_token: str, 
@@ -302,8 +310,14 @@ class RealDEXConnector:
     ) -> Optional[DEXQuote]:
         """Fetch quote from Jupiter Aggregator"""
         try:
+            # Safely convert amount to float first
+            safe_amount = self._safe_float(amount)
+            if safe_amount <= 0:
+                logger.warning(f"[DEX_CONNECTOR] Invalid amount: {amount}")
+                return None
+                
             # Convert amount to lamports/micro units
-            input_amount_units = int(amount * 1e9) if input_token == 'SOL' else int(amount * 1e6)
+            input_amount_units = int(safe_amount * 1e9) if input_token == 'SOL' else int(safe_amount * 1e6)
             
             # Get token addresses
             input_mint = self.tokens.get(input_token, input_token)
@@ -377,7 +391,8 @@ class RealDEXConnector:
             # Simulate Raydium with slightly different pricing (±0.1-0.3%)
             price_variance = np.random.uniform(-0.003, 0.003)  # ±0.3%
             raydium_price = jupiter_quote.price * (1 + price_variance)
-            raydium_output = amount * raydium_price
+            safe_amount = self._safe_float(amount)
+            raydium_output = safe_amount * raydium_price
             
             return DEXQuote(
                 dex=DEXType.RAYDIUM,
@@ -415,7 +430,8 @@ class RealDEXConnector:
             # Simulate Orca with different pricing characteristics
             price_variance = np.random.uniform(-0.002, 0.004)  # Slight bias toward higher prices
             orca_price = jupiter_quote.price * (1 + price_variance)
-            orca_output = amount * orca_price
+            safe_amount = self._safe_float(amount)
+            orca_output = safe_amount * orca_price
             
             return DEXQuote(
                 dex=DEXType.ORCA,
@@ -466,7 +482,8 @@ class RealDEXConnector:
             price_adjustment = np.random.uniform(-variance, variance)
             final_price = price * (1 + price_adjustment)
             
-            output_amount = amount * final_price
+            safe_amount = self._safe_float(amount)
+            output_amount = safe_amount * final_price
             
             return DEXQuote(
                 dex=dex,

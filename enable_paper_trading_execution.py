@@ -22,8 +22,8 @@ sys.path.insert(0, str(src_path))
 os.chdir(project_root)
 
 from src.config.settings import load_settings
-from src.enhanced_token_scanner import EnhancedTokenScanner
-from src.trading.strategy import TradingStrategy, TradingMode
+from core.token_scanner import EnhancedTokenScanner
+from strategies.momentum import MomentumStrategy, TradingMode
 from src.api.jupiter import JupiterClient
 from src.phantom_wallet import PhantomWallet
 from src.api.alchemy import AlchemyClient

@@ -5,27 +5,33 @@ import os
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from src.config.settings import Settings, load_settings
-from src.api.alchemy import AlchemyClient
-from src.api.jupiter import JupiterClient
-from src.api.solana_tracker import SolanaTrackerClient
-from src.enhanced_token_scanner import EnhancedTokenScanner
-from src.phantom_wallet import PhantomWallet
-from src.trading.strategy import TradingStrategy, TradingMode
-# PHASE 1 FIX: Disable additional strategies to focus on momentum trading only
-# from src.trading.grid_trading_strategy import GridTradingStrategy
-# from src.trading.mean_reversion_strategy import MeanReversionStrategy  
-# from src.coordination.strategy_coordinator import StrategyCoordinator
-# DISABLED FOR TESTING: Testing momentum strategy in isolation
-# from src.trading.arbitrage_system import ArbitrageSystem
+# UNIFIED IMPORTS - Day 13 Clean Architecture
+from src.config.settings import Settings, load_settings  # Keep settings in src for compatibility
+from api.alchemy import AlchemyClient
+from api.enhanced_jupiter import EnhancedJupiterClient as JupiterClient
+from api.solana_tracker import SolanaTrackerClient
+from core.token_scanner import EnhancedTokenScanner
+from core.wallet_manager import PhantomWallet
+from strategies.momentum import MomentumStrategy, TradingMode
+from strategies.mean_reversion import MeanReversionStrategy
+from strategies.grid_trading import GridTradingStrategy
+from strategies.arbitrage import ArbitrageStrategy
+from strategies.coordinator import MasterStrategyCoordinator, get_master_coordinator
+
+# Unified Management Layer
+from management.risk_manager import UnifiedRiskManager
+from management.portfolio_manager import UnifiedPortfolioManager
+from management.trading_manager import UnifiedTradingManager
+from management.order_manager import UnifiedOrderManager
+from management.data_manager import UnifiedDataManager
+from management.system_manager import UnifiedSystemManager
+
+# Legacy compatibility imports (to be phased out)
 from src.analytics.performance_analytics import PerformanceAnalytics
 from src.notifications.email_system import EmailNotificationSystem
 from src.dashboard.unified_web_dashboard import UnifiedWebDashboard
 from src.monitoring.health_monitor import HealthMonitor
 from src.logging.trade_logger import CentralizedTradeLogger
-from src.portfolio.dynamic_capital_allocator import DynamicCapitalAllocator
-from src.portfolio.allocator_integration import PortfolioManager
-from src.portfolio.portfolio_risk_manager import PortfolioRiskManager
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -56,6 +62,17 @@ def setup_logging():
 # Setup logging immediately
 setup_logging()
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry error tracking (Day 5: Professional error management)
+from utils.sentry_config import init_sentry
+sentry_initialized = init_sentry(
+    environment=os.getenv('ENVIRONMENT', 'development'),
+    debug=os.getenv('DEBUG', 'false').lower() == 'true'
+)
+if sentry_initialized:
+    logger.info("✅ Sentry error tracking initialized")
+else:
+    logger.info("ℹ️ Sentry not configured - using console logging fallback")
 
 # Load settings
 try:
@@ -99,9 +116,10 @@ class TradingBot:
         #     analytics=self.analytics  # Pass analytics for trade recording
         # )
         # 
-        # self.mean_reversion = MeanReversionStrategy(
-        #     settings=self.settings
-        # )
+        # PHASE 2: Enable Mean Reversion strategy integration
+        self.mean_reversion = MeanReversionStrategy(
+            settings=self.settings
+        )
         # 
         # self.strategy_coordinator = StrategyCoordinator(
         #     settings=self.settings,
@@ -151,23 +169,24 @@ class TradingBot:
         try:
             from src.portfolio.allocator_integration import integrate_existing_strategy
             
-            # PHASE 1 FIX: Only integrate momentum strategy (like successful commit)
+            # PHASE 2: Enable Momentum + Mean Reversion dual strategy
             strategy_configs = [
                 {
                     'instance': self.strategy,
                     'name': 'momentum_strategy',
-                    'allocation': 1.00  # 100% allocation to momentum only
-                }
-                # PHASE 1: All other strategies disabled
+                    'allocation': 0.60  # 60% allocation to momentum
+                },
+                # PHASE 2: Enable Mean Reversion strategy
+                {
+                    'instance': self.mean_reversion,
+                    'name': 'mean_reversion_strategy',
+                    'allocation': 0.40  # 40% allocation to mean reversion
+                },
+                # PHASE 3: Additional strategies disabled for now
                 # {
                 #     'instance': self.grid_trading,
                 #     'name': 'grid_trading_strategy', 
                 #     'allocation': 0.25
-                # },
-                # {
-                #     'instance': self.mean_reversion,
-                #     'name': 'mean_reversion_strategy',
-                #     'allocation': 0.20
                 # },
                 # DISABLED FOR TESTING
                 # {

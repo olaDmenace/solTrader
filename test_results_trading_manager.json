@@ -1,0 +1,782 @@
+{
+  "start_time": "2025-09-10T12:14:13.056076",
+  "end_time": "2025-09-10T12:14:13.061125",
+  "total_tests": 8,
+  "successful_tests": 5,
+  "success_rate": 62.5,
+  "test_results": {
+    "wallet_initialization": {
+      "success": true,
+      "wallets_created": 4,
+      "expected_wallets": 4,
+      "all_wallets_present": true,
+      "total_allocated": 1000.0,
+      "allocation_sum": 1.0,
+      "allocation_valid": true,
+      "details": {
+        "created_wallets": [
+          "momentum_wallet",
+          "mean_reversion_wallet",
+          "grid_trading_wallet",
+          "arbitrage_wallet"
+        ],
+        "wallet_status": {
+          "timestamp": "2025-09-10T12:14:13.056076",
+          "summary": {
+            "total_wallets": 4,
+            "total_allocated_capital": 1000.0,
+            "total_portfolio_pnl": 0.0,
+            "portfolio_roi_pct": 0.0,
+            "emergency_mode": false,
+            "auto_rebalancing_enabled": true,
+            "last_rebalance": "2025-09-10T12:14:13.011069"
+          },
+          "wallets": {
+            "momentum_wallet": {
+              "config": {
+                "strategy_name": "momentum",
+                "wallet_type": "momentum",
+                "target_allocation_pct": 0.35,
+                "max_allocation_pct": 0.5,
+                "min_allocation_pct": 0.2
+              },
+              "balances": {
+                "allocated_capital": 350.0,
+                "current_balance": 350.0,
+                "available_balance": 315.0,
+                "reserved_balance": 35.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "mean_reversion_wallet": {
+              "config": {
+                "strategy_name": "mean_reversion",
+                "wallet_type": "mean_reversion",
+                "target_allocation_pct": 0.3,
+                "max_allocation_pct": 0.4,
+                "min_allocation_pct": 0.15
+              },
+              "balances": {
+                "allocated_capital": 300.0,
+                "current_balance": 300.0,
+                "available_balance": 240.0,
+                "reserved_balance": 60.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "grid_trading_wallet": {
+              "config": {
+                "strategy_name": "grid_trading",
+                "wallet_type": "grid_trading",
+                "target_allocation_pct": 0.2,
+                "max_allocation_pct": 0.3,
+                "min_allocation_pct": 0.1
+              },
+              "balances": {
+                "allocated_capital": 200.0,
+                "current_balance": 200.0,
+                "available_balance": 170.0,
+                "reserved_balance": 30.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "arbitrage_wallet": {
+              "config": {
+                "strategy_name": "arbitrage",
+                "wallet_type": "arbitrage",
+                "target_allocation_pct": 0.15,
+                "max_allocation_pct": 0.25,
+                "min_allocation_pct": 0.05
+              },
+              "balances": {
+                "allocated_capital": 150.0,
+                "current_balance": 150.0,
+                "available_balance": 135.0,
+                "reserved_balance": 15.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            }
+          },
+          "capital_flows": {
+            "daily_total": 0.0,
+            "daily_limit": 200.0,
+            "recent_flows": [],
+            "total_flow_events": 0
+          },
+          "risk_status": {
+            "global_emergency_active": false,
+            "liquidation_mode": false,
+            "capital_controls_active": false,
+            "healthy_wallets": 4
+          }
+        }
+      }
+    },
+    "strategy_coordination": {
+      "success": false,
+      "signals_processed": 1,
+      "trades_executed": 0,
+      "conflicts_resolved": 0,
+      "execution_time_ms": 0.0,
+      "coordination_success_rate": 0.0,
+      "details": {
+        "processing_result": {
+          "processed": 1,
+          "executed": 0,
+          "conflicts": 0,
+          "execution_time_ms": 0.0,
+          "coordination_success_rate": 0.0
+        },
+        "manager_status": {
+          "error": "'str' object has no attribute 'value'",
+          "timestamp": "2025-09-10T12:14:13.056076"
+        }
+      },
+      "error": "Not all signals were processed"
+    },
+    "conflict_resolution": {
+      "success": false,
+      "resolution_methods_tested": 2,
+      "conflicts_detected": false,
+      "conflicts_resolved": true,
+      "details": {
+        "resolution_results": [
+          {
+            "method": "highest_confidence",
+            "processed": 1,
+            "executed": 0,
+            "conflicts": 0
+          },
+          {
+            "method": "best_risk_reward",
+            "processed": 1,
+            "executed": 0,
+            "conflicts": 0
+          }
+        ]
+      },
+      "error": "Conflict resolution not working properly"
+    },
+    "capital_flow": {
+      "success": true,
+      "flow_executed": true,
+      "source_balance_decreased": true,
+      "target_balance_increased": true,
+      "total_capital_conserved": true,
+      "flow_amount": 50.0,
+      "details": {
+        "initial_balances": {
+          "momentum_wallet": 350.0,
+          "mean_reversion_wallet": 300.0,
+          "grid_trading_wallet": 200.0,
+          "arbitrage_wallet": 150.0
+        },
+        "updated_balances": {
+          "momentum_wallet": 300.0,
+          "mean_reversion_wallet": 350.0,
+          "grid_trading_wallet": 200.0,
+          "arbitrage_wallet": 150.0
+        },
+        "balance_changes": {
+          "momentum_wallet": -50.0,
+          "mean_reversion_wallet": 50.0,
+          "grid_trading_wallet": 0.0,
+          "arbitrage_wallet": 0.0
+        },
+        "capital_flow_history": {
+          "daily_total": 50.0,
+          "daily_limit": 200.0,
+          "recent_flows": [
+            {
+              "timestamp": "2025-09-10T12:14:13.056076",
+              "from_wallet_id": "momentum_wallet",
+              "to_wallet_id": "mean_reversion_wallet",
+              "amount": 50.0,
+              "flow_direction": "rebalance_in",
+              "reason": "test_capital_flow",
+              "success": true,
+              "execution_time_ms": 0.0,
+              "transaction_hash": null,
+              "gas_cost": 0.0,
+              "trigger_event": "",
+              "market_conditions": {},
+              "risk_metrics_before": {},
+              "risk_metrics_after": {}
+            }
+          ],
+          "total_flow_events": 1
+        }
+      }
+    },
+    "risk_integration": {
+      "success": true,
+      "risk_integration_active": true,
+      "high_risk_signal_processed": 1,
+      "high_risk_signal_executed": 0,
+      "risk_validation_working": true,
+      "risk_validation_passed": false,
+      "emergency_stop_active": false,
+      "details": {
+        "risk_processing_result": {
+          "processed": 1,
+          "executed": 0,
+          "conflicts": 0,
+          "execution_time_ms": 0.0,
+          "coordination_success_rate": 0.0
+        },
+        "risk_summary": {
+          "timestamp": "2025-09-10T12:14:13.056076",
+          "emergency_stop_active": false,
+          "overall_risk_level": "unknown",
+          "daily_metrics": {
+            "pnl": 0.0,
+            "trade_count": 0,
+            "remaining_trades": 20
+          },
+          "portfolio": {
+            "total_positions": 0,
+            "max_positions": 5,
+            "total_value_usd": 0,
+            "current_drawdown": 0,
+            "max_drawdown": 0,
+            "risk_score": 0
+          },
+          "risk_metrics": {
+            "var_95_1d": 0,
+            "total_volatility": 0,
+            "sharpe_ratio": 0,
+            "diversification_ratio": 0,
+            "used_risk_budget": 0,
+            "available_risk_budget": 1.0
+          },
+          "alerts": {
+            "active_count": 0,
+            "by_level": {
+              "low": 0,
+              "moderate": 0,
+              "high": 0,
+              "critical": 0,
+              "emergency": 0
+            },
+            "recent_alerts": []
+          },
+          "positions": [],
+          "strategy_correlations": {},
+          "limits": {
+            "max_position_size": 0.5,
+            "max_daily_loss": 10.0,
+            "max_portfolio_risk": 0.15,
+            "max_drawdown": 0.2,
+            "risk_budget": 0.15,
+            "correlation_alert_threshold": 0.75
+          }
+        },
+        "risk_validation": [
+          false,
+          "Trade size 100 exceeds maximum 0.5",
+          "RiskLevel.HIGH"
+        ]
+      }
+    },
+    "performance_tracking": {
+      "success": false,
+      "error": "'UnifiedPortfolioManager' object has no attribute 'get_comprehensive_metrics'"
+    },
+    "emergency_controls": {
+      "success": true,
+      "initial_emergency_state": false,
+      "emergency_triggered": true,
+      "emergency_blocks_trading": true,
+      "emergency_cleared": true,
+      "normal_processing_resumed": true,
+      "details": {
+        "emergency_processing": {
+          "processed": 1,
+          "executed": 0,
+          "conflicts": 0,
+          "execution_time_ms": 0.0,
+          "coordination_success_rate": 0.0
+        },
+        "normal_processing": {
+          "processed": 1,
+          "executed": 0,
+          "conflicts": 0,
+          "execution_time_ms": 0.0,
+          "coordination_success_rate": 0.0
+        }
+      }
+    },
+    "multi_wallet_isolation": {
+      "success": true,
+      "initial_momentum_healthy": true,
+      "momentum_degraded": false,
+      "other_wallets_healthy": true,
+      "isolation_maintained": true,
+      "signals_processed": 1,
+      "trades_executed": 0,
+      "details": {
+        "initial_status": {
+          "timestamp": "2025-09-10T12:14:13.061125",
+          "summary": {
+            "total_wallets": 4,
+            "total_allocated_capital": 1000.0,
+            "total_portfolio_pnl": 0.0,
+            "portfolio_roi_pct": 0.0,
+            "emergency_mode": false,
+            "auto_rebalancing_enabled": true,
+            "last_rebalance": "2025-09-10T12:14:13.011069"
+          },
+          "wallets": {
+            "momentum_wallet": {
+              "config": {
+                "strategy_name": "momentum",
+                "wallet_type": "momentum",
+                "target_allocation_pct": 0.35,
+                "max_allocation_pct": 0.5,
+                "min_allocation_pct": 0.2
+              },
+              "balances": {
+                "allocated_capital": 350.0,
+                "current_balance": 300.0,
+                "available_balance": 265.0,
+                "reserved_balance": 35.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "mean_reversion_wallet": {
+              "config": {
+                "strategy_name": "mean_reversion",
+                "wallet_type": "mean_reversion",
+                "target_allocation_pct": 0.3,
+                "max_allocation_pct": 0.4,
+                "min_allocation_pct": 0.15
+              },
+              "balances": {
+                "allocated_capital": 300.0,
+                "current_balance": 350.0,
+                "available_balance": 290.0,
+                "reserved_balance": 60.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "grid_trading_wallet": {
+              "config": {
+                "strategy_name": "grid_trading",
+                "wallet_type": "grid_trading",
+                "target_allocation_pct": 0.2,
+                "max_allocation_pct": 0.3,
+                "min_allocation_pct": 0.1
+              },
+              "balances": {
+                "allocated_capital": 200.0,
+                "current_balance": 200.0,
+                "available_balance": 170.0,
+                "reserved_balance": 30.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "arbitrage_wallet": {
+              "config": {
+                "strategy_name": "arbitrage",
+                "wallet_type": "arbitrage",
+                "target_allocation_pct": 0.15,
+                "max_allocation_pct": 0.25,
+                "min_allocation_pct": 0.05
+              },
+              "balances": {
+                "allocated_capital": 150.0,
+                "current_balance": 150.0,
+                "available_balance": 135.0,
+                "reserved_balance": 15.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            }
+          },
+          "capital_flows": {
+            "daily_total": 50.0,
+            "daily_limit": 200.0,
+            "recent_flows": [
+              {
+                "timestamp": "2025-09-10T12:14:13.056076",
+                "from_wallet_id": "momentum_wallet",
+                "to_wallet_id": "mean_reversion_wallet",
+                "amount": 50.0,
+                "flow_direction": "rebalance_in",
+                "reason": "test_capital_flow",
+                "success": true,
+                "execution_time_ms": 0.0,
+                "transaction_hash": null,
+                "gas_cost": 0.0,
+                "trigger_event": "",
+                "market_conditions": {},
+                "risk_metrics_before": {},
+                "risk_metrics_after": {}
+              }
+            ],
+            "total_flow_events": 1
+          },
+          "risk_status": {
+            "global_emergency_active": false,
+            "liquidation_mode": false,
+            "capital_controls_active": false,
+            "healthy_wallets": 4
+          }
+        },
+        "final_status": {
+          "timestamp": "2025-09-10T12:14:13.061125",
+          "summary": {
+            "total_wallets": 4,
+            "total_allocated_capital": 1000.0,
+            "total_portfolio_pnl": 0.0,
+            "portfolio_roi_pct": 0.0,
+            "emergency_mode": false,
+            "auto_rebalancing_enabled": true,
+            "last_rebalance": "2025-09-10T12:14:13.011069"
+          },
+          "wallets": {
+            "momentum_wallet": {
+              "config": {
+                "strategy_name": "momentum",
+                "wallet_type": "momentum",
+                "target_allocation_pct": 0.35,
+                "max_allocation_pct": 0.5,
+                "min_allocation_pct": 0.2
+              },
+              "balances": {
+                "allocated_capital": 350.0,
+                "current_balance": 300.0,
+                "available_balance": 265.0,
+                "reserved_balance": 35.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 0.3,
+                "is_healthy": false,
+                "error_count_24h": 10,
+                "risk_score": 0.0
+              }
+            },
+            "mean_reversion_wallet": {
+              "config": {
+                "strategy_name": "mean_reversion",
+                "wallet_type": "mean_reversion",
+                "target_allocation_pct": 0.3,
+                "max_allocation_pct": 0.4,
+                "min_allocation_pct": 0.15
+              },
+              "balances": {
+                "allocated_capital": 300.0,
+                "current_balance": 350.0,
+                "available_balance": 290.0,
+                "reserved_balance": 60.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "grid_trading_wallet": {
+              "config": {
+                "strategy_name": "grid_trading",
+                "wallet_type": "grid_trading",
+                "target_allocation_pct": 0.2,
+                "max_allocation_pct": 0.3,
+                "min_allocation_pct": 0.1
+              },
+              "balances": {
+                "allocated_capital": 200.0,
+                "current_balance": 200.0,
+                "available_balance": 170.0,
+                "reserved_balance": 30.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            },
+            "arbitrage_wallet": {
+              "config": {
+                "strategy_name": "arbitrage",
+                "wallet_type": "arbitrage",
+                "target_allocation_pct": 0.15,
+                "max_allocation_pct": 0.25,
+                "min_allocation_pct": 0.05
+              },
+              "balances": {
+                "allocated_capital": 150.0,
+                "current_balance": 150.0,
+                "available_balance": 135.0,
+                "reserved_balance": 15.0,
+                "utilized_capital": 0.0
+              },
+              "performance": {
+                "total_pnl": 0.0,
+                "roi_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0,
+                "current_drawdown_pct": 0.0
+              },
+              "activity": {
+                "total_trades": 0,
+                "trades_today": 0,
+                "active_positions": 0,
+                "last_trade": null
+              },
+              "health": {
+                "health_score": 1.0,
+                "is_healthy": true,
+                "error_count_24h": 0,
+                "risk_score": 0.0
+              }
+            }
+          },
+          "capital_flows": {
+            "daily_total": 50.0,
+            "daily_limit": 200.0,
+            "recent_flows": [
+              {
+                "timestamp": "2025-09-10T12:14:13.056076",
+                "from_wallet_id": "momentum_wallet",
+                "to_wallet_id": "mean_reversion_wallet",
+                "amount": 50.0,
+                "flow_direction": "rebalance_in",
+                "reason": "test_capital_flow",
+                "success": true,
+                "execution_time_ms": 0.0,
+                "transaction_hash": null,
+                "gas_cost": 0.0,
+                "trigger_event": "",
+                "market_conditions": {},
+                "risk_metrics_before": {},
+                "risk_metrics_after": {}
+              }
+            ],
+            "total_flow_events": 1
+          },
+          "risk_status": {
+            "global_emergency_active": false,
+            "liquidation_mode": false,
+            "capital_controls_active": false,
+            "healthy_wallets": 3
+          }
+        },
+        "processing_result": {
+          "processed": 1,
+          "executed": 0,
+          "conflicts": 0,
+          "execution_time_ms": 0.0,
+          "coordination_success_rate": 0.0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "SolTrader Dashboard",
+    "tags": ["soltrader", "trading", "solana"],
+    "style": "dark",
+    "timezone": "browser",
+    "editable": true,
+    "hideControls": false,
+    "graphTooltip": 1,
+    "panels": [
+      {
+        "id": 1,
+        "title": "Portfolio Value (USD)",
+        "type": "singlestat",
+        "span": 3,
+        "targets": [
+          {
+            "expr": "soltrader_portfolio_value_usd",
+            "refId": "A"
+          }
+        ],
+        "colorBackground": false,
+        "colorValue": true,
+        "colors": ["#d44a3a", "#e24d42", "#299c46"],
+        "format": "currencyUSD",
+        "gauge": {
+          "show": false
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "mappingTypes": [],
+        "valueName": "current"
+      },
+      {
+        "id": 2,
+        "title": "Token Approval Rate",
+        "type": "singlestat",
+        "span": 3,
+        "targets": [
+          {
+            "expr": "soltrader_token_approval_rate",
+            "refId": "A"
+          }
+        ],
+        "colorBackground": false,
+        "colorValue": true,
+        "colors": ["#d44a3a", "#e24d42", "#299c46"],
+        "format": "percent",
+        "gauge": {
+          "show": true,
+          "minValue": 0,
+          "maxValue": 100
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "mappingTypes": [],
+        "thresholds": "40,60",
+        "valueName": "current"
+      },
+      {
+        "id": 3,
+        "title": "System Health",
+        "type": "singlestat",
+        "span": 3,
+        "targets": [
+          {
+            "expr": "soltrader_system_health",
+            "refId": "A"
+          }
+        ],
+        "colorBackground": true,
+        "colorValue": false,
+        "colors": ["#d44a3a", "#e24d42", "#299c46"],
+        "format": "none",
+        "gauge": {
+          "show": false
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "mappingTypes": [
+          {
+            "name": "value to text",
+            "value": 1,
+            "text": "HEALTHY"
+          },
+          {
+            "name": "value to text", 
+            "value": 2,
+            "text": "HEALTHY"
+          }
+        ],
+        "thresholds": "0.5,1",
+        "valueName": "current"
+      },
+      {
+        "id": 4,
+        "title": "Active Positions by Strategy",
+        "type": "graph",
+        "span": 6,
+        "targets": [
+          {
+            "expr": "soltrader_active_positions",
+            "refId": "A",
+            "legendFormat": "{{strategy}}"
+          }
+        ],
+        "xAxis": {
+          "show": true
+        },
+        "yAxes": [
+          {
+            "label": "Positions",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Strategy Performance",
+        "type": "graph",
+        "span": 6,
+        "targets": [
+          {
+            "expr": "soltrader_strategy_performance_percent",
+            "refId": "A",
+            "legendFormat": "{{strategy}}"
+          }
+        ],
+        "xAxis": {
+          "show": true
+        },
+        "yAxes": [
+          {
+            "label": "Performance %",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 6,
+        "title": "API Request Duration",
+        "type": "graph",
+        "span": 6,
+        "targets": [
+          {
+            "expr": "rate(soltrader_api_request_duration_seconds_sum[5m]) / rate(soltrader_api_request_duration_seconds_count[5m])",
+            "refId": "A",
+            "legendFormat": "{{provider}}"
+          }
+        ],
+        "xAxis": {
+          "show": true
+        },
+        "yAxes": [
+          {
+            "label": "Seconds",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 7,
+        "title": "Trade Execution Rate",
+        "type": "graph",
+        "span": 6,
+        "targets": [
+          {
+            "expr": "rate(soltrader_trades_total[5m])",
+            "refId": "A",
+            "legendFormat": "{{strategy}} - {{status}}"
+          }
+        ],
+        "xAxis": {
+          "show": true
+        },
+        "yAxes": [
+          {
+            "label": "Trades/sec",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
+      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+    },
+    "refresh": "30s",
+    "version": 1
+  }
+}

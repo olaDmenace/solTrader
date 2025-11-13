@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from .signals import Signal, MarketCondition
-from .technical_indicators import RSICalculator, BollingerBands, MovingAverage
+from .technical_indicators import RSICalculator, BollingerBands, MovingAverage, ATRCalculator
 from ..config.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -116,6 +116,12 @@ class MeanReversionConfig:
     take_profit_pct: float = 0.25  # 25% take profit
     max_hold_time_hours: int = 24  # Maximum hold time
     
+    # ATR-based risk management
+    atr_period: int = 14  # ATR calculation period
+    atr_stop_multiplier: float = 2.0  # Stop loss = current_price +/- (ATR * multiplier)
+    atr_take_profit_multiplier: float = 3.0  # Take profit = current_price +/- (ATR * multiplier)
+    use_atr_risk_management: bool = True  # Enable ATR-based stops/targets
+    
     # Timeframes for analysis
     analysis_timeframes: List[str] = field(default_factory=lambda: ['5m', '15m', '1h'])
     primary_timeframe: str = '15m'
@@ -144,6 +150,8 @@ class MeanReversionSignal:
     take_profit: float
     max_hold_time: datetime
     
+    # Optional fields with defaults must come after required fields
+    atr_value: Optional[float] = None  # ATR for volatility-based risk management
     timestamp: datetime = field(default_factory=datetime.now)
     
     def to_signal(self) -> Signal:
@@ -156,6 +164,7 @@ class MeanReversionSignal:
                 'rsi': self.rsi_value,
                 'z_score': self.z_score,
                 'bollinger_position': self.bollinger_position,
+                'atr': self.atr_value,
                 'liquidity_healthy': self.liquidity_healthy,
                 'volume_profile': self.volume_profile
             },
@@ -175,6 +184,7 @@ class MeanReversionStrategy:
         self.rsi_calculator = RSICalculator(period=self.config.rsi_period)
         self.bollinger_bands = BollingerBands(period=20, std_dev=2.0)
         self.moving_average = MovingAverage(period=self.config.z_score_window)
+        self.atr_calculator = ATRCalculator(period=self.config.atr_period)
         
         # Price history storage for calculations
         self.price_history: Dict[str, Dict[str, List[float]]] = {}  # token -> timeframe -> prices
@@ -339,6 +349,9 @@ class MeanReversionStrategy:
         z_score = self.calculate_z_score(prices)
         bollinger_pos = self.calculate_bollinger_position(prices)
         
+        # Calculate ATR for volatility-based risk management
+        atr = self.atr_calculator.calculate_from_prices(prices)
+        
         if rsi is None or z_score is None or bollinger_pos is None:
             return None
         
@@ -397,13 +410,29 @@ class MeanReversionStrategy:
         confidence_adjusted_size = base_size * (1 + confidence * self.config.confidence_multiplier)
         suggested_size = min(confidence_adjusted_size, self.config.max_position_size)
         
-        # Calculate stop loss and take profit
-        if is_buy_signal:
-            stop_loss = current_price * (1 - self.config.stop_loss_pct)
-            take_profit = current_price * (1 + self.config.take_profit_pct)
+        # Calculate stop loss and take profit with ATR-based risk management
+        if self.config.use_atr_risk_management and atr is not None and atr > 0:
+            # Use ATR-based stop loss and take profit
+            atr_stop_distance = atr * self.config.atr_stop_multiplier
+            atr_profit_distance = atr * self.config.atr_take_profit_multiplier
+            
+            if is_buy_signal:
+                stop_loss = current_price - atr_stop_distance
+                take_profit = current_price + atr_profit_distance
+            else:
+                stop_loss = current_price + atr_stop_distance
+                take_profit = current_price - atr_profit_distance
+            
+            logger.info(f"[MEAN_REVERSION] ATR Risk Management - ATR: {atr:.6f}, "
+                       f"Stop: {atr_stop_distance:.6f}, Profit: {atr_profit_distance:.6f}")
         else:
-            stop_loss = current_price * (1 + self.config.stop_loss_pct)
-            take_profit = current_price * (1 - self.config.take_profit_pct)
+            # Fallback to percentage-based stops
+            if is_buy_signal:
+                stop_loss = current_price * (1 - self.config.stop_loss_pct)
+                take_profit = current_price * (1 + self.config.take_profit_pct)
+            else:
+                stop_loss = current_price * (1 + self.config.stop_loss_pct)
+                take_profit = current_price * (1 - self.config.take_profit_pct)
         
         # Calculate max hold time
         max_hold_time = datetime.now() + timedelta(hours=self.config.max_hold_time_hours)
@@ -416,6 +445,7 @@ class MeanReversionStrategy:
             rsi_value=rsi,
             z_score=z_score,
             bollinger_position=bollinger_pos,
+            atr_value=atr,
             liquidity_healthy=liquidity_healthy,
             liquidity_reason=liquidity_reason,
             volume_profile={'trend': volume_trend, 'current': volumes[-1] if volumes else 0},
@@ -438,7 +468,10 @@ class MeanReversionStrategy:
                 'rsi_overbought': self.config.rsi_overbought,
                 'z_score_threshold': self.config.z_score_buy_threshold,
                 'min_liquidity': self.liquidity_checker.min_liquidity_usd,
-                'position_size_range': f"{self.config.base_position_size:.1%} - {self.config.max_position_size:.1%}"
+                'position_size_range': f"{self.config.base_position_size:.1%} - {self.config.max_position_size:.1%}",
+                'atr_risk_management': self.config.use_atr_risk_management,
+                'atr_stop_multiplier': self.config.atr_stop_multiplier,
+                'atr_profit_multiplier': self.config.atr_take_profit_multiplier
             }
         }
         
