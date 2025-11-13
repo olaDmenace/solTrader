@@ -23,6 +23,7 @@ from ..api.solana_tracker import SolanaTrackerClient
 from ..config.settings import Settings
 from ..cache import get_token_cache, get_token_display_name, TokenMetadata
 from ..risk import get_risk_manager
+from utils.currency_formatter import currency_formatter
 
 logger = logging.getLogger(__name__)
 
@@ -229,10 +230,10 @@ class UnifiedWebDashboard:
                         if connected:
                             real_balance_sol = await wallet.get_balance()
                             if real_balance_sol is not None:
-                                # Convert SOL to USD (approximate SOL price)
-                                sol_price_usd = 204  # Approximate SOL price - in production, fetch from API
-                                current_balance = real_balance_sol * sol_price_usd
-                                logger.debug(f"[DASHBOARD] Using real wallet balance: {real_balance_sol} SOL (${current_balance:.2f})")
+                                # Convert SOL to USD using dynamic pricing
+                                current_balance = await currency_formatter.sol_to_usd(real_balance_sol)
+                                balance_formatted = await currency_formatter.format_currency_usd(current_balance, "USD")
+                                logger.debug(f"[DASHBOARD] Using real wallet balance: {real_balance_sol} SOL ({balance_formatted})")
                             else:
                                 logger.warning("[DASHBOARD] Could not fetch real wallet balance, using analytics balance")
                         else:

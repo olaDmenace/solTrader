@@ -36,14 +36,25 @@ from enum import Enum
 from collections import defaultdict, deque
 from pathlib import Path
 import aiohttp
-import redis
+try:
+    import redis
+except ImportError:
+    # Mock Redis for environments without redis module
+    class MockRedis:
+        def __init__(self, *args, **kwargs): pass
+        def get(self, key): return None
+        def set(self, key, value, ex=None): pass
+        def delete(self, key): pass
+        def exists(self, key): return False
+        def ping(self): return True
+    redis = MockRedis
 from cachetools import TTLCache, LRUCache
 
 # Import core components for integration
 from core.rpc_manager import MultiRPCManager
 from api.data_provider import SmartDualAPIManager
-from src.cache.token_metadata_cache import TokenMetadataCache
-from src.api.adaptive_quota_manager import AdaptiveQuotaManager
+from cache.token_metadata_cache import TokenMetadataCache
+from api.adaptive_quota_manager import AdaptiveQuotaManager
 
 logger = logging.getLogger(__name__)
 

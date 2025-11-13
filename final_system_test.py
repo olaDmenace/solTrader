@@ -9,10 +9,11 @@ from pathlib import Path
 # Setup path
 sys.path.insert(0, str(Path.cwd()))
 
-from src.config.settings import load_settings
-from src.enhanced_token_scanner import EnhancedTokenScanner
-from src.phantom_wallet import PhantomWallet
-from src.trading.strategy import TradingStrategy, TradingMode
+from config.settings import load_settings
+from core.token_scanner import EnhancedTokenScanner
+from core.wallet_manager import PhantomWallet
+from strategies.momentum import MomentumStrategy, TradingMode
+from strategies.base import StrategyConfig, StrategyType
 
 async def comprehensive_system_test():
     """Test the entire system end-to-end"""
@@ -27,10 +28,24 @@ async def comprehensive_system_test():
     
     try:
         # Test 1: Component Initialization
-        print("\n📦 Test 1: Component Initialization")
+        print("\nTest 1: Component Initialization")
         scanner = EnhancedTokenScanner(settings)
         wallet = PhantomWallet(settings)
-        strategy = TradingStrategy(scanner, wallet, settings)
+        
+        # Create proper strategy configuration for unified architecture
+        momentum_config = StrategyConfig(
+            strategy_name="momentum",
+            strategy_type=StrategyType.MOMENTUM,
+            max_positions=5,
+            max_position_size=0.1
+        )
+        
+        strategy = MomentumStrategy(momentum_config, None, settings)
+        
+        # Inject legacy dependencies for compatibility
+        strategy.scanner = scanner
+        strategy.wallet = wallet
+        strategy.jupiter = None  # Will be set by system
         print("   ✅ All components initialized successfully")
         test_results['initialization'] = True
         

@@ -6,13 +6,14 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 # UNIFIED IMPORTS - Day 13 Clean Architecture
-from src.config.settings import Settings, load_settings  # Keep settings in src for compatibility
+from config.settings import Settings, load_settings
 from api.alchemy import AlchemyClient
 from api.enhanced_jupiter import EnhancedJupiterClient as JupiterClient
 from api.solana_tracker import SolanaTrackerClient
 from core.token_scanner import EnhancedTokenScanner
 from core.wallet_manager import PhantomWallet
-from strategies.momentum import MomentumStrategy, TradingMode
+from strategies.momentum import MomentumStrategy
+from src.trading.strategy import TradingMode
 from strategies.mean_reversion import MeanReversionStrategy
 from strategies.grid_trading import GridTradingStrategy
 from strategies.arbitrage import ArbitrageStrategy
@@ -27,11 +28,15 @@ from management.data_manager import UnifiedDataManager
 from management.system_manager import UnifiedSystemManager
 
 # Legacy compatibility imports (to be phased out)
-from src.analytics.performance_analytics import PerformanceAnalytics
-from src.notifications.email_system import EmailNotificationSystem
+from analytics.performance_analytics import PerformanceAnalytics
+from notifications.email_system import EmailNotificationSystem
 from src.dashboard.unified_web_dashboard import UnifiedWebDashboard
 from src.monitoring.health_monitor import HealthMonitor
 from src.logging.trade_logger import CentralizedTradeLogger
+from src.portfolio.dynamic_capital_allocator import DynamicCapitalAllocator
+from src.portfolio.portfolio_risk_manager import PortfolioRiskManager
+from src.portfolio.portfolio_manager import PortfolioManager
+from src.trading.strategy import TradingStrategy
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -348,11 +353,13 @@ class TradingBot:
         """Connect and validate wallet"""
         try:
             if self.settings.PAPER_TRADING:
-                # For paper trading, just validate address format
+                # For paper trading, validate and set wallet address without live connection
                 if len(self.settings.WALLET_ADDRESS) < 32:
                     logger.error("Invalid wallet address format")
                     return False
-                logger.info("[WALLET] Paper trading wallet validated")
+                # Set the wallet address for paper trading so balance calls don't fail
+                self.wallet.wallet_address = self.settings.WALLET_ADDRESS
+                logger.info(f"[WALLET] Paper trading wallet configured: {self.settings.WALLET_ADDRESS[:8]}...")
                 return True
             else:
                 # For live trading, actually connect wallet
@@ -389,7 +396,8 @@ class TradingBot:
         """Check if daily report should be sent"""
         try:
             now = datetime.now()
-            report_time = self.settings.DAILY_REPORT_TIME.split(':')
+            daily_report_time = getattr(self.settings, 'DAILY_REPORT_TIME', '20:00')
+            report_time = daily_report_time.split(':')
             report_hour = int(report_time[0])
             report_minute = int(report_time[1]) if len(report_time) > 1 else 0
             

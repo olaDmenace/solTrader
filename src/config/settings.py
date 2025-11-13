@@ -16,18 +16,20 @@ class Settings:
     # Paper Trading settings - RISK MITIGATION APPLIED
     position_manager: Any = None
     PAPER_TRADING: bool = False  # FIXED: Default to live trading, override via .env
+    TRADING_MODE: str = "live"  # Trading mode: "paper" or "live"  
     INITIAL_PAPER_BALANCE: float = 100.0
+    
+    # Paper Trading Specific Parameters
+    PAPER_MIN_MOMENTUM_THRESHOLD: float = 1.5  # Very low threshold for more trades
+    PAPER_MIN_LIQUIDITY: float = 2.0  # Extremely low liquidity requirement
+    PAPER_TRADING_SLIPPAGE: float = 0.05  # 5% slippage tolerance
+    PAPER_BASE_POSITION_SIZE: float = 0.5  # Base position size
+    PAPER_MAX_POSITION_SIZE: float = 0.8  # Max position size
+    PAPER_SIGNAL_THRESHOLD: float = 0.05  # Low threshold for max frequency
+    
     MAX_POSITION_SIZE: float = 0.05  # CRITICAL FIX: 5% max position (was suicide 35%)
     MAX_SLIPPAGE: float = 3.0  # CRITICAL FIX: 3% slippage (was destroying profits at 10%)
     MAX_TRADES_PER_DAY: int = 15  # Reduced for better quality trades
-    
-    # Paper Trading Specific Parameters - MICRO-CAPITAL OPTIMIZED
-    PAPER_MIN_MOMENTUM_THRESHOLD: float = 1.5  # MICRO-CAPITAL: Very low threshold for more trades
-    PAPER_MIN_LIQUIDITY: float = 2.0  # MICRO-CAPITAL: Extremely low liquidity requirement
-    PAPER_TRADING_SLIPPAGE: float = 0.05  # MICRO-CAPITAL: 5% slippage tolerance for micro trades
-    PAPER_BASE_POSITION_SIZE: float = 0.5  # MICRO-CAPITAL: 50% of $2.79 = $1.40 per trade
-    PAPER_MAX_POSITION_SIZE: float = 0.8  # MICRO-CAPITAL: 80% max position = $2.23 max trade
-    PAPER_SIGNAL_THRESHOLD: float = 0.05  # MICRO-CAPITAL: Very low threshold for maximum trade frequency
     
     # Trading pause (disable while fixing scanner)
     TRADING_PAUSED: bool = False  # Trading enabled with new scanner
@@ -329,6 +331,7 @@ def load_settings() -> Settings:
 
         # New mappings
         'PAPER_TRADING': ('PAPER_TRADING', lambda x: x.lower() == 'true'),
+        'TRADING_MODE': ('TRADING_MODE', str),
         'INITIAL_PAPER_BALANCE': ('INITIAL_PAPER_BALANCE', float),
         
         # Paper Trading Specific Parameters

@@ -1,0 +1,182 @@
+{
+  "profile_summary": {
+    "duration_minutes": 1,
+    "samples_collected": 7,
+    "components_profiled": 11,
+    "baseline_memory_mb": 10308.546875,
+    "peak_memory_mb": 10365.92578125,
+    "avg_memory_mb": 10330.67466517857,
+    "avg_cpu_percent": 53.77142857142857,
+    "total_codebase_size_mb": 0.5291223526000977
+  },
+  "memory_analysis": {
+    "baseline_mb": 10308.546875,
+    "peak_mb": 10365.92578125,
+    "average_mb": 10330.67466517857,
+    "std_deviation_mb": 33.76766926453161,
+    "memory_growth_mb": 103.25390625,
+    "component_memory_usage_mb": 0
+  },
+  "cpu_analysis": {
+    "average_percent": 53.77142857142857,
+    "peak_percent": 66.2,
+    "std_deviation": 7.662285053748521
+  },
+  "component_analysis": {
+    "UnifiedRiskManager": {
+      "component_name": "UnifiedRiskManager",
+      "file_size_bytes": 68915,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "UnifiedPortfolioManager": {
+      "component_name": "UnifiedPortfolioManager",
+      "file_size_bytes": 59747,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "UnifiedTradingManager": {
+      "component_name": "UnifiedTradingManager",
+      "file_size_bytes": 94918,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "UnifiedOrderManager": {
+      "component_name": "UnifiedOrderManager",
+      "file_size_bytes": 48736,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "UnifiedDataManager": {
+      "component_name": "UnifiedDataManager",
+      "file_size_bytes": 44642,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "UnifiedSystemManager": {
+      "component_name": "UnifiedSystemManager",
+      "file_size_bytes": 49941,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "MasterStrategyCoordinator": {
+      "component_name": "MasterStrategyCoordinator",
+      "file_size_bytes": 84253,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "MomentumStrategy": {
+      "component_name": "MomentumStrategy",
+      "file_size_bytes": 27049,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "MeanReversionStrategy": {
+      "component_name": "MeanReversionStrategy",
+      "file_size_bytes": 25620,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "GridTradingStrategy": {
+      "component_name": "GridTradingStrategy",
+      "file_size_bytes": 24545,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    },
+    "ArbitrageStrategy": {
+      "component_name": "ArbitrageStrategy",
+      "file_size_bytes": 26459,
+      "initialization_time_ms": 0.0,
+      "memory_usage_mb": 0,
+      "cpu_usage_percent": 0.0,
+      "method_call_counts": {},
+      "avg_method_times_ms": {},
+      "peak_memory_mb": 0,
+      "errors_count": 0
+    }
+  },
+  "optimization_opportunities": [
+    {
+      "type": "memory",
+      "priority": "high",
+      "issue": "Memory growth of 103.3MB detected",
+      "recommendation": "Implement memory pooling and aggressive garbage collection"
+    },
+    {
+      "type": "code_size",
+      "priority": "medium",
+      "issue": "UnifiedRiskManager is 67.3KB",
+      "recommendation": "Consider breaking UnifiedRiskManager into smaller modules"
+    },
+    {
+      "type": "code_size",
+      "priority": "medium",
+      "issue": "UnifiedPortfolioManager is 58.3KB",
+      "recommendation": "Consider breaking UnifiedPortfolioManager into smaller modules"
+    },
+    {
+      "type": "code_size",
+      "priority": "medium",
+      "issue": "UnifiedTradingManager is 92.7KB",
+      "recommendation": "Consider breaking UnifiedTradingManager into smaller modules"
+    },
+    {
+      "type": "code_size",
+      "priority": "medium",
+      "issue": "MasterStrategyCoordinator is 82.3KB",
+      "recommendation": "Consider breaking MasterStrategyCoordinator into smaller modules"
+    }
+  ],
+  "performance_grade": "D (Needs Improvement)",
+  "timestamp": "2025-09-10T22:59:38.008360"
+}

@@ -1,0 +1,162 @@
+{
+  "suite_info": {
+    "name": "SolTrader Comprehensive Test Suite",
+    "description": "Complete production readiness validation",
+    "execution_time_ms": 10151.334,
+    "timestamp": "20250911_102314"
+  },
+  "summary": {
+    "total_tests": 7,
+    "passed_tests": 6,
+    "failed_tests": 1,
+    "skipped_tests": 0,
+    "success_rate": 85.71428571428571
+  },
+  "test_results": [
+    {
+      "test_id": "integration_db_001",
+      "test_name": "Database Integration Test",
+      "category": "integration",
+      "status": "passed",
+      "duration_ms": 294.038,
+      "error_message": null,
+      "severity": null,
+      "details": {
+        "connect_success": true,
+        "create_table_success": true,
+        "insert_success": true,
+        "select_success": true,
+        "update_success": true,
+        "delete_success": true,
+        "operations_tested": 6
+      }
+    },
+    {
+      "test_id": "integration_api_001",
+      "test_name": "API Integration Test",
+      "category": "integration",
+      "status": "passed",
+      "duration_ms": 262.0,
+      "error_message": null,
+      "severity": null,
+      "details": {
+        "jupiter_status": "success",
+        "birdeye_status": "success",
+        "solana_tracker_status": "success",
+        "alchemy_status": "success",
+        "success_rate": 1.0,
+        "successful_calls": 4,
+        "total_calls": 4
+      }
+    },
+    {
+      "test_id": "integration_strategy_001",
+      "test_name": "Strategy Coordination Test",
+      "category": "integration",
+      "status": "passed",
+      "duration_ms": 165.99800000000002,
+      "error_message": null,
+      "severity": null,
+      "details": {
+        "no_conflicts": "passed",
+        "token_conflict_resolution": "failed",
+        "risk_limit_enforcement": "passed",
+        "capital_allocation": "passed",
+        "emergency_stop": "passed",
+        "coordination_success_rate": 0.8
+      }
+    },
+    {
+      "test_id": "stress_trading_001",
+      "test_name": "Concurrent Trading Stress Test (25 trades)",
+      "category": "stress",
+      "status": "passed",
+      "duration_ms": 496.00899999999996,
+      "error_message": null,
+      "severity": null,
+      "details": {
+        "concurrent_trades": 25,
+        "successful_trades": 23,
+        "failed_trades": 2,
+        "success_rate": 0.92,
+        "avg_execution_time_ms": 1217.9950200704036,
+        "performance_metrics": {
+          "samples_collected": 2,
+          "memory": {
+            "avg_mb": 10574.111328125,
+            "max_mb": 10575.26171875,
+            "min_mb": 10572.9609375
+          },
+          "cpu": {
+            "avg_percent": 62.5,
+            "max_percent": 75.0
+          }
+        }
+      }
+    },
+    {
+      "test_id": "stress_memory_001",
+      "test_name": "Memory Pressure Test (10s)",
+      "category": "stress",
+      "status": "failed",
+      "duration_ms": 10149.337,
+      "error_message": "Memory usage too high: 10575.3MB",
+      "severity": "medium",
+      "details": {
+        "duration_seconds": 10,
+        "max_memory_mb": 10575.26171875,
+        "performance_metrics": {
+          "samples_collected": 2,
+          "memory": {
+            "avg_mb": 10574.111328125,
+            "max_mb": 10575.26171875,
+            "min_mb": 10572.9609375
+          },
+          "cpu": {
+            "avg_percent": 62.5,
+            "max_percent": 75.0
+          }
+        }
+      }
+    },
+    {
+      "test_id": "recovery_api_001",
+      "test_name": "API Failure Recovery Test",
+      "category": "recovery",
+      "status": "passed",
+      "duration_ms": 837.0,
+      "error_message": null,
+      "severity": null,
+      "details": {
+        "network_timeout": "recovered",
+        "rate_limit_exceeded": "recovered",
+        "service_unavailable": "recovered",
+        "invalid_response": "recovered",
+        "connection_reset": "recovered",
+        "recovery_rate": 1.0,
+        "recovery_successes": 5
+      }
+    },
+    {
+      "test_id": "recovery_emergency_001",
+      "test_name": "Emergency Stop Test",
+      "category": "recovery",
+      "status": "passed",
+      "duration_ms": 261.0,
+      "error_message": null,
+      "severity": null,
+      "details": {
+        "stop_new_trades": "completed",
+        "cancel_pending_orders": "completed",
+        "close_positions": "completed",
+        "notify_operators": "completed",
+        "save_state": "completed",
+        "emergency_triggered": true,
+        "actions_completed": 5,
+        "total_actions": 5,
+        "stop_duration_ms": 160.0029468536377,
+        "positions_handled": 5
+      }
+    }
+  ]
+}

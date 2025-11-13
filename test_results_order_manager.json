@@ -1,6 +1,6 @@
 {
-  "start_time": "2025-09-10T22:32:50.967416",
-  "end_time": "2025-09-10T22:33:03.508689",
+  "start_time": "2025-09-10T22:38:15.811886",
+  "end_time": "2025-09-10T22:38:28.412261",
   "total_tests": 8,
   "successful_tests": 7,
   "success_rate": 87.5,
@@ -24,17 +24,17 @@
       },
       "details": {
         "status": {
-          "timestamp": "2025-09-10T22:32:50.972411",
+          "timestamp": "2025-09-10T22:38:15.827513",
           "status": {
             "emergency_stop": false,
             "active_orders": 0,
             "max_concurrent_orders": 20
           },
           "performance": {
-            "orders_last_hour": 20,
+            "orders_last_hour": 30,
             "success_rate": 0.0,
             "average_slippage": 0.0,
-            "average_execution_time": 197.24557134840222,
+            "average_execution_time": 189.61563816776982,
             "quality_score": 30.0
           },
           "configuration": {
@@ -61,11 +61,11 @@
       "final_status": "filled",
       "execution_details": {
         "filled_amount": 0.297,
-        "execution_time_ms": 181.11515045166016,
+        "execution_time_ms": 161.91768646240234,
         "transaction_hash": "mock_tx_0"
       },
       "details": {
-        "order_id": "order_1757539970973_0",
+        "order_id": "order_1757540295827_0",
         "order_request": {
           "token_address": "test_token_123456789",
           "strategy_name": "momentum",
@@ -74,7 +74,7 @@
           "order_type": "market"
         },
         "order_result": {
-          "order_id": "order_1757539970973_0",
+          "order_id": "order_1757540295827_0",
           "client_order_id": null,
           "status": "OrderStatus.FILLED",
           "filled_amount": "0.297",
@@ -82,9 +82,9 @@
           "total_cost": "0",
           "fees_paid": "0",
           "transaction_hash": "mock_tx_0",
-          "execution_time_ms": 181.11515045166016,
+          "execution_time_ms": 161.91768646240234,
           "slippage_realized": 0.0,
-          "route_used": "route_1757539971",
+          "route_used": "route_1757540295",
           "wallet_used": "momentum_wallet",
           "error_message": null,
           "retry_count": 0,
@@ -101,17 +101,17 @@
       "execution_successful": true,
       "slippage_within_tolerance": true,
       "details": {
-        "order_id": "order_1757539972004_0",
+        "order_id": "order_1757540296840_0",
         "swap_executions": 2,
         "last_execution": {
           "token_address": "mev_test_token_123",
           "side": "buy",
           "amount": 0.4,
           "result": "SwapResult(success=True, signature='mock_tx_1', output_amount=Decimal('0.396'), execution_time=0.1, error=None, route_info={'route': 'mock_route', 'mev_protected': True})",
-          "timestamp": "2025-09-10 22:32:52.193185"
+          "timestamp": "2025-09-10 22:38:17.005921"
         },
         "order_result": {
-          "order_id": "order_1757539972004_0",
+          "order_id": "order_1757540296840_0",
           "client_order_id": null,
           "status": "OrderStatus.FILLED",
           "filled_amount": "0.396",
@@ -119,9 +119,9 @@
           "total_cost": "0",
           "fees_paid": "0",
           "transaction_hash": "mock_tx_1",
-          "execution_time_ms": 169.6920394897461,
+          "execution_time_ms": 158.90216827392578,
           "slippage_realized": 0.0,
-          "route_used": "route_1757539972",
+          "route_used": "route_1757540296",
           "wallet_used": "arbitrage_wallet",
           "error_message": null,
           "retry_count": 0,
@@ -148,13 +148,13 @@
       },
       "details": {
         "order_ids": [
-          "order_1757539973531_0",
-          "order_1757539973638_1",
-          "order_1757539973745_2"
+          "order_1757540298345_0",
+          "order_1757540298463_1",
+          "order_1757540298579_1"
         ],
         "order_results": [
           {
-            "order_id": "order_1757539973531_0",
+            "order_id": "order_1757540298345_0",
             "client_order_id": null,
             "status": "OrderStatus.FILLED",
             "filled_amount": "0.198",
@@ -162,9 +162,9 @@
             "total_cost": "0",
             "fees_paid": "0",
             "transaction_hash": "mock_tx_2",
-            "execution_time_ms": 184.42034721374512,
+            "execution_time_ms": 130.2657127380371,
             "slippage_realized": 0.0,
-            "route_used": "route_1757539973",
+            "route_used": "route_1757540298",
             "wallet_used": "momentum_wallet",
             "error_message": null,
             "retry_count": 0,
@@ -172,7 +172,7 @@
             "execution_quality_score": 85.0
           },
           {
-            "order_id": "order_1757539973638_1",
+            "order_id": "order_1757540298463_1",
             "client_order_id": null,
             "status": "OrderStatus.FILLED",
             "filled_amount": "0.297",
@@ -180,9 +180,9 @@
             "total_cost": "0",
             "fees_paid": "0",
             "transaction_hash": "mock_tx_3",
-            "execution_time_ms": 184.51619148254395,
+            "execution_time_ms": 158.9503288269043,
             "slippage_realized": 0.0,
-            "route_used": "route_1757539973",
+            "route_used": "route_1757540298",
             "wallet_used": "mean_reversion_wallet",
             "error_message": null,
             "retry_count": 0,
@@ -190,7 +190,7 @@
             "execution_quality_score": 85.0
           },
           {
-            "order_id": "order_1757539973745_2",
+            "order_id": "order_1757540298579_1",
             "client_order_id": null,
             "status": "OrderStatus.FILLED",
             "filled_amount": "0.2475",
@@ -198,9 +198,9 @@
             "total_cost": "0",
             "fees_paid": "0",
             "transaction_hash": "mock_tx_4",
-            "execution_time_ms": 216.97211265563965,
+            "execution_time_ms": 163.20323944091797,
             "slippage_realized": 0.0,
-            "route_used": "route_1757539973",
+            "route_used": "route_1757540298",
             "wallet_used": "grid_trading_wallet",
             "error_message": null,
             "retry_count": 0,
@@ -223,10 +223,10 @@
       "risk_controls_applied": true,
       "emergency_stop_functional": true,
       "details": {
-        "normal_order_id": "order_1757539975871_0",
+        "normal_order_id": "order_1757540300740_0",
         "high_risk_order_id": null,
         "normal_result": {
-          "order_id": "order_1757539975871_0",
+          "order_id": "order_1757540300740_0",
           "client_order_id": null,
           "status": "OrderStatus.FILLED",
           "filled_amount": "0.396",
@@ -234,9 +234,9 @@
           "total_cost": "0",
           "fees_paid": "0",
           "transaction_hash": "mock_tx_5",
-          "execution_time_ms": 140.92540740966797,
+          "execution_time_ms": 160.22610664367676,
           "slippage_realized": 0.0,
-          "route_used": "route_1757539975",
+          "route_used": "route_1757540300",
           "wallet_used": "momentum_wallet",
           "error_message": null,
           "retry_count": 0,
@@ -245,7 +245,7 @@
         },
         "high_risk_result": null,
         "risk_summary": {
-          "timestamp": "2025-09-10T22:32:56.889862",
+          "timestamp": "2025-09-10T22:38:21.758936",
           "emergency_stop_active": false,
           "overall_risk_level": "unknown",
           "daily_metrics": {
@@ -311,14 +311,14 @@
       "details": {
         "submitted_orders": 0,
         "analytics": {
-          "period_start": "2025-09-10 22:32:00.933421",
-          "period_end": "2025-09-10 22:33:00.933421",
+          "period_start": "2025-09-10 22:37:25.795251",
+          "period_end": "2025-09-10 22:38:25.795251",
           "total_orders": 6,
           "successful_orders": 0,
           "failed_orders": 6,
           "total_volume": "1.8315000000000001",
           "average_slippage": 0.0,
-          "average_execution_time": 179.60687478383383,
+          "average_execution_time": 155.57754039764404,
           "average_fees": "0",
           "total_price_improvement": "0",
           "success_rate": 0.0,
@@ -328,17 +328,17 @@
           "wallet_performance": {}
         },
         "comprehensive_status": {
-          "timestamp": "2025-09-10T22:33:00.941322",
+          "timestamp": "2025-09-10T22:38:25.800579",
           "status": {
             "emergency_stop": false,
             "active_orders": 0,
             "max_concurrent_orders": 20
           },
           "performance": {
-            "orders_last_hour": 26,
+            "orders_last_hour": 36,
             "success_rate": 0.0,
             "average_slippage": 0.0,
-            "average_execution_time": 192.83589720726013,
+            "average_execution_time": 183.42689311865604,
             "quality_score": 30.0
           },
           "configuration": {
@@ -365,18 +365,18 @@
       "cancellation_working": false,
       "cancelled_order_status": "filled",
       "details": {
-        "original_order_id": "order_1757539980942_0",
-        "cancel_order_id": "order_1757539981960_0",
+        "original_order_id": "order_1757540305800_0",
+        "cancel_order_id": "order_1757540306827_0",
         "status_history": [
           {
-            "timestamp": "2025-09-10T22:33:01.960467",
+            "timestamp": "2025-09-10T22:38:26.827150",
             "status": "filled",
             "filled_amount": 0.297
           }
         ],
         "cancel_success": false,
         "final_cancel_status": {
-          "order_id": "order_1757539981960_0",
+          "order_id": "order_1757540306827_0",
           "client_order_id": null,
           "status": "OrderStatus.FILLED",
           "filled_amount": "0.396",
@@ -384,9 +384,9 @@
           "total_cost": "0",
           "fees_paid": "0",
           "transaction_hash": "mock_tx_7",
-          "execution_time_ms": 164.65353965759277,
+          "execution_time_ms": 159.8055362701416,
           "slippage_realized": 0.0,
-          "route_used": "route_1757539982",
+          "route_used": "route_1757540306",
           "wallet_used": "momentum_wallet",
           "error_message": null,
           "retry_count": 0,
@@ -403,9 +403,9 @@
       "emergency_stop_can_be_cleared": true,
       "recovery_after_emergency": true,
       "details": {
-        "normal_order_id": "order_1757539982474_0",
+        "normal_order_id": "order_1757540307342_0",
         "emergency_order_id": null,
-        "recovery_order_id": "order_1757539982487_1",
+        "recovery_order_id": "order_1757540307362_1",
         "final_emergency_state": false
       }
     }

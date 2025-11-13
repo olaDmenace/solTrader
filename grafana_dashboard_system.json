@@ -1,0 +1,146 @@
+{
+  "dashboard": {
+    "uid": "soltrader-system",
+    "title": "SolTrader - System Health",
+    "description": "System health and resource monitoring",
+    "tags": [
+      "soltrader",
+      "system",
+      "health"
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "15s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Status",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "up{job=\"soltrader\"}",
+            "legendFormat": "Status"
+          }
+        ],
+        "options": {
+          "valueMaps": [
+            {
+              "value": 1,
+              "text": "UP"
+            },
+            {
+              "value": 0,
+              "text": "DOWN"
+            }
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "title": "Memory Usage %",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "soltrader_memory_usage_bytes / (2 * 1024^3) * 100",
+            "legendFormat": "Memory %"
+          }
+        ],
+        "options": {
+          "unit": "percent",
+          "thresholds": [
+            70,
+            85
+          ],
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 3,
+        "title": "CPU Usage %",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "soltrader_cpu_usage_percent",
+            "legendFormat": "CPU %"
+          }
+        ],
+        "options": {
+          "unit": "percent",
+          "thresholds": [
+            70,
+            85
+          ],
+          "colorMode": "background"
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Alerts",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 18,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "count(ALERTS{alertstate=\"firing\"})",
+            "legendFormat": "Alerts"
+          }
+        ],
+        "options": {
+          "unit": "short",
+          "colorMode": "background",
+          "thresholds": [
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "title": "Resource Usage Over Time",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 4,
+          "w": 24,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "soltrader_memory_usage_bytes / 1024^3",
+            "legendFormat": "Memory (GB)"
+          },
+          {
+            "expr": "soltrader_cpu_usage_percent / 100",
+            "legendFormat": "CPU (fraction)"
+          }
+        ],
+        "options": {}
+      }
+    ]
+  },
+  "overwrite": true
+}

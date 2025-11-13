@@ -30,29 +30,29 @@ from models.trade import Trade, TradeDirection, TradeType
 
 # Core trading dependencies (preserved from original)
 try:
-    from src.trading.market_regime import MarketRegimeDetector, MarketRegimeType, MarketState
+    from utils.market_regime import MarketRegimeDetector, MarketRegimeType, MarketState
 except ImportError:
     MarketRegimeDetector = None
     MarketRegimeType = None
     MarketState = None
 
 try:
-    from src.trading.enhanced_signals import EnhancedSignalGenerator
+    from utils.enhanced_signals import EnhancedSignalGenerator
 except ImportError:
     EnhancedSignalGenerator = None
 
 try:
-    from src.trading.signals import SignalGenerator
+    from utils.signals import SignalGenerator
 except ImportError:
     SignalGenerator = None
 
 try:
-    from src.trading.market_analyzer import MarketAnalyzer
+    from utils.market_analyzer import MarketAnalyzer
 except ImportError:
     MarketAnalyzer = None
 
 try:
-    from src.trading.performance import PerformanceMonitor
+    from utils.performance import PerformanceMonitor
 except ImportError:
     PerformanceMonitor = None
 
@@ -61,7 +61,7 @@ try:
 except ImportError:
     # Fallback to old risk manager for backward compatibility
     try:
-        from src.trading.risk import RiskManager, MarketCondition
+        from management.risk_manager import UnifiedRiskManager as RiskManager, MarketCondition
     except ImportError:
         RiskManager = None
         MarketCondition = None
@@ -127,7 +127,7 @@ class MomentumStrategy(BaseStrategy):
         
         # Signal processing components (with fallbacks)
         self.signal_generator = SignalGenerator(settings) if SignalGenerator else None
-        self.market_analyzer = MarketAnalyzer(settings) if MarketAnalyzer else None
+        self.market_analyzer = MarketAnalyzer(None, settings) if MarketAnalyzer else None  # Fixed: jupiter_client will be injected later
         self.performance_monitor = PerformanceMonitor(settings) if PerformanceMonitor else None
         self.risk_manager = RiskManager(settings) if RiskManager else None
         

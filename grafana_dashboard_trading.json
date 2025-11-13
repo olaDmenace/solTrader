@@ -1,0 +1,212 @@
+{
+  "dashboard": {
+    "uid": "soltrader-trading",
+    "title": "SolTrader - Trading Performance",
+    "description": "Comprehensive trading performance monitoring",
+    "tags": [
+      "soltrader",
+      "trading",
+      "performance"
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Portfolio Value (SOL)",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "soltrader_portfolio_value_sol",
+            "legendFormat": "Portfolio Value"
+          }
+        ],
+        "options": {
+          "unit": "SOL",
+          "decimals": 2
+        }
+      },
+      {
+        "id": 2,
+        "title": "Total PnL (SOL)",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "sum(soltrader_pnl_total)",
+            "legendFormat": "Total PnL"
+          }
+        ],
+        "options": {
+          "unit": "SOL",
+          "decimals": 2,
+          "colorMode": "value"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Win Rate %",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "avg(soltrader_win_rate) * 100",
+            "legendFormat": "Win Rate"
+          }
+        ],
+        "options": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": [
+            40,
+            60
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "title": "Daily Trades",
+        "type": "singlestat",
+        "gridPos": {
+          "x": 18,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "increase(soltrader_trades_total[24h])",
+            "legendFormat": "Trades"
+          }
+        ],
+        "options": {
+          "unit": "short",
+          "decimals": 0
+        }
+      },
+      {
+        "id": 5,
+        "title": "Trade Execution Times",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 4,
+          "w": 12,
+          "h": 6
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, soltrader_trade_execution_duration_seconds_bucket)",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, soltrader_trade_execution_duration_seconds_bucket)",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "options": {
+          "unit": "seconds",
+          "yAxes": [
+            {
+              "logBase": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Strategy PnL by Type",
+        "type": "graph",
+        "gridPos": {
+          "x": 12,
+          "y": 4,
+          "w": 12,
+          "h": 6
+        },
+        "targets": [
+          {
+            "expr": "soltrader_pnl_total",
+            "legendFormat": "{{strategy}}"
+          }
+        ],
+        "options": {
+          "unit": "SOL",
+          "legend": {
+            "show": true,
+            "values": true
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "API Request Duration",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 10,
+          "w": 12,
+          "h": 6
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, soltrader_api_request_duration_seconds_bucket)",
+            "legendFormat": "{{api}} - 95th percentile"
+          }
+        ],
+        "options": {
+          "unit": "seconds",
+          "yAxes": [
+            {
+              "logBase": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": 8,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {
+          "x": 12,
+          "y": 10,
+          "w": 12,
+          "h": 6
+        },
+        "targets": [
+          {
+            "expr": "soltrader_memory_usage_bytes / 1024 / 1024",
+            "legendFormat": "{{component}}"
+          }
+        ],
+        "options": {
+          "unit": "MB",
+          "yAxes": [
+            {
+              "min": 0
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

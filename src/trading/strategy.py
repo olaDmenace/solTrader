@@ -341,7 +341,7 @@ class TradingStrategy(TradingStrategyProtocol):
                     "initial_balance": (
                         self.state.paper_balance 
                         if self.state.mode == TradingMode.PAPER
-                        else balance
+                        else await self.wallet.get_balance() or 0.0
                     )
                 },
             )
@@ -530,7 +530,8 @@ class TradingStrategy(TradingStrategyProtocol):
 
     async def _get_volume_data(self) -> List[float]:
         """Get volume data for market analysis"""
-        market_data = await self.jupiter.get_market_depth("So11111111111111111111111111111111111111112")
+        sol_mint = "So11111111111111111111111111111111111111112"
+        market_data = await self.jupiter.get_market_depth(sol_mint, sol_mint)
         return [float(vol) for vol in market_data.get('recent_volumes', [])] if market_data else []
 
     def _classify_market_regime(self, analysis: Any) -> str:
@@ -727,8 +728,9 @@ class TradingStrategy(TradingStrategyProtocol):
                         logger.warning(f"[MONITOR] Cannot get price for {token_address[:8]}...")
                         continue
                         
-                    # Get volume data for momentum analysis
-                    market_depth = await self.jupiter.get_market_depth(token_address)
+                    # Get volume data for momentum analysis  
+                    sol_mint = "So11111111111111111111111111111111111111112"
+                    market_depth = await self.jupiter.get_market_depth(token_address, sol_mint)
                     current_volume = float(market_depth.get('volume24h', 0)) if market_depth else 0
                     
                     # Update position with price and volume
@@ -814,8 +816,9 @@ class TradingStrategy(TradingStrategyProtocol):
                         logger.warning(f"Failed to get current price for {token_address}")
                         continue
                         
-                    # Get volume data for momentum analysis
-                    market_depth = await self.jupiter.get_market_depth(token_address)
+                    # Get volume data for momentum analysis  
+                    sol_mint = "So11111111111111111111111111111111111111112"
+                    market_depth = await self.jupiter.get_market_depth(token_address, sol_mint)
                     current_volume = float(market_depth.get('volume24h', 0)) if market_depth else 0
                     
                     # Update position with price and volume data
@@ -867,7 +870,7 @@ class TradingStrategy(TradingStrategyProtocol):
             prices = [float(p['price']) for p in price_data] if price_data else []
             
             # Get volume data
-            market_data = await self.jupiter.get_market_depth(sol_address)
+            market_data = await self.jupiter.get_market_depth(sol_address, sol_address)
             volumes = market_data.get('recent_volumes', []) if market_data else []
             
             return prices, [float(v) for v in volumes]
@@ -1604,8 +1607,8 @@ class TradingStrategy(TradingStrategyProtocol):
             # Use paper trading specific position size limits if in paper mode
             is_paper_trading = (self.state.mode == TradingMode.PAPER)
             if is_paper_trading:
-                max_position_size = self.settings.PAPER_MAX_POSITION_SIZE
-                base_size = self.settings.PAPER_BASE_POSITION_SIZE
+                max_position_size = getattr(self.settings, 'PAPER_MAX_POSITION_SIZE', self.settings.MAX_POSITION_SIZE)
+                base_size = getattr(self.settings, 'PAPER_BASE_POSITION_SIZE', 0.02)  # Default base size
                 logger.info(f"[PAPER] Using paper trading position sizing - max: {max_position_size:.2%}, base: {base_size:.4f} SOL")
             else:
                 max_position_size = self.settings.MAX_POSITION_SIZE
@@ -1672,7 +1675,7 @@ class TradingStrategy(TradingStrategyProtocol):
             
             # Use paper trading specific slippage or live trading slippage
             if is_paper_trading:
-                base_slippage = self.settings.PAPER_TRADING_SLIPPAGE  # 50% for paper trading
+                base_slippage = getattr(self.settings, 'PAPER_TRADING_SLIPPAGE', self.settings.MAX_SLIPPAGE)
                 logger.info(f"[PAPER] Using paper trading slippage: {base_slippage:.1%}")
             else:
                 base_slippage = self.settings.MAX_SLIPPAGE  # Use configured live trading slippage
@@ -2686,7 +2689,8 @@ class TradingStrategy(TradingStrategyProtocol):
             
             # Method 4: Try market depth API for fallback pricing
             try:
-                market_depth = await self.jupiter.get_market_depth(token_address)
+                sol_mint = "So11111111111111111111111111111111111111112"
+                market_depth = await self.jupiter.get_market_depth(token_address, sol_mint)
                 if market_depth and 'price' in market_depth:
                     price_sol = float(market_depth['price'])
                     logger.debug(f"[PRICE] Market depth price for {token_address[:8]}...: {price_sol:.8f} SOL")

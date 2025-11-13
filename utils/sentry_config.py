@@ -8,6 +8,7 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from typing import Optional
 import logging
+from dotenv import load_dotenv
 
 # Configure Sentry logging integration
 sentry_logging = LoggingIntegration(
@@ -31,6 +32,8 @@ def init_sentry(
     Returns:
         bool: True if Sentry initialized successfully, False otherwise
     """
+    # Load environment variables
+    load_dotenv()
     sentry_dsn = os.getenv('SENTRY_DSN')
     
     if not sentry_dsn:
@@ -54,13 +57,13 @@ def init_sentry(
             ],
             # Release tracking
             release=os.getenv('APP_VERSION', 'unknown'),
-            # User context
-            initial_scope={
-                'user': {
-                    'wallet': os.getenv('WALLET_ADDRESS', 'unknown')
-                }
-            }
+            # Send default PII (user data)
+            send_default_pii=True
         )
+        
+        # Set user context after initialization
+        with sentry_sdk.configure_scope() as scope:
+            scope.set_user({"wallet": os.getenv('WALLET_ADDRESS', 'unknown')})
         logging.info(f"Sentry initialized successfully for environment: {environment}")
         return True
         

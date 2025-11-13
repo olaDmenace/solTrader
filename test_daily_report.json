@@ -1,0 +1,33 @@
+{
+  "report_type": "daily",
+  "generated_at": "2025-09-11T10:14:56.544430",
+  "period": {
+    "start": "2025-09-10T10:14:56.544430",
+    "end": "2025-09-11T10:14:56.544430"
+  },
+  "summary": {
+    "system_health": "healthy",
+    "total_trades": 45,
+    "total_pnl_sol": 12.5,
+    "win_rate": 0.67,
+    "uptime_percent": 99.8,
+    "alerts_triggered": 2
+  },
+  "performance_metrics": {
+    "avg_execution_time_ms": 1800,
+    "api_success_rate": 0.995,
+    "memory_usage_avg_mb": 1200,
+    "cpu_usage_avg_percent": 45
+  },
+  "alerts": {
+    "critical": 0,
+    "warnings": 2,
+    "resolved": 2,
+    "avg_resolution_time_minutes": 15
+  },
+  "recommendations": [
+    "System performance is within normal ranges",
+    "Consider monitoring API response times during peak hours",
+    "Memory usage trending upward - monitor closely"
+  ]
+}

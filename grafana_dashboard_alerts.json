@@ -1,0 +1,56 @@
+{
+  "dashboard": {
+    "uid": "soltrader-alerts",
+    "title": "SolTrader - Alert Management",
+    "description": "Alert monitoring and management",
+    "tags": [
+      "soltrader",
+      "alerts",
+      "monitoring"
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Alert Summary",
+        "type": "table",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "count by (alertname, severity) (ALERTS)",
+            "format": "table"
+          }
+        ],
+        "options": {}
+      },
+      {
+        "id": 2,
+        "title": "Alert History (24h)",
+        "type": "graph",
+        "gridPos": {
+          "x": 0,
+          "y": 8,
+          "w": 24,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "increase(soltrader_alerts_total[1h])",
+            "legendFormat": "{{rule}} - {{severity}}"
+          }
+        ],
+        "options": {}
+      }
+    ]
+  },
+  "overwrite": true
+}

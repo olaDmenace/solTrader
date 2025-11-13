@@ -80,7 +80,7 @@
   "wallet_metrics": {
     "momentum_wallet": {
       "wallet_id": "momentum_wallet",
-      "timestamp": "2025-09-10T22:32:50.955836",
+      "timestamp": "2025-09-10T22:38:15.811886",
       "allocated_capital": 350.0,
       "current_balance": 350.0,
       "available_balance": 315.0,
@@ -110,7 +110,7 @@
     },
     "mean_reversion_wallet": {
       "wallet_id": "mean_reversion_wallet",
-      "timestamp": "2025-09-10T22:32:50.955836",
+      "timestamp": "2025-09-10T22:38:15.811886",
       "allocated_capital": 300.0,
       "current_balance": 300.0,
       "available_balance": 240.0,
@@ -140,7 +140,7 @@
     },
     "grid_trading_wallet": {
       "wallet_id": "grid_trading_wallet",
-      "timestamp": "2025-09-10T22:32:50.955836",
+      "timestamp": "2025-09-10T22:38:15.811886",
       "allocated_capital": 200.0,
       "current_balance": 200.0,
       "available_balance": 170.0,
@@ -170,7 +170,7 @@
     },
     "arbitrage_wallet": {
       "wallet_id": "arbitrage_wallet",
-      "timestamp": "2025-09-10T22:32:50.955836",
+      "timestamp": "2025-09-10T22:38:15.811886",
       "allocated_capital": 150.0,
       "current_balance": 150.0,
       "available_balance": 135.0,
@@ -206,5 +206,5 @@
     "grid_trading": 0.5,
     "arbitrage": 0.5
   },
-  "last_updated": "2025-09-10T22:33:03.526529"
+  "last_updated": "2025-09-10T22:38:28.430271"
 }

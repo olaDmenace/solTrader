@@ -14,7 +14,9 @@
       "Bash(dir:*)",
       "Bash(del \"src\\api\\jupiter.py\" \"src\\api\\jupiter_fix.py\")",
       "Bash(sed:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(if not exist config mkdir config)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []

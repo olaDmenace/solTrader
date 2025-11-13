@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 from datetime import datetime, timedelta
 
-from .technical_indicators import TechnicalIndicators, BollingerResult, MACDResult, IndicatorResult
+from utils.technical_indicators import TechnicalIndicators, BollingerResult, MACDResult, IndicatorResult
 
 logger = logging.getLogger(__name__)
 

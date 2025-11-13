@@ -888,3 +888,23 @@ class PortfolioRiskManager:
         except Exception as e:
             logger.error(f"[RISK_MANAGER] Error getting risk status: {e}")
             return {'status': 'error', 'message': str(e)}
+    
+    async def log_system_metric(self, metric_name: str, value: float, metadata: Dict[str, Any] = None):
+        """
+        Log system metric (compatibility method for portfolio monitoring)
+        
+        Args:
+            metric_name: Name of the metric
+            value: Metric value
+            metadata: Optional metadata dict
+        """
+        try:
+            # Simple logging implementation for compatibility
+            logger = logging.getLogger(__name__)
+            logger.debug(f"[PORTFOLIO_METRIC] {metric_name}: {value}")
+            
+            # Could extend to store in risk database if needed
+            # await self.db.store_metric(metric_name, value, metadata)
+            
+        except Exception as e:
+            logger.error(f"[RISK_MANAGER] Error logging system metric {metric_name}: {e}")

@@ -29,7 +29,7 @@ from models.trade import Trade, TradeDirection, TradeType
 
 # Technical indicators (preserved from original implementation)
 try:
-    from src.trading.technical_indicators import RSICalculator, BollingerBands, MovingAverage, ATRCalculator
+    from utils.technical_indicators import RSICalculator, BollingerBands, MovingAverage, ATRCalculator
 except ImportError:
     # Fallback implementation for basic calculations
     class RSICalculator:

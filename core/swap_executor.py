@@ -24,8 +24,9 @@ from utils.jito_integration import JitoRPCProvider
 
 # Import adjustments for new structure (will be updated during import reference update)
 try:
-    from src.trading.unverified_token_handler import UnverifiedTokenHandler
-    from src.risk import get_risk_manager, RiskLevel
+    from utils.unverified_token_handler import UnverifiedTokenHandler
+    from management.risk_manager import UnifiedRiskManager as RiskManager, RiskLevel
+    def get_risk_manager(): return RiskManager()
 except ImportError:
     # Fallback during migration
     UnverifiedTokenHandler = None
